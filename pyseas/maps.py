@@ -13,7 +13,7 @@ import cartopy.feature as cfeature
 land_fill = '#374a6d'
 land_color = '#0A1738'
 
-def add_land(ax, scale='10m', edgecolor=color, facecolor=fill, **kwargs):
+def add_land(ax, scale='10m', edgecolor=land_color, facecolor=land_fill, **kwargs):
     """Add land to an existing map
 
     Parameters
