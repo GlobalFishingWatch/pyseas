@@ -18,6 +18,17 @@ def plot_tracks_panel(timestamps, lons, lats, track_ids=None ,
                  alpha_valid_pts=0.5, alpha_invalid_pts=0.5,
                  min_track_pts=5, padding_degrees=None, 
                  extent=None):
+    """
+
+    Example Usage:
+
+    fig = plt.figure(figsize=(12, 8), facecolor=(0.95, 0.95, 0.95))
+    ts = [pd.Timestamp(x).to_pydatetime() for x in df.timestamp]
+    ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(ts, df.lon, df.lat, df.track_id )
+    fig.suptitle(ssvid + ' - tracks ' + new_msgs.iloc[0].which, y=0.93)    
+    plt.show() 
+
+    """
     
     assert padding_degrees is None or extent is None
     if padding_degrees is None:
