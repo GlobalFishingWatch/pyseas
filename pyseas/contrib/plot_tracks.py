@@ -4,9 +4,15 @@ import cartopy
 import cartopy.feature as cfeature
 import numpy as np
 from collections import Counter
+from cycler import cycler
 from .. import maps
 
 DEFAULT_PADDING_DEG = 0.1
+
+
+# First color in default cycler is too close to land, so replace for plotting
+# tracks. TODO: replace with style sheets?
+track_cycler = cycler(color=plt.rcParams['axes.prop_cycle'].by_key()['color'][1:])
 
 def plot_tracks_panel(timestamps, lons, lats, track_ids=None ,
                  alpha_valid_pts=0.5, alpha_invalid_pts=0.5,
@@ -77,13 +83,13 @@ def plot_tracks_panel(timestamps, lons, lats, track_ids=None ,
         ax3.plot(invalid_times, lats[~valid_mask], '+', markersize=2, 
              alpha=alpha_invalid_pts, color='red')
         
-    for i, m in enumerate(masks):
+    for i, (m, props) in enumerate(zip(masks, track_cycler)):
         x = lons[m]
         y = lats[m]
-        maps.add_plot(ax1, x, y, '-', label=id_list[i], linewidth=0.5)
+        maps.add_plot(ax1, x, y, '-', label=id_list[i], linewidth=0.5, **props)
         ts = timestamps[m]
-        ax2.plot(ts, lons[m], '-')
-        ax3.plot(ts, lats[m], '-')
+        ax2.plot(ts, lons[m], '-', linewidth=0.5, **props)
+        ax3.plot(ts, lats[m], '-', linewidth=0.5, **props)
     ax1.set_ylabel('lat')
     ax1.set_xlabel('lon')
     ax2.set_ylabel('lon')
