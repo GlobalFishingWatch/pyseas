@@ -1,20 +1,14 @@
 """Plotting routines for GFW 
-
-
-
-
 """
-
 import matplotlib.pyplot as plt
 import cartopy
 import cartopy.feature as cfeature
+from . import colors
 
 identity = cartopy.crs.PlateCarree()
 
-land_fill = '#374a6d'
-land_color = '#0A1738'
 
-def add_land(ax, scale='10m', edgecolor=land_color, facecolor=land_fill, **kwargs):
+def add_land(ax, scale='10m', edgecolor=colors.land.border, facecolor=colors.land.fill, **kwargs):
     """Add land to an existing map
 
     Parameters
@@ -37,7 +31,7 @@ def add_land(ax, scale='10m', edgecolor=land_color, facecolor=land_fill, **kwarg
     """
     land = cfeature.NaturalEarthFeature('physical', 'land', scale,
                                             edgecolor=edgecolor,
-                                            facecolor=edgecolor,
+                                            facecolor=facecolor,
                                             **kwargs)
     return ax.add_feature(land)
 
