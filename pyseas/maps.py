@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import cartopy
 import cartopy.feature as cfeature
 
+identity = cartopy.crs.PlateCarree()
 
 land_fill = '#374a6d'
 land_color = '#0A1738'
@@ -61,7 +62,7 @@ def add_raster(ax, raster, extent=(-180, 180, -90, 90), origin='upper', **kwargs
     -------
     AxesImage
     """
-    return ax.imshow(raster, transform=cartopy.crs.PlateCarree(), 
+    return ax.imshow(raster, transform=identity, 
                         extent=extent, origin=origin, **kwargs)
 
 
@@ -85,11 +86,11 @@ def add_plot(ax, *args, **kwargs):
     A list of Line2D objects.
     """
     if 'transform' not in kwargs:
-        kwargs['transform'] = cartopy.crs.PlateCarree()
+        kwargs['transform'] = identity
     ax.plot(*args,  **kwargs)
 
 
-def create_map(projection=cartopy.crs.EqualEarth(), hide_axes=True):
+def create_map(subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(), hide_axes=True):
     """Draw a GFW themed map
 
     Parameters
@@ -102,7 +103,10 @@ def create_map(projection=cartopy.crs.EqualEarth(), hide_axes=True):
     -------
     GeoAxes
     """
-    ax = plt.axes(projection=projection)
+    if not isinstance(subplot, tuple):
+        # Allow grridspec to be passed through
+        subplot = (subplot,)
+    ax = plt.subplot(*subplot, projection=projection)
     if hide_axes:
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
@@ -110,7 +114,7 @@ def create_map(projection=cartopy.crs.EqualEarth(), hide_axes=True):
 
 
 
-def plot_raster(raster, projection=cartopy.crs.EqualEarth(), hide_axes=True, **kwargs):
+def plot_raster(raster, subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(), hide_axes=True, **kwargs):
     """Draw a GFW themed map over a raster
 
     Parameters
@@ -128,7 +132,7 @@ def plot_raster(raster, projection=cartopy.crs.EqualEarth(), hide_axes=True, **k
     -------
     (GeoAxes, AxesImage)
     """
-    ax = create_map(projection, hide_axes)
+    ax = create_map(subplot, projection, hide_axes)
     im = add_raster(ax, raster, **kwargs)
     add_land(ax)
     return  ax, im
