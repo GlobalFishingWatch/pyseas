@@ -12,11 +12,11 @@ Unofficial GFW Colormaps
 
 Colormaps made by Juan Carlos:
 
-jc_presence
-jc_reception
-jc_linearorange
-jc_linearblue
-jc_linearpink
+unofficial.jc_presence
+unofficial.jc_reception
+unofficial.jc_linearorange
+unofficial.jc_linearblue
+unofficial.jc_linearpink
 """
 from matplotlib import colors
 
@@ -44,10 +44,11 @@ reception = _tuple2cmap('reception', ('#ff4573', '#7b2e8d', '#093b76', '#0c276c'
 fishing = _tuple2cmap('fishing', ('#0c276c', '#3b9088', '#eeff00', '#ffffff')) 
 presence = _tuple2cmap('presence', ('#0c276c', '#114685','#00ffc3','#ffffff'))
 
+class _Unofficial(object):
+  jc_presence  = _tuple2cmap('jc_presence', ('#3359A8', '#16A3A4', '#00FFC3', '#ffffff'))
+  jc_reception = _tuple2cmap('jc_reception', ('#5E0C20', '#2927A8', '#41FFA7', '#ffffff'))
+  jc_linearorange = _tuple2cmap('jc_linearorange', ('#0C276C', '#824158', '#FF9500', '#ffffff'))
+  jc_linearblue = _tuple2cmap('jc_linearblue', ('#0C276C', '#1D5780', '#00FFC3', '#ffffff'))
+  jc_linearpink = _tuple2cmap('jc_linearpink', ('#0C276C', '#4E289B', '#F74559', '#ffffff'))
 
-jc_presence  = _tuple2cmap('jc_presence', ('#3359A8', '#16A3A4', '#00FFC3', '#ffffff'))
-jc_reception = _tuple2cmap('jc_reception', ('#5E0C20', '#2927A8', '#41FFA7', '#ffffff'))
-jc_linearorange = _tuple2cmap('jc_linearorange', ('#0C276C', '#824158', '#FF9500', '#ffffff'))
-jc_linearblue = _tuple2cmap('jc_linearblue', ('#0C276C', '#1D5780', '#00FFC3', '#ffffff'))
-jc_linearpink = _tuple2cmap('jc_linearpink', ('#0C276C', '#4E289B', '#F74559', '#ffffff'))
-
+unofficial = _Unofficial()
