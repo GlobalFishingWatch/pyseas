@@ -1,4 +1,29 @@
 """Plotting routines for GFW 
+
+
+Examples
+--------
+
+Plot a world raster with a custom colormap
+
+    _ = maps.plot_raster(img, cmap=pyseas.cm.reception)
+
+
+Plot a world raster with the map centered over the pacific
+(Note that the raster is still assumed to extend from -180 to 180)
+
+    projection = cartopy.crs.EqualEarth(central_longitude=180)
+    _ = maps.plot_raster(img, projection=projection)
+
+
+Add a `colorbar` to a raster plot
+
+    ax, im = maps.plot_raster(img)
+    cb = fig.colorbar(im, orientation='vertical', shrink=0.8)
+
+
+See also `contrib.plot_tracks` for examples of using `add_plot`
+
 """
 import matplotlib.pyplot as plt
 import cartopy
