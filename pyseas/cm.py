@@ -18,8 +18,8 @@ unofficial.jc_linearorange
 unofficial.jc_linearblue
 unofficial.jc_linearpink
 """
-from matplotlib import colors
-import numpy as np
+from matplotlib import colors as _colors
+import numpy as _np
 
 
 def _hex2cmap(name, hex_colors):
@@ -37,14 +37,14 @@ def _hex2cmap(name, hex_colors):
     '''
     def ramp(i0, i1):
         float_colors = [(int(x[i0:i1], 16) / 256.0) for x in hex_colors]
-        ramp = zip(np.linspace(0, 1, len(hex_colors), endpoint=True), float_colors, float_colors)
+        ramp = zip(_np.linspace(0, 1, len(hex_colors), endpoint=True), float_colors, float_colors)
         return tuple(ramp)
 
     cdict = { 'red': ramp(1, 3),
               'green': ramp(3, 5),
               'blue':  ramp(5, 7) }
 
-    cmap = colors.LinearSegmentedColormap(name, cdict, 256)
+    cmap = _colors.LinearSegmentedColormap(name, cdict, 256)
     cmap.set_bad(alpha = 0.0)
     return cmap
 
