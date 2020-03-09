@@ -14,6 +14,15 @@ DEFAULT_PADDING_DEG = 0.1
 # tracks. TODO: replace with style sheets?
 track_cycler = cycler(color=plt.rcParams['axes.prop_cycle'].by_key()['color'][1:])
 
+def lon_average(lons):
+    cos_avg = np.cos(np.radians(lons)).mean()
+    sin_avg = np.sin(np.radians(lons)).mean()
+    if cos_avg == sin_avg == 0:
+        return 0
+    else:
+        return np.degrees(np.arctan2(sin_avg, cos_avg))
+
+
 def plot_tracks_panel(timestamps, lons, lats, track_ids=None ,
                  alpha_valid_pts=0.5, alpha_invalid_pts=0.5,
                  min_track_pts=5, padding_degrees=None, 
@@ -39,7 +48,7 @@ def plot_tracks_panel(timestamps, lons, lats, track_ids=None ,
     lons = np.asarray(lons)
     lats = np.asarray(lats)
     ids = np.array(['1' for x in lons]) if (track_ids is None) else np.asarray(track_ids)
-    
+
     id_mask = [x not in ('', None) for x in ids]
     id_list = sorted([k for (k, n) in 
                       Counter(ids[id_mask]).most_common() 
@@ -57,20 +66,27 @@ def plot_tracks_panel(timestamps, lons, lats, track_ids=None ,
         masks.append(mask)
         valid_mask |= mask
         
+    central_longitude = lon_average(lons)
+    projection = cartopy.crs.PlateCarree(central_longitude=central_longitude)
+
+    # Correct for central longitude
+    anti_longitude = central_longitude + 180
+    lons = (lons + anti_longitude) % 360 - anti_longitude
+
     valid_lons = lons[valid_mask]
     valid_lats = lats[valid_mask]
     
     if extent is None:
-        lon0 = max(valid_lons.min() - padding_degrees, -180)
+        lon0 = valid_lons.min() - padding_degrees
         lat0 = max(valid_lats.min() - padding_degrees, -90)
-        lon1 = min(valid_lons.max() + padding_degrees, 180)
+        lon1 = valid_lons.max() + padding_degrees
         lat1 = min(valid_lats.max() + padding_degrees, 90)
         extent = (lon0, lon1, lat0, lat1)
     else:
         (lon0, lon1, lat0, lat1) = extent
     
     gs = gridspec.GridSpec(3, 1, height_ratios=[3, 1, 1])
-    ax1 = maps.create_map(subplot=gs[0], hide_axes=False, projection=maps.identity)
+    ax1 = maps.create_map(subplot=gs[0], hide_axes=False, projection=projection)
     ax1.set_extent(extent, crs=maps.identity)
     maps.add_land(ax1)
     ax2 = plt.subplot(gs[1])
@@ -86,7 +102,7 @@ def plot_tracks_panel(timestamps, lons, lats, track_ids=None ,
              alpha=alpha_valid_pts, color='grey')
     
     if (~valid_mask).sum():
-        ax1.plot(valid_lons, valid_lats, '+', markersize=2, 
+        maps.add_plot(ax1, lons[~valid_mask], lats[~valid_mask], '+', markersize=2,
                  alpha=alpha_invalid_pts, color='red', transform=maps.identity)
         invalid_times = timestamps[~valid_mask]
         ax2.plot(invalid_times, lons[~valid_mask], '+', markersize=2, 
