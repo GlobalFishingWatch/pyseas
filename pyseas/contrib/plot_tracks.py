@@ -92,16 +92,17 @@ def plot_tracks_panel(timestamps, lons, lats, track_ids=None ,
     ax2 = plt.subplot(gs[1])
     ax3 = plt.subplot(gs[2])
 
-    maps.add_plot(ax1, valid_lons, valid_lats, '.', markersize=2, 
-             alpha=alpha_valid_pts, color='grey')
+    if alpha_valid_pts > 0:
+        maps.add_plot(ax1, valid_lons, valid_lats, '.', markersize=2, 
+                 alpha=alpha_valid_pts, color='grey')
 
-    valid_times = timestamps[valid_mask]
-    ax2.plot(valid_times, valid_lons, '.', markersize=2, 
-             alpha=alpha_valid_pts, color='grey')
-    ax3.plot(valid_times, valid_lats, '.', markersize=3, 
-             alpha=alpha_valid_pts, color='grey')
+        valid_times = timestamps[valid_mask]
+        ax2.plot(valid_times, valid_lons, '.', markersize=2, 
+                 alpha=alpha_valid_pts, color='grey')
+        ax3.plot(valid_times, valid_lats, '.', markersize=3, 
+                 alpha=alpha_valid_pts, color='grey')
     
-    if (~valid_mask).sum():
+    if alpha_invalid_pts > 0 and (~valid_mask).sum():
         maps.add_plot(ax1, lons[~valid_mask], lats[~valid_mask], '+', markersize=2,
                  alpha=alpha_invalid_pts, color='red', transform=maps.identity)
         invalid_times = timestamps[~valid_mask]

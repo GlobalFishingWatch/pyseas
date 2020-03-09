@@ -33,7 +33,7 @@ from . import colors
 identity = cartopy.crs.PlateCarree()
 
 
-def add_land(ax, scale='10m', edgecolor=colors.land.border, facecolor=colors.land.fill, **kwargs):
+def add_land(ax, scale='10m', edgecolor=colors.dark.border, facecolor=colors.dark.land, **kwargs):
     """Add land to an existing map
 
     Parameters
@@ -109,12 +109,15 @@ def add_plot(ax, *args, **kwargs):
     ax.plot(*args,  **kwargs)
 
 
-def create_map(subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(), hide_axes=True):
+def create_map(subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(), 
+               bg_color=colors.dark.ocean, hide_axes=True):
     """Draw a GFW themed map
 
     Parameters
     ----------
+    subplot : tuple or GridSpec
     projection : cartopy.crs.Projection, optional
+    bg_color : str or tuple, optional
     hide_axes : bool, optional
         if `true`, hide x and y axes
     
@@ -126,6 +129,8 @@ def create_map(subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(), hide_axes
         # Allow grridspec to be passed through
         subplot = (subplot,)
     ax = plt.subplot(*subplot, projection=projection)
+    ax.background_patch.set_facecolor(bg_color)
+
     if hide_axes:
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
@@ -133,13 +138,15 @@ def create_map(subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(), hide_axes
 
 
 
-def plot_raster(raster, subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(), hide_axes=True, **kwargs):
+def plot_raster(raster, subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(),
+                bg_color=colors.dark.ocean, hide_axes=True, **kwargs):
     """Draw a GFW themed map over a raster
 
     Parameters
     ----------
     raster : 2D array
     projection : cartopy.crs.Projection, optional
+    bg_color : str or tuple, optional
     hide_axes : bool
         if `true`, hide x and y axes
     
@@ -151,7 +158,7 @@ def plot_raster(raster, subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(), 
     -------
     (GeoAxes, AxesImage)
     """
-    ax = create_map(subplot, projection, hide_axes)
+    ax = create_map(subplot, projection, bg_color, hide_axes)
     im = add_raster(ax, raster, **kwargs)
     add_land(ax)
     return  ax, im
