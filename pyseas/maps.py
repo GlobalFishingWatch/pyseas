@@ -28,9 +28,13 @@ See also `contrib.plot_tracks` for examples of using `add_plot`
 import matplotlib.pyplot as plt
 import cartopy
 import cartopy.feature as cfeature
+import os
 from . import colors
+import geopandas as gpd
 
 identity = cartopy.crs.PlateCarree()
+
+root = os.path.dirname(os.path.dirname(__file__))
 
 
 def add_land(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
@@ -56,8 +60,8 @@ def add_land(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **
     -------
     FeatureArtist
     """
-    edgecolor = edgecolor or plt.rcParams.get('gfw.colors.border', colors.dark.ocean)
-    facecolor = facecolor or plt.rcParams.get('gfw.colors.land', colors.dark.ocean)
+    edgecolor = edgecolor or plt.rcParams.get('gfw.border.color', colors.dark.ocean)
+    facecolor = facecolor or plt.rcParams.get('gfw.land.color', colors.dark.ocean)
     linewidth = linewidth or plt.rcParams.get('gfw.border.linewidth', 0.4)
     land = cfeature.NaturalEarthFeature('physical', 'land', scale,
                                             edgecolor=edgecolor,
@@ -115,6 +119,42 @@ def add_plot(ax, *args, **kwargs):
     ax.plot(*args,  **kwargs)
 
 
+_eezs = {}
+
+def add_eezs(ax, use_boundaries=True, facecolor='none', edgecolor=None, alpha=1):
+    """Add EEZs to an existing map
+
+    Parameters
+    ----------
+    ax : matplotlib axes object
+    use_boundaries : bool, optional
+        use the boundaries version of EEZs which is smaller and faster, but not as detailed.
+    facecolor : str, optional
+    edgecolor: None, optional
+        Can be styled with 'gfw.eez.bordercolor'
+    alpha: float, optional
+
+
+    Returns
+    -------
+    FeatureArtist
+    """
+    if use_boundaries:
+        path = os.path.join(root, 'untracked/data/eez_boundaries_v11.gpkg')
+    else:
+        path = os.path.join(root, 'untracked/data/eez_v11.gpkg')
+    if path not in _eezs:
+        try:
+            _eezs[path] = gpd.read_file(path)
+        except FileNotFoundError:
+            raise FileNotFoundError('Eezs must be installed into the `untracked/data/` directory')
+
+    eezs = _eezs[path]
+    edgecolor = edgecolor or plt.rcParams.get('gfw.eez.bordercolor', colors.dark.eez)
+    return ax.add_geometries(eezs.geometry, crs=identity,
+                  alpha=alpha, facecolor=facecolor, edgecolor=edgecolor)
+
+
 def create_map(subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(), 
                bg_color=None, hide_axes=True):
     """Draw a GFW themed map
@@ -131,7 +171,7 @@ def create_map(subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(),
     -------
     GeoAxes
     """
-    bg_color = bg_color or plt.rcParams.get('gfw.colors.ocean', colors.dark.ocean)
+    bg_color = bg_color or plt.rcParams.get('gfw.ocean.color', colors.dark.ocean)
     if not isinstance(subplot, tuple):
         # Allow grridspec to be passed through
         subplot = (subplot,)

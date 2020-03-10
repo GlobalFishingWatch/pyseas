@@ -36,7 +36,7 @@ def reload():
     imp.reload(styles)
     imp.reload(maps)
     imp.reload(cm)
-    imp.reload(contrib)
+    imp.reload(plot_tracks)
 reload()
 
 # %matplotlib inline
@@ -67,9 +67,20 @@ cb = fig.colorbar(im, orientation='vertical', shrink=0.8, pad=0.02,
 
 # ## Use a context manager to switch to light style
 
+reload()
 with plt.rc_context(styles.light), plt.rc_context({'gfw.border.linewidth' : 0}):
     fig = plt.figure(figsize=(18, 6))
     ax, im = maps.plot_raster(img[::10, ::10], cmap=cm.presence)
+
+import geopandas as gpd
+eezs = gpd.read_file("../untracked/data/eez_boundaries_v11.gpkg")
+
+reload()
+with plt.rc_context(styles.dark):
+    fig = plt.figure(figsize=(18, 6))
+    projection = cartopy.crs.EqualEarth(central_longitude=-160)
+    ax, im = maps.plot_raster(0 * img[::10, ::10], projection=projection, cmap=cm.presence)
+    maps.add_eezs(ax)
 
 # ## Plotting Tracks
 
@@ -98,9 +109,12 @@ for style in [styles.light, styles.dark]:
 
 # ### Plot Tracks and Lat/Lon vs Time
 
-# TODO: find a better place to download from
-# !wget https://github.com/MaxGhenis/random/raw/master/Roboto-Regular.ttf
-fm.fontManager.ttflist += fm.createFontList(['Roboto-Regular.ttf'])
+# +
+# # TODO: find a better place to download from
+# # TODO: find out how to install somewhere sensible
+# # !wget https://github.com/MaxGhenis/random/raw/master/Roboto-Regular.ttf
+# fm.fontManager.ttflist += fm.createFontList(['Roboto-Regular.ttf'])
+# -
 
 df = msgs[(msgs.ssvid == "413461490")]
 reload()
@@ -113,3 +127,5 @@ with plt.rc_context(styles.light):
 
 rendered.publish_to_github('./Examples.ipynb', 
                            'pyseas/doc', action='push')
+
+open('foobar.foo')

@@ -10,10 +10,12 @@ dark = {'font.family' : 'Roboto',
          'xtick.labelsize' : 11,
          'axes.labelsize' : 11,
          'axes.labelcolor' : '#848b9b',
-         'gfw.colors.land' : _colors.dark.land,
-         'gfw.colors.border' : _colors.dark.border,
+         'figure.facecolor' : _colors.dark.background,
+         'gfw.land.land' : _colors.dark.land,
+         'gfw.border.color' : _colors.dark.border,
          'gfw.border.linewidth' : 0.4,
-         'gfw.colors.ocean' : _colors.dark.ocean}
+         'gfw.ocean.color' : _colors.dark.ocean,
+         'gfw.eez.bordercolor' : _colors.dark.eez}
 
 light = {'font.family' : 'Roboto', 
          'xtick.color' : '#848b9b',
@@ -21,10 +23,12 @@ light = {'font.family' : 'Roboto',
          'xtick.labelsize' : 11,
          'axes.labelsize' : 11,
          'axes.labelcolor' : '#848b9b',
-         'gfw.colors.land' : _colors.light.land,
-         'gfw.colors.border' : _colors.light.border,
-         'gfw.border.edgewidth' : 0.4,
-         'gfw.colors.ocean' : _colors.light.ocean}
+         'figure.facecolor' : _colors.dark.background,
+         'gfw.land.land' : _colors.light.land,
+         'gfw.border.color' : _colors.light.border,
+         'gfw.border.linewidth' : 0.4,
+         'gfw.ocean.color' : _colors.light.ocean,
+         'gfw.eez.bordercolor' : _colors.light.eez}
 
 
 for k in dark:
