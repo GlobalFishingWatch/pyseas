@@ -24,13 +24,20 @@ import cartopy.crs
 import skimage.io
 import cmocean
 import rendered
+from pandas.plotting import register_matplotlib_converters
+import matplotlib.font_manager as fm
+register_matplotlib_converters()
 
 from pyseas import maps, colors, cm, styles
+from pyseas.contrib import plot_tracks
 import imp
-imp.reload(colors)
-imp.reload(styles)
-imp.reload(maps)
-imp.reload(cm)
+def reload():
+    imp.reload(colors)
+    imp.reload(styles)
+    imp.reload(maps)
+    imp.reload(cm)
+    imp.reload(contrib)
+reload()
 
 # %matplotlib inline
 # -
@@ -60,7 +67,7 @@ cb = fig.colorbar(im, orientation='vertical', shrink=0.8, pad=0.02,
 
 # ## Use a context manager to switch to light style
 
-with plt.rc_context(styles.light):
+with plt.rc_context(styles.light), plt.rc_context({'gfw.border.linewidth' : 0}):
     fig = plt.figure(figsize=(18, 6))
     ax, im = maps.plot_raster(img[::10, ::10], cmap=cm.presence)
 
@@ -86,6 +93,23 @@ for style in [styles.light, styles.dark]:
         maps.add_land(ax)
         ax.set_extent((110, 250, 0, 90))
         plt.show()
+
+# ## `contrib`
+
+# ### Plot Tracks and Lat/Lon vs Time
+
+# TODO: find a better place to download from
+# !wget https://github.com/MaxGhenis/random/raw/master/Roboto-Regular.ttf
+fm.fontManager.ttflist += fm.createFontList(['Roboto-Regular.ttf'])
+
+df = msgs[(msgs.ssvid == "413461490")]
+reload()
+with plt.rc_context(styles.light):
+    fig = plt.figure(figsize=(10, 5))
+    ts = [pd.Timestamp(x).to_pydatetime() for x in df.timestamp]
+    ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(ts, df.lon, df.lat)
+
+# ## Publish
 
 rendered.publish_to_github('./Examples.ipynb', 
                            'pyseas/doc', action='push')

@@ -33,7 +33,7 @@ from . import colors
 identity = cartopy.crs.PlateCarree()
 
 
-def add_land(ax, scale='10m', edgecolor=None, facecolor=None, **kwargs):
+def add_land(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
     """Add land to an existing map
 
     Parameters
@@ -45,6 +45,8 @@ def add_land(ax, scale='10m', edgecolor=None, facecolor=None, **kwargs):
         Color to use for the landmass edges.
     facecolor : str or tuple, optional
         Color to use for the landmass faces.
+    linewidth : float, optional
+        Width of land edge in points
     
     Other Parameters
     ----------------
@@ -54,11 +56,13 @@ def add_land(ax, scale='10m', edgecolor=None, facecolor=None, **kwargs):
     -------
     FeatureArtist
     """
-    edgecolor = edgecolor or plt.rcParams.get('gfw.colors.edge', colors.dark.ocean)
+    edgecolor = edgecolor or plt.rcParams.get('gfw.colors.border', colors.dark.ocean)
     facecolor = facecolor or plt.rcParams.get('gfw.colors.land', colors.dark.ocean)
+    linewidth = linewidth or plt.rcParams.get('gfw.border.linewidth', 0.4)
     land = cfeature.NaturalEarthFeature('physical', 'land', scale,
                                             edgecolor=edgecolor,
                                             facecolor=facecolor,
+                                            linewidth=linewidth,
                                             **kwargs)
     return ax.add_feature(land)
 
