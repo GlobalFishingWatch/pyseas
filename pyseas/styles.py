@@ -11,11 +11,12 @@ dark = {'font.family' : 'Roboto',
          'axes.labelsize' : 11,
          'axes.labelcolor' : '#848b9b',
          'figure.facecolor' : _colors.dark.background,
-         'gfw.land.land' : _colors.dark.land,
+         'gfw.land.color' : _colors.dark.land,
          'gfw.border.color' : _colors.dark.border,
          'gfw.border.linewidth' : 0.4,
          'gfw.ocean.color' : _colors.dark.ocean,
-         'gfw.eez.bordercolor' : _colors.dark.eez}
+         'gfw.eez.bordercolor' : _colors.dark.eez,
+         'gfw.eez.linewidth' : 0.4}
 
 light = {'font.family' : 'Roboto', 
          'xtick.color' : '#848b9b',
@@ -24,11 +25,12 @@ light = {'font.family' : 'Roboto',
          'axes.labelsize' : 11,
          'axes.labelcolor' : '#848b9b',
          'figure.facecolor' : _colors.dark.background,
-         'gfw.land.land' : _colors.light.land,
+         'gfw.land.color' : _colors.light.land,
          'gfw.border.color' : _colors.light.border,
          'gfw.border.linewidth' : 0.4,
          'gfw.ocean.color' : _colors.light.ocean,
-         'gfw.eez.bordercolor' : _colors.light.eez}
+         'gfw.eez.bordercolor' : _colors.light.eez,
+         'gfw.eez.linewidth' : 0.4}
 
 
 for k in dark:

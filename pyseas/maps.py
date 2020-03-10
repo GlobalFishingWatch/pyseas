@@ -60,8 +60,8 @@ def add_land(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **
     -------
     FeatureArtist
     """
-    edgecolor = edgecolor or plt.rcParams.get('gfw.border.color', colors.dark.ocean)
-    facecolor = facecolor or plt.rcParams.get('gfw.land.color', colors.dark.ocean)
+    edgecolor = edgecolor or plt.rcParams.get('gfw.border.color', colors.dark.border)
+    facecolor = facecolor or plt.rcParams.get('gfw.land.color', colors.dark.land)
     linewidth = linewidth or plt.rcParams.get('gfw.border.linewidth', 0.4)
     land = cfeature.NaturalEarthFeature('physical', 'land', scale,
                                             edgecolor=edgecolor,
@@ -121,7 +121,7 @@ def add_plot(ax, *args, **kwargs):
 
 _eezs = {}
 
-def add_eezs(ax, use_boundaries=True, facecolor='none', edgecolor=None, alpha=1):
+def add_eezs(ax, use_boundaries=True, facecolor='none', edgecolor=None, linewidth=None, alpha=1):
     """Add EEZs to an existing map
 
     Parameters
@@ -130,8 +130,10 @@ def add_eezs(ax, use_boundaries=True, facecolor='none', edgecolor=None, alpha=1)
     use_boundaries : bool, optional
         use the boundaries version of EEZs which is smaller and faster, but not as detailed.
     facecolor : str, optional
-    edgecolor: None, optional
+    edgecolor: str or tuple, optional
         Can be styled with 'gfw.eez.bordercolor'
+    linewidth: float, optional
+        Can be styled with 'gfw.eez.linewidth'
     alpha: float, optional
 
 
@@ -151,8 +153,10 @@ def add_eezs(ax, use_boundaries=True, facecolor='none', edgecolor=None, alpha=1)
 
     eezs = _eezs[path]
     edgecolor = edgecolor or plt.rcParams.get('gfw.eez.bordercolor', colors.dark.eez)
+    linewidth = linewidth or plt.rcParams.get('gfw.eez.linewidth', 0.4)
+
     return ax.add_geometries(eezs.geometry, crs=identity,
-                  alpha=alpha, facecolor=facecolor, edgecolor=edgecolor)
+                  alpha=alpha, facecolor=facecolor, edgecolor=edgecolor, linewidth=linewidth)
 
 
 def create_map(subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(), 

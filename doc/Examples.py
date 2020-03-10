@@ -76,10 +76,11 @@ import geopandas as gpd
 eezs = gpd.read_file("../untracked/data/eez_boundaries_v11.gpkg")
 
 reload()
-with plt.rc_context(styles.dark):
+with plt.rc_context(styles.light):
     fig = plt.figure(figsize=(18, 6))
-    projection = cartopy.crs.EqualEarth(central_longitude=-160)
-    ax, im = maps.plot_raster(0 * img[::10, ::10], projection=projection, cmap=cm.presence)
+    projection = cartopy.crs.EqualEarth(central_longitude=-155)
+    ax = maps.create_map(projection=projection)
+    maps.add_land(ax)
     maps.add_eezs(ax)
 
 # ## Plotting Tracks
@@ -127,5 +128,3 @@ with plt.rc_context(styles.light):
 
 rendered.publish_to_github('./Examples.ipynb', 
                            'pyseas/doc', action='push')
-
-open('foobar.foo')
