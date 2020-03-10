@@ -14,12 +14,11 @@ dark = _Dark()
 # TODO: check
 class _Light(object):
     land = '#F6F6F4'
-    ocean = 'C9D2D3'
+    ocean = '#C9D2D3'
     border = '#B4B4B4'
     background = '#f7f7f7'
     highlight = '#0a1738'
     eez = land
     scale = land
-    land = _Land()
 
 light = _Light()

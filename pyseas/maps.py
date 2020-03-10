@@ -33,7 +33,7 @@ from . import colors
 identity = cartopy.crs.PlateCarree()
 
 
-def add_land(ax, scale='10m', edgecolor=colors.dark.border, facecolor=colors.dark.land, **kwargs):
+def add_land(ax, scale='10m', edgecolor=None, facecolor=None, **kwargs):
     """Add land to an existing map
 
     Parameters
@@ -54,6 +54,8 @@ def add_land(ax, scale='10m', edgecolor=colors.dark.border, facecolor=colors.dar
     -------
     FeatureArtist
     """
+    edgecolor = edgecolor or plt.rcParams.get('gfw.colors.edge', colors.dark.ocean)
+    facecolor = facecolor or plt.rcParams.get('gfw.colors.land', colors.dark.ocean)
     land = cfeature.NaturalEarthFeature('physical', 'land', scale,
                                             edgecolor=edgecolor,
                                             facecolor=facecolor,
@@ -110,7 +112,7 @@ def add_plot(ax, *args, **kwargs):
 
 
 def create_map(subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(), 
-               bg_color=colors.dark.ocean, hide_axes=True):
+               bg_color=None, hide_axes=True):
     """Draw a GFW themed map
 
     Parameters
@@ -125,6 +127,7 @@ def create_map(subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(),
     -------
     GeoAxes
     """
+    bg_color = bg_color or plt.rcParams.get('gfw.colors.ocean', colors.dark.ocean)
     if not isinstance(subplot, tuple):
         # Allow grridspec to be passed through
         subplot = (subplot,)
@@ -139,7 +142,7 @@ def create_map(subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(),
 
 
 def plot_raster(raster, subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(),
-                bg_color=colors.dark.ocean, hide_axes=True, **kwargs):
+                bg_color=None, hide_axes=True, **kwargs):
     """Draw a GFW themed map over a raster
 
     Parameters
