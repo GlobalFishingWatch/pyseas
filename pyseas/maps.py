@@ -159,8 +159,9 @@ def add_eezs(ax, use_boundaries=True, facecolor='none', edgecolor=None, linewidt
                   alpha=alpha, facecolor=facecolor, edgecolor=edgecolor, linewidth=linewidth)
 
 
-def create_map(subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(), 
-               bg_color=None, hide_axes=True):
+def create_map(subplot=(1, 1, 1), 
+                projection=None, 
+                bg_color=None, hide_axes=True):
     """Draw a GFW themed map
 
     Parameters
@@ -175,6 +176,9 @@ def create_map(subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(),
     -------
     GeoAxes
     """
+    if projection is None:
+        central_longitude = plt.rcParams.get('gfw.eez.centrallongitude', 0)
+        projection = cartopy.crs.EqualEarth(central_longitude=central_longitude)
     bg_color = bg_color or plt.rcParams.get('gfw.ocean.color', colors.dark.ocean)
     if not isinstance(subplot, tuple):
         # Allow grridspec to be passed through

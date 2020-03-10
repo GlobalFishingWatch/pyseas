@@ -54,9 +54,11 @@ _ = maps.plot_raster(img[::10, ::10], cmap=cm.reception)
 
 # ### Global map centered over the Pacific
 
-fig = plt.figure(figsize=(18, 6))
-projection = cartopy.crs.EqualEarth(central_longitude=-160)
-ax, im = maps.plot_raster(img[::10, ::10], projection=projection)
+with plt.rc_context(styles.dark):
+    fig = plt.figure(figsize=(18, 6))
+    projection = cartopy.crs.EqualEarth(central_longitude=-160)
+    ax, im = maps.plot_raster(img[::10, ::10], projection=projection)
+    maps.add_eezs(ax)
 
 # ### Global Map with a Colorbar
 
@@ -76,10 +78,9 @@ import geopandas as gpd
 eezs = gpd.read_file("../untracked/data/eez_boundaries_v11.gpkg")
 
 reload()
-with plt.rc_context(styles.light):
+with plt.rc_context(styles.light), plt.rc_context({'gfw.map.centrallongitude' : -155}):
     fig = plt.figure(figsize=(18, 6))
-    projection = cartopy.crs.EqualEarth(central_longitude=-155)
-    ax = maps.create_map(projection=projection)
+    ax = maps.create_map()
     maps.add_land(ax)
     maps.add_eezs(ax)
 
@@ -103,6 +104,7 @@ for style in [styles.light, styles.dark]:
         ax = maps.create_map(projection=projection)
         maps.add_plot(ax, df.lon, df.lat, 'g.', transform=maps.identity)
         maps.add_land(ax)
+        maps.add_eezs(ax)
         ax.set_extent((110, 250, 0, 90))
         plt.show()
 

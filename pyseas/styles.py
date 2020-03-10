@@ -16,7 +16,8 @@ dark = {'font.family' : 'Roboto',
          'gfw.border.linewidth' : 0.4,
          'gfw.ocean.color' : _colors.dark.ocean,
          'gfw.eez.bordercolor' : _colors.dark.eez,
-         'gfw.eez.linewidth' : 0.4}
+         'gfw.eez.linewidth' : 0.4,
+         'gfw.map.centrallongitude' : 0}
 
 light = {'font.family' : 'Roboto', 
          'xtick.color' : '#848b9b',
@@ -30,7 +31,8 @@ light = {'font.family' : 'Roboto',
          'gfw.border.linewidth' : 0.4,
          'gfw.ocean.color' : _colors.light.ocean,
          'gfw.eez.bordercolor' : _colors.light.eez,
-         'gfw.eez.linewidth' : 0.4}
+         'gfw.eez.linewidth' : 0.4,
+         'gfw.map.centrallongitude' : 0}
 
 
 for k in dark:
