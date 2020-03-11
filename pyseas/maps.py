@@ -37,6 +37,25 @@ identity = cartopy.crs.PlateCarree()
 root = os.path.dirname(os.path.dirname(__file__))
 
 
+
+regional_projections = {
+    'pacific' : dict(
+            projection = cartopy.crs.EqualEarth,
+            args = {'central_longitude' : -165},
+            extent = (-249, -71, -3.3, 3.3)
+        )
+}
+
+
+def get_projection(region_name):
+    info = regional_projections[region_name]
+    return info['projection'](**info['args'])
+
+def get_extent(region_name):
+    return regions[region_name]['extent']
+
+
+
 def add_land(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
     """Add land to an existing map
 
@@ -193,8 +212,9 @@ def add_eezs(ax, use_boundaries=True, facecolor='none', edgecolor=None, linewidt
 
 
 def create_map(subplot=(1, 1, 1), 
-                projection=None, 
-                bg_color=None, hide_axes=True):
+                projection=None, extent=None,
+                bg_color=None, 
+                hide_axes=True):
     """Draw a GFW themed map
 
     Parameters
@@ -210,15 +230,23 @@ def create_map(subplot=(1, 1, 1),
     GeoAxes
     """
     if projection is None:
+        # TODO: maybe just theme default projection
         central_longitude = plt.rcParams.get('gfw.eez.centrallongitude', 0)
         projection = cartopy.crs.EqualEarth(central_longitude=central_longitude)
+    elif isinstance(projection, str):
+        if extent is None:
+            extent = get_extent(projection)
+        projection = get_projection(projection)
+
+
     bg_color = bg_color or plt.rcParams.get('gfw.ocean.color', colors.dark.ocean)
     if not isinstance(subplot, tuple):
         # Allow grridspec to be passed through
         subplot = (subplot,)
     ax = plt.subplot(*subplot, projection=projection)
     ax.background_patch.set_facecolor(bg_color)
-
+    if extent is not None:
+        ax.set_extent(extent)
     if hide_axes:
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
