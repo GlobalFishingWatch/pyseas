@@ -15,8 +15,6 @@
 
 # # Examples of Plotting with `pyseas`
 
-# !cp ~/Desktop/named-achorages01-raster.tiff untracked
-
 # +
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -70,7 +68,7 @@ cb = fig.colorbar(im, orientation='vertical', shrink=0.8, pad=0.02,
 # ## Use a context manager to switch to light style
 
 reload()
-with plt.rc_context(styles.light), plt.rc_context({'gfw.border.linewidth' : 0}):
+with plt.rc_context(styles.light), plt.rc_context({'gfw.border.linewidth' : 0.2}):
     fig = plt.figure(figsize=(18, 6))
     ax, im = maps.plot_raster(img[::10, ::10], cmap=cm.presence)
     maps.add_countries(ax)
@@ -111,8 +109,8 @@ for style in [styles.light, styles.dark]:
 #         ax.set_extent((110, 250, 0, 90))
         plt.show()
 
-reload()
-with plt.rc_context(styles.light, ):
+# Indian Ocean
+with plt.rc_context(styles.light):
     fig = plt.figure(figsize=(10, 5))
     projection = cartopy.crs.LambertAzimuthalEqualArea(75, 0)
     ax = maps.create_map(projection=projection)
@@ -120,6 +118,37 @@ with plt.rc_context(styles.light, ):
     maps.add_eezs(ax)
     maps.add_countries(ax)
     ax.set_extent((15, 145, -30, 15))
+    plt.show()
+
+# Indian Ocean
+with plt.rc_context(styles.light):
+    fig = plt.figure(figsize=(10, 5))
+    projection = cartopy.crs.EqualEarth(75, 0)
+    ax = maps.create_map(projection=projection)
+    maps.add_land(ax)
+    maps.add_eezs(ax)
+    maps.add_countries(ax)
+    ax.set_extent((15, 145, -30, 15))
+    plt.show()
+
+# Pacific 
+with plt.rc_context(styles.light):
+    fig = plt.figure(figsize=(10, 10))
+    projection = cartopy.crs.LambertAzimuthalEqualArea(central_longitude=-165)
+    ax = maps.create_map(projection=projection)
+    maps.add_land(ax)
+    maps.add_countries(ax)
+    ax.set_extent((-249, -71, -3.3, 3.3))
+    plt.show()
+
+with plt.rc_context(styles.light):
+    fig = plt.figure(figsize=(10, 10))
+    projection = cartopy.crs.EqualEarth(central_longitude=-165)
+    ax = maps.create_map(projection=projection)
+    maps.add_land(ax)
+    maps.add_countries(ax)
+#     ax.set_extent((-250, -70, -10, 10))
+    ax.set_extent((-249, -71, -3.3, 3.3))
     plt.show()
 
 # ## `contrib`
