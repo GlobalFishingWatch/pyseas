@@ -73,6 +73,7 @@ reload()
 with plt.rc_context(styles.light), plt.rc_context({'gfw.border.linewidth' : 0}):
     fig = plt.figure(figsize=(18, 6))
     ax, im = maps.plot_raster(img[::10, ::10], cmap=cm.presence)
+    maps.add_countries(ax)
 
 import geopandas as gpd
 eezs = gpd.read_file("../untracked/data/eez_boundaries_v11.gpkg")
@@ -101,12 +102,25 @@ for style in [styles.light, styles.dark]:
     with plt.rc_context(style):
         fig = plt.figure(figsize=(10, 5))
         projection = cartopy.crs.PlateCarree(central_longitude=200)
+        projection = cartopy.crs.LambertAzimuthalEqualArea(df.lon.mean(), 
+                                                           df.lat.mean())
         ax = maps.create_map(projection=projection)
         maps.add_plot(ax, df.lon, df.lat, 'g.', transform=maps.identity)
         maps.add_land(ax)
         maps.add_eezs(ax)
-        ax.set_extent((110, 250, 0, 90))
+#         ax.set_extent((110, 250, 0, 90))
         plt.show()
+
+reload()
+with plt.rc_context(styles.light, ):
+    fig = plt.figure(figsize=(10, 5))
+    projection = cartopy.crs.LambertAzimuthalEqualArea(75, 0)
+    ax = maps.create_map(projection=projection)
+    maps.add_land(ax)
+    maps.add_eezs(ax)
+    maps.add_countries(ax)
+    ax.set_extent((15, 145, -30, 15))
+    plt.show()
 
 # ## `contrib`
 

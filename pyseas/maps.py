@@ -70,6 +70,39 @@ def add_land(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **
                                             **kwargs)
     return ax.add_feature(land)
 
+def add_countries(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
+    """Add land to an existing map
+
+    Parameters
+    ----------
+    ax : matplotlib axes object
+    scale : str, optional
+        Resolution of NaturalEarth data to use ('10m’, ‘50m’, or ‘110m').
+    edgecolor : str or tuple, optional
+        Color to use for the landmass edges.
+    facecolor : str or tuple, optional
+        Color to use for the landmass faces.
+    linewidth : float, optional
+        Width of land edge in points
+    
+    Other Parameters
+    ----------------
+    Keyword args are passed on to NaturalEarthFeature.
+
+    Returns
+    -------
+    FeatureArtist
+    """
+    edgecolor = edgecolor or plt.rcParams.get('gfw.border.color', colors.dark.border)
+    facecolor = facecolor or plt.rcParams.get('gfw.land.color', colors.dark.land)
+    linewidth = linewidth or plt.rcParams.get('gfw.border.linewidth', 0.4)
+    land = cfeature.NaturalEarthFeature('cultural', 'admin_0_boundary_lines_land', scale,
+                                            edgecolor=edgecolor,
+                                            facecolor=facecolor,
+                                            linewidth=linewidth,
+                                            **kwargs)
+    return ax.add_feature(land)
+
 
 def add_raster(ax, raster, extent=(-180, 180, -90, 90), origin='upper', **kwargs):
     """Add a raster to an existing map
