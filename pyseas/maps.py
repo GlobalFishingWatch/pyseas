@@ -39,10 +39,33 @@ root = os.path.dirname(os.path.dirname(__file__))
 
 
 regional_projections = {
-    'pacific' : dict(
+# 150º
+    # Need both "parameter" and carotpy_parameters to override
+    'global_atlantic' : dict (
             projection = cartopy.crs.EqualEarth,
+            args = {'central_longitude' : -40},
+            extent = None
+        ),
+    'global_pacific' : dict (
+            projection = cartopy.crs.EqualEarth,
+            args = {'central_longitude' : 150},
+            extent = None
+        ),
+
+    'north_pacific' : dict (
+            projection = cartopy.crs.LambertAzimuthalEqualArea,
+            args = {'central_longitude' : -165, 'central_latitude' : 25},
+            extent = (-249, -71, 0, 3.3) # Update me
+        ),
+    'pacific' : dict(
+            projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : -165},
             extent = (-249, -71, -3.3, 3.3)
+        ),
+    'indian' : dict(
+            projection = cartopy.crs.LambertAzimuthalEqualArea,
+            args = {'central_longitude' : 75},
+            extent = (15, 145, -30, 15)
         )
 }
 
@@ -52,7 +75,7 @@ def get_projection(region_name):
     return info['projection'](**info['args'])
 
 def get_extent(region_name):
-    return regions[region_name]['extent']
+    return regional_projections[region_name]['extent']
 
 
 
