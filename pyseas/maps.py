@@ -38,44 +38,62 @@ root = os.path.dirname(os.path.dirname(__file__))
 
 
 
-regional_projections = {
-# 150º
-    # Need both "parameter" and carotpy_parameters to override
-    'global_atlantic' : dict (
+projection_info = {
+    # Need both "parameters" and carotpy_parameters to override
+    'global.default' : dict (
+            projection = cartopy.crs.EqualEarth,
+            args = {'central_longitude' : 0},
+            extent = None
+        ),
+    'global.atlantic_centered' : dict (
             projection = cartopy.crs.EqualEarth,
             args = {'central_longitude' : -40},
             extent = None
         ),
-    'global_pacific' : dict (
+    'global.pacific_centered' : dict (
             projection = cartopy.crs.EqualEarth,
             args = {'central_longitude' : 150},
             extent = None
         ),
 
-    'north_pacific' : dict (
+    'regional.north_pacific' : dict (
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : -165, 'central_latitude' : 25},
             extent = (-249, -71, 0, 3.3) # Update me
         ),
-    'pacific' : dict(
+    'regional.pacific' : dict(
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : -165},
             extent = (-249, -71, -3.3, 3.3)
         ),
-    'indian' : dict(
+    'regional.indian' : dict(
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : 75},
             extent = (15, 145, -30, 15)
-        )
+        ),
+
+    'country.indonesia' : dict(
+            projection = cartopy.crs.LambertCylindrical,
+            args = {'central_longitude' : 120},
+            extent = (80, 160, -15, 15)
+        ),
+    'country.ecuador_with_galapagos' : dict(
+            projection = cartopy.crs.LambertCylindrical,
+            args = {'central_longitude' : -85},
+            extent = (-97, -75, -7, 5)
+        ),
 }
 
 
 def get_projection(region_name):
-    info = regional_projections[region_name]
+    info = projection_info[region_name]
     return info['projection'](**info['args'])
 
 def get_extent(region_name):
-    return regional_projections[region_name]['extent']
+    # TODO: add warning (add flag so can disable when called through files that know better)
+    # when in `regional_pacific` and `regional.north_pacific` regions (many any regions with
+    # Overridden vales)
+    return projection_info[region_name]['extent']
 
 
 
@@ -235,7 +253,7 @@ def add_eezs(ax, use_boundaries=True, facecolor='none', edgecolor=None, linewidt
 
 
 def create_map(subplot=(1, 1, 1), 
-                projection=None, extent=None,
+                projection='global.default', extent=None,
                 bg_color=None, 
                 hide_axes=True):
     """Draw a GFW themed map
@@ -297,7 +315,8 @@ def plot_raster(raster, subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(),
     -------
     (GeoAxes, AxesImage)
     """
-    ax = create_map(subplot, projection, bg_color, hide_axes)
+    extent = kwargs.get('extent')
+    ax = create_map(subplot, projection, extent, bg_color, hide_axes)
     im = add_raster(ax, raster, **kwargs)
     add_land(ax)
     return  ax, im

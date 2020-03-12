@@ -45,43 +45,53 @@ reload()
 # !gsutil cp -n gs://machine-learning-dev-ttl-120d/named-achorages01-raster.tiff ../untracked/
 img = skimage.io.imread("../untracked/named-achorages01-raster.tiff")
 
-# ### Global map using a custom colormap.
-
-fig = plt.figure(figsize=(18, 6))
-_ = maps.plot_raster(img[::10, ::10], cmap=cm.reception)
-
-# ### Global map centered over the Pacific
+# ### Global map centered over the Pacific using Dark Style
 
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(18, 6))
+    ax, im = maps.plot_raster(img[::10, ::10], projection='global.pacific_centered', cmap=cm.presence)
+    maps.add_eezs(ax)
+
+with plt.rc_context(styles.light):
+    fig = plt.figure(figsize=(18, 6))
     projection = cartopy.crs.EqualEarth(central_longitude=-160)
-    ax, im = maps.plot_raster(img[::10, ::10], projection=projection)
+    ax, im = maps.plot_raster(img[::10, ::10], projection=projection, cmap=cm.presence)
     maps.add_eezs(ax)
 
 # ### Global Map with a Colorbar
 
-fig = plt.figure(figsize=(18, 6))
-ax, im = maps.plot_raster(img[::10, ::10])
-cb = fig.colorbar(im, orientation='vertical', shrink=0.8, pad=0.02, 
-                  label='distance to shore (km)')
+# +
+# TODO: Make colorbar easy
 
-# ## Use a context manager to switch to light style
-
-reload()
-with plt.rc_context(styles.light), plt.rc_context({'gfw.border.linewidth' : 0.2}):
+with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(18, 6))
-    ax, im = maps.plot_raster(img[::10, ::10], cmap=cm.presence)
+    ax, im = maps.plot_raster(img[::10, ::10], cmap=cm.fishing)
+    cb_ax = fig.add_axes([0.51, 0.93, 0.15, 0.012]) 
+    cb = fig.colorbar(im, cb_ax, orientation='horizontal')
+    _ = ax.set_title("distance to shore (km)" + " " * 47, pad=23,
+                    fontdict={'fontsize': 12, 'verticalalignment': 'center'})
+# -
+
+with plt.rc_context(styles.dark):
+    fig = plt.figure(figsize=(18, 6))
+    ax, im = maps.plot_raster(img[::10, ::10], cmap=cm.fishing)
+    cb_ax = fig.add_axes([0.615, 0.93, 0.15, 0.012]) 
+    cb = fig.colorbar(im, cb_ax, orientation='horizontal')
+    _ = ax.set_title(" " * 46 + "distance to shore (km)", pad=23,
+                    fontdict={'fontsize': 12, 'verticalalignment': 'center'})
+
+with plt.rc_context(styles.dark):
+    fig = plt.figure(figsize=(18, 6))
+    ax, im = maps.plot_raster(img[::10, ::10], projection='regional.north_pacific', cmap=cm.fishing)
     maps.add_countries(ax)
+    maps.add_eezs(ax)
+    cb_ax = fig.add_axes([0.645, 0.93, 0.15, 0.012]) 
+    cb = fig.colorbar(im, cb_ax, orientation='horizontal')
+    _ = ax.set_title(" " * 72 + "distance to shore (km)", pad=23,
+                    fontdict={'fontsize': 12, 'verticalalignment': 'center'})
 
 import geopandas as gpd
 eezs = gpd.read_file("../untracked/data/eez_boundaries_v11.gpkg")
-
-reload()
-with plt.rc_context(styles.light), plt.rc_context({'gfw.map.centrallongitude' : -155}):
-    fig = plt.figure(figsize=(18, 6))
-    ax = maps.create_map()
-    maps.add_land(ax)
-    maps.add_eezs(ax)
 
 # ## Plotting Tracks
 
@@ -95,19 +105,96 @@ query = """
     """
 msgs = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
+# +
+# TODO: Plotted tracks are still ugly and don't follow style guidelines
+
 df = msgs[(msgs.ssvid == "220413000")]
 for style in [styles.light, styles.dark]:
     with plt.rc_context(style):
         fig = plt.figure(figsize=(10, 5))
-        projection = cartopy.crs.PlateCarree(central_longitude=200)
-        projection = cartopy.crs.LambertAzimuthalEqualArea(df.lon.mean(), 
-                                                           df.lat.mean())
-        ax = maps.create_map(projection=projection)
+        ax = maps.create_map(projection='regional.north_pacific')
         maps.add_plot(ax, df.lon, df.lat, 'g.', transform=maps.identity)
         maps.add_land(ax)
         maps.add_eezs(ax)
-#         ax.set_extent((110, 250, 0, 90))
         plt.show()
+# -
+
+# ## Predefined Regional Styles
+
+reload()
+with plt.rc_context(styles.light):
+    fig = plt.figure(figsize=(10, 10))
+    ax = maps.create_map(projection='regional.pacific')
+    maps.add_land(ax)
+    maps.add_countries(ax)
+    plt.show()
+
+reload()
+with plt.rc_context(styles.light):
+    fig = plt.figure(figsize=(10, 10))
+    ax = maps.create_map(projection='regional.north_pacific')
+    maps.add_land(ax)
+    maps.add_countries(ax)
+    plt.show()
+
+reload()
+with plt.rc_context(styles.light):
+    fig = plt.figure(figsize=(10, 10))
+    ax = maps.create_map(projection='regional.indian')
+    maps.add_land(ax)
+    maps.add_countries(ax)
+    plt.show()
+
+reload()
+with plt.rc_context(styles.light):
+    fig = plt.figure(figsize=(10, 10))
+    ax = maps.create_map(projection='global.pacific_centered')
+    maps.add_land(ax)
+    maps.add_countries(ax)
+    plt.show()
+
+reload()
+with plt.rc_context(styles.light):
+    fig = plt.figure(figsize=(10, 10))
+    ax = maps.create_map(projection='global.atlantic_centered')
+    maps.add_land(ax)
+    maps.add_countries(ax)
+    plt.show()
+
+reload()
+with plt.rc_context(styles.light):
+    fig = plt.figure(figsize=(10, 10))
+    ax = maps.create_map(projection='country.ecuador_with_galapagos')
+    maps.add_land(ax)
+    maps.add_countries(ax)
+    plt.show()
+
+reload()
+with plt.rc_context(styles.dark):
+    fig = plt.figure(figsize=(10, 10))
+    ax = maps.create_map(projection='country.indonesia')
+    maps.add_land(ax)
+    maps.add_countries(ax)
+    plt.show()
+
+# ## `contrib`
+
+# ### Plot Tracks and Lat/Lon vs Time
+
+df = msgs[(msgs.ssvid == "413461490")]
+reload()
+with plt.rc_context(styles.dark):
+    fig = plt.figure(figsize=(10, 5))
+    ts = [pd.Timestamp(x).to_pydatetime() for x in df.timestamp]
+    ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(ts, df.lon, df.lat)
+
+# ## Publish
+
+rendered.publish_to_github('./Examples.ipynb', 
+                           'pyseas/doc', action='push')
+
+reload()
+maps.get_extent('regional.pacific')
 
 # Indian Ocean
 with plt.rc_context(styles.light):
@@ -123,53 +210,10 @@ with plt.rc_context(styles.light):
 # Indian Ocean
 with plt.rc_context(styles.light):
     fig = plt.figure(figsize=(10, 5))
-    projection = cartopy.crs.EqualEarth(75, 0)
+    projection = cartopy.crs.LambertAzimuthalEqualArea(75, 0)
     ax = maps.create_map(projection=projection)
     maps.add_land(ax)
     maps.add_eezs(ax)
     maps.add_countries(ax)
     ax.set_extent((15, 145, -30, 15))
     plt.show()
-
-# Pacific 
-with plt.rc_context(styles.light):
-    fig = plt.figure(figsize=(10, 10))
-    projection = cartopy.crs.LambertAzimuthalEqualArea(central_longitude=-165)
-    ax = maps.create_map(projection=projection)
-    maps.add_land(ax)
-    maps.add_countries(ax)
-    ax.set_extent((-249, -71, -3.3, 3.3))
-    plt.show()
-
-with plt.rc_context(styles.light):
-    fig = plt.figure(figsize=(10, 10))
-    projection = cartopy.crs.EqualEarth(central_longitude=-165)
-    ax = maps.create_map(projection=projection)
-    maps.add_land(ax)
-    maps.add_countries(ax)
-#     ax.set_extent((-250, -70, -10, 10))
-    ax.set_extent((-249, -71, -3.3, 3.3))
-    plt.show()
-
-# ## `contrib`
-
-# ### Plot Tracks and Lat/Lon vs Time
-
-# +
-# # TODO: find a better place to download from
-# # TODO: find out how to install somewhere sensible
-# # !wget https://github.com/MaxGhenis/random/raw/master/Roboto-Regular.ttf
-# fm.fontManager.ttflist += fm.createFontList(['Roboto-Regular.ttf'])
-# -
-
-df = msgs[(msgs.ssvid == "413461490")]
-reload()
-with plt.rc_context(styles.light):
-    fig = plt.figure(figsize=(10, 5))
-    ts = [pd.Timestamp(x).to_pydatetime() for x in df.timestamp]
-    ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(ts, df.lon, df.lat)
-
-# ## Publish
-
-rendered.publish_to_github('./Examples.ipynb', 
-                           'pyseas/doc', action='push')
