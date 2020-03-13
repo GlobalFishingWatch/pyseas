@@ -295,13 +295,43 @@ def create_map(subplot=(1, 1, 1),
 
 
 
-def plot_raster(raster, subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(),
+def plot_raster_w_colorbar(raster, label='', loc='upper',
+                projection=cartopy.crs.EqualEarth(), hspace=0.12,
                 bg_color=None, hide_axes=True, **kwargs):
+    assert loc in ('upper', 'lower')
+    if loc == 'upper':
+        hratios = [.015, 1]
+        cb_ind, pl_ind = 0, 1
+        anchor = 'NE'
+    else:
+        hratios = [1, 0.015]
+        cb_ind, pl_ind = 1, 0
+        anchor = 'SW'
+        hspace -= 0.06
+
+    gs = plt.GridSpec(2, 3, height_ratios=hratios, hspace=hspace, wspace=0.015)
+    ax, im = plot_raster(raster, gs[pl_ind, :], projection=projection, **kwargs)
+    ax.set_anchor(anchor)
+    cb_ax = plt.subplot(gs[cb_ind, 2])
+    cb = plt.colorbar(im, cb_ax, orientation='horizontal', shrink=0.8)
+    leg_ax = plt.subplot(gs[cb_ind, 1], frame_on=False)
+    leg_ax.axes.get_xaxis().set_visible(False)
+    leg_ax.axes.get_yaxis().set_visible(False)
+    _ = leg_ax.text(1, 0.5, label, fontdict={'fontsize': 12}, # TODO: stule
+                    horizontalalignment='right', verticalalignment='center')
+    return ax, im, cb 
+
+
+
+def plot_raster(raster, subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(),
+                bg_color=None, hide_axes=True, colorbar=None, 
+                gridlines=False, **kwargs):
     """Draw a GFW themed map over a raster
 
     Parameters
     ----------
     raster : 2D array
+    subplot : tuple or GridSpec
     projection : cartopy.crs.Projection, optional
     bg_color : str or tuple, optional
     hide_axes : bool
@@ -320,4 +350,3 @@ def plot_raster(raster, subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(),
     im = add_raster(ax, raster, **kwargs)
     add_land(ax)
     return  ax, im
-
