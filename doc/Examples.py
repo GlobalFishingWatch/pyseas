@@ -27,7 +27,7 @@ from pandas.plotting import register_matplotlib_converters
 import matplotlib.font_manager as fm
 register_matplotlib_converters()
 
-from pyseas import maps, colors, cm, styles
+from pyseas import maps, colors, cm, styles, grid as gridmod
 from pyseas.contrib import plot_tracks
 import imp
 def reload():
@@ -36,6 +36,7 @@ def reload():
     imp.reload(maps)
     imp.reload(cm)
     imp.reload(plot_tracks)
+    imp.reload(gridmod)
 reload()
 
 # %matplotlib inline
@@ -321,18 +322,45 @@ unnest(registry_info.best_known_vessel_class) v
  """
 grid_presence = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
-grid_presence.shape
+reload()
+grid = gridmod.df2grid(grid_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10)
 
 reload()
-fig = plt.figure(figsize=(10, 6))
-# norm = mpcolors.LogNorm(vmin=1, vmax=10000)
+plt.rc('text', usetex=False)
+fig = plt.figure(figsize=(14, 10))
+norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
 with plt.rc_context(styles.dark):
-    ax, im, cb = maps.plot_raster_w_colorbar(img[::10,::10], 
-                                       "Hours of Presence of per 1000km2",
-                                        projection='regional.indian',
-                                       cmap=cm.presence,
-#                                       norm=norm,
-                                      loc='top',
-                                      origin='upper')
-    ax.set_title('Seismic Vessels', pad=40)
-maps.add_figure_background(fig)
+    ax, im, cb = maps.plot_raster_w_colorbar(np.minimum(grid, 1000), 
+                                       "hours of presence per ???",
+                                        projection='global.default',
+                                       cmap=cm.dark.presence,
+                                      norm=norm,
+                                      loc='bottom')
+    maps.add_countries(ax)
+    maps.add_eezs(ax)
+    ax.set_title('Seismic Vessels')
+    maps.add_figure_background(fig)
+plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300)
+
+reload()
+grid2 = gridmod.df2grid(grid_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10, origin='lower')
+
+reload()
+plt.rc('text', usetex=False)
+fig = plt.figure(figsize=(14, 10))
+norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
+with plt.rc_context(styles.light):
+    ax, im, cb = maps.plot_raster_w_colorbar(np.minimum(grid2, 1000), 
+                                       "hours of presence per ???",
+                                        projection='global.default',
+                                       cmap=cm.dark.presence,
+                                      norm=norm,
+                                      origin='lower',
+                                      loc='bottom')
+    maps.add_countries(ax)
+    maps.add_eezs(ax)
+    ax.set_title('Seismic Vessels')
+    maps.add_figure_background(fig)
+plt.savefig('/Users/timothyhochberg/Desktop/test_plot_2.png', dpi=300)
+
+

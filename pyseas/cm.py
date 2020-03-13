@@ -2,9 +2,18 @@
 
 Official GFW Colormaps
 ----------------------
-reception
-fishing
-presence
+
+Colormaps for dark style:
+
+dark.reception
+dark.fishing
+dark.presence
+
+Colormaps for light style:
+
+light.reception
+light.fishing
+light.presence
 
 
 Unofficial GFW Colormaps
@@ -48,10 +57,18 @@ def _hex2cmap(name, hex_colors):
     cmap.set_bad(alpha = 0.0)
     return cmap
 
+class _Dark(object):
+    reception = _hex2cmap('reception', ('#ff4573', '#7b2e8d', '#093b76', '#0c276c')) 
+    fishing = _hex2cmap('fishing', ('#0c276c', '#3b9088', '#eeff00', '#ffffff')) 
+    presence = _hex2cmap('presence', ('#0c276c', '#114685','#00ffc3','#ffffff'))
+dark = _Dark()
 
-reception = _hex2cmap('reception', ('#ff4573', '#7b2e8d', '#093b76', '#0c276c')) 
-fishing = _hex2cmap('fishing', ('#0c276c', '#3b9088', '#eeff00', '#ffffff')) 
-presence = _hex2cmap('presence', ('#0c276c', '#114685','#00ffc3','#ffffff'))
+class _Light(object):
+    reception = _hex2cmap('reception', ('#ff4573', '#7b2e8d', '#093b76', '#0c276c')[::-1]) 
+    fishing = _hex2cmap('fishing', ('#0c276c', '#3b9088', '#eeff00', '#ffffff')[::-1]) 
+    presence = _hex2cmap('presence', ('#0c276c', '#114685','#00ffc3','#ffffff')[::-1])
+light = _Light()
+
 
 class _Unofficial(object):
   jc_presence  = _hex2cmap('jc_presence', ('#3359A8', '#16A3A4', '#00FFC3', '#ffffff'))

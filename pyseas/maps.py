@@ -309,7 +309,7 @@ def create_map(subplot=(1, 1, 1),
 
 
 def plot_raster_w_colorbar(raster, label='', loc='top',
-                projection=cartopy.crs.EqualEarth(), hspace=0.12,
+                projection=cartopy.crs.EqualEarth(), hspace=0.12, wspace=0.016,
                 bg_color=None, hide_axes=True, **kwargs):
     assert loc in ('top', 'bottom')
     if loc == 'top':
@@ -322,7 +322,7 @@ def plot_raster_w_colorbar(raster, label='', loc='top',
         anchor = 'SE'
         hspace -= 0.06
 
-    gs = plt.GridSpec(2, 3, height_ratios=hratios, hspace=hspace, wspace=0.015)
+    gs = plt.GridSpec(2, 3, height_ratios=hratios, hspace=hspace, wspace=wspace)
     ax, im = plot_raster(raster, gs[pl_ind, :], projection=projection, **kwargs)
     ax.set_anchor(anchor)
     cb_ax = plt.subplot(gs[cb_ind, 2])
