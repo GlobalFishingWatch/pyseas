@@ -28,16 +28,18 @@ from pandas.plotting import register_matplotlib_converters
 import matplotlib.font_manager as fm
 register_matplotlib_converters()
 
-from pyseas import maps, colors, cm, styles, grid as gridmod
+from pyseas import maps, cm, styles, rasters
+import pyseas.colors
 from pyseas.contrib import plot_tracks
+import pyseas as pycs
 import imp
 def reload():
-    imp.reload(colors)
+    imp.reload(cm)
+    imp.reload(pycs.colors)
     imp.reload(styles)
     imp.reload(maps)
-    imp.reload(cm)
     imp.reload(plot_tracks)
-    imp.reload(gridmod)
+    imp.reload(rasters)
 reload()
 
 # %matplotlib inline
@@ -324,13 +326,13 @@ unnest(registry_info.best_known_vessel_class) v
  """
 df_presence = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
-grid = gridmod.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10)
+raster = rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10)
 
 reload()
 fig = plt.figure(figsize=(10, 10))
 norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
 with maps.context(styles.dark):
-    ax, im, cb = maps.plot_raster_w_colorbar(np.minimum(grid, 1000), 
+    ax, im, cb = maps.plot_raster_w_colorbar(raster, 
                                        "hours of presence per ???",
                                         projection='regional.north_pacific',
                                        cmap='presence',
@@ -342,10 +344,10 @@ with maps.context(styles.dark):
 plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300)
 
 reload()
-fig = plt.figure(figsize=(10, 10))
+fig = plt.figure(figsize=(14, 10))
 norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
 with maps.context(styles.dark):
-    ax, im, cb = maps.plot_raster_w_colorbar(grid, 
+    ax, im, cb = maps.plot_raster_w_colorbar(raster, 
                                        "hours of presence per ???",
                                         projection='country.indonesia',
                                        cmap='presence',
@@ -358,7 +360,7 @@ with maps.context(styles.dark):
 plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300)
 
 reload()
-grid2 = gridmod.df2raster(grid_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10, origin='lower')
+grid2 = pycs.rasters.df2raster(grid_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10, origin='lower')
 
 reload()
 plt.rc('text', usetex=False)
@@ -367,8 +369,8 @@ norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
 with plt.rc_context(styles.light):
     ax, im, cb = maps.plot_raster_w_colorbar(np.minimum(grid2, 1000), 
                                        "hours of presence per ???",
-                                        projection='country.indonesia',
-                                       cmap=cm.light.presence,
+                                        projection='regional.north_pacific',
+                                       cmap='presence',
                                       norm=norm,
                                       origin='lower',
                                       loc='bottom')
@@ -378,9 +380,89 @@ with plt.rc_context(styles.light):
     maps.add_figure_background(fig)
 plt.savefig('/Users/timothyhochberg/Desktop/test_plot_2.png', dpi=300)
 
+min_lon = 0
+min_lat = -55
+max_lon = 150
+max_lat = 33
+q = '''with fishing_vessels
+as 
+(select ssvid,best.best_vessel_class vessel_class
+from `gfw_research.vi_ssvid_byyear_v20200115` 
+where on_fishing_list_best 
+and activity.overlap_hours < 24
+and not activity.offsetting 
+and activity.fishing_hours > 10
+and year = 2019
+),
+good_segs as (
+select seg_id from `gfw_research.pipe_v20190502_segs` 
+where good_seg and not overlapping_and_short 
+and positions > 20),
+activity_table as (
+select distinct lat, lon, nnet_score2, hours,
+ssvid, seg_id from `gfw_research.pipe_v20190502_fishing` 
+where date between timestamp("2019-01-10") and timestamp("2020-01-01")
+)
+select floor(lat*4) lat_bin,
+floor(lon*4) lon_bin,
+vessel_class,
+sum(if(nnet_score2>.5, hours,0)) fishing_hours,
+sum(hours) hours
+from activity_table
+join fishing_vessels
+using(ssvid)
+where lon between {min_lon} and {max_lon} 
+and lat between {min_lat} and {max_lat}
+and seg_id in (select seg_id from good_segs)
+group by lat_bin, lon_bin, vessel_class'''.format(min_lon=min_lon,
+                                                 min_lat=min_lat,
+                                                 max_lon=max_lon,
+                                                 max_lat=max_lat)
+df_fishing = pd.read_gbq(q, project_id='world-fishing-827')
 
+# +
+reload()
+min_lon = 0
+min_lat = -55
+max_lon = 150
+max_lat = 33
 
-360 - 223
+grid_fishing  = pycs.grid.df2raster(df_fishing, 'lon_bin', 'lat_bin', 'fishing_hours', xyscale=4,
+                                     extent = [min_lon, max_lon, min_lat, max_lat])
+grid_fishing_longlines  = pycs.grid.df2raster(df_fishing[df_fishing.vessel_class=='drifting_longlines'],
+                                                'lon_bin', 'lat_bin', 'fishing_hours', xyscale=4,
+                                               extent = [min_lon, max_lon, min_lat, max_lat])
+grid_fishing_presence  = pycs.grid.df2raster(df_fishing, 'lon_bin', 'lat_bin', 'hours', xyscale=4,
+                                              extent = [min_lon, max_lon, min_lat, max_lat])
+grid_fishing_vessel_presence_longlines = pycs.grid.df2raster(df_fishing[df_fishing.vessel_class=='drifting_longlines'],
+                                                'lon_bin', 'lat_bin', 'hours', xyscale=4,
+                                                              extent = [min_lon, max_lon, min_lat, max_lat])
+with plt.rc_context(pycs.styles.dark): #, plt.rc_context({'gfw.border.linewidth' : 0}):
+    fig_min_value = 5
+    fig_max_value = 5000
+    projection = cartopy.crs.LambertAzimuthalEqualArea(75, 0)
+    cmap = pycs.cm.dark.presence
+    norm = mpcolors.LogNorm(vmin=fig_min_value, vmax=fig_max_value)
+    fig = plt.figure(figsize=(10, 10))
+    ax, im, colorbar = pycs.maps.plot_raster_w_colorbar(grid_fishing_presence,
+                            "hours of presence of fishing vessels per 0.25 degree square",   cmap=cmap,
+                            loc='bottom',  
+                            extent = [min_lon + 0.01, max_lon, min_lat, max_lat],
+                            norm = norm, 
+                            projection=projection)
+    pycs.maps.add_eezs(ax)
+    ax.set_extent((15, 145, -30, 15))
+    ax.set_title("Fishing Activity in the Indian Ocean and Study Area")
+#     ax.add_geometries([overpasses], crs = ccrs.PlateCarree(),
+#                   alpha=1, facecolor='none', edgecolor='red') # for Lat/Lon data.
+    
 
+# +
+def reverse(code):
+    c1 = code[1:3]
+    c2 = code[3:5]
+    c3 = code[5:7]
+    vals = (255 - int(c, 16) for c in [c1, c2, c3])
+    return '#' + ''.join(hex(x)[2:] for x in vals)
 
-
+reverse('#0c276c')

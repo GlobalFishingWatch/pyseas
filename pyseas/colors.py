@@ -14,8 +14,8 @@ dark = _Dark()
 
 # TODO: check
 class _Light(object):
-    land = '#F6F6F4'
-    ocean = '#C9D2D3'
+    land = '#C9D2D3'
+    ocean = '#F6F6F4'
     border = '#B4B4B4'
     background = '#f7f7f7'
     highlight = '#0a1738'

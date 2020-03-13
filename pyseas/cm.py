@@ -29,9 +29,24 @@ unofficial.jc_linearpink
 """
 from matplotlib import colors as _colors
 import numpy as _np
+import skimage.color as _skcolor
 
 
-def _hex2cmap(name, hex_colors):
+def _flip_colors(hexcodes):
+    import numpy as np
+    def hex2rgb(code):
+        return [int(x, 16) / 255.0 for x in [code[1:3], code[3:5], code[5:7]]]
+    def rgb2hex(vals):
+        return '#' + ''.join('{:02X}'.format(int(round(255 * x))) for x in vals)
+    rgb = np.array([hex2rgb(x) for x in hexcodes])[None, :, :]
+    hsv = _skcolor.rgb2hsv(rgb)
+    hsv[:, :, 2] = np.array(hsv[:, ::-1, 2])
+    rgb = _skcolor.hsv2rgb(hsv)
+    hexcodes = [rgb2hex(x) for x in rgb[0]]
+    return hexcodes
+
+
+def _hex2cmap(name, hex_colors, flip=False):
     '''Convert sequence of hex colors to matplotlib cmap
 
     Parameters
@@ -44,6 +59,8 @@ def _hex2cmap(name, hex_colors):
     -------
     LinearSegmentedColormap
     '''
+    if flip:
+        hex_colors = _flip_colors(hex_colors)
     def ramp(i0, i1):
         float_colors = [(int(x[i0:i1], 16) / 256.0) for x in hex_colors]
         ramp = zip(_np.linspace(0, 1, len(hex_colors), endpoint=True), float_colors, float_colors)
@@ -64,9 +81,12 @@ class _Dark(object):
 dark = _Dark()
 
 class _Light(object):
-    reception = _hex2cmap('reception', ('#ff4573', '#7b2e8d', '#093b76', '#0c276c')[::-1]) 
-    fishing = _hex2cmap('fishing', ('#0c276c', '#3b9088', '#eeff00', '#ffffff')[::-1]) 
-    presence = _hex2cmap('presence', ('#0c276c', '#114685','#00ffc3','#ffffff')[::-1])
+    reception = _hex2cmap('reception', ('#ff4573', '#7b2e8d', '#093b76', '#0c276c'), 
+        flip=True) 
+    fishing = _hex2cmap('fishing', ('#0c276c', '#3b9088', '#eeff00', '#ffffff'),
+        flip=True) 
+    presence = _hex2cmap('presence', ('#0c276c', '#114685','#00ffc3','#ffffff'),
+        flip=True)
 light = _Light()
 
 
