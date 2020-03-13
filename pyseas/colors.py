@@ -6,6 +6,7 @@ class _Dark(object):
     border = '#222d4b'
     background = '#f7f7f7'
     highlight = '#0a1738'
+    title = '#363c4c'
     eez = land
     scale = land
 
@@ -18,6 +19,7 @@ class _Light(object):
     border = '#B4B4B4'
     background = '#f7f7f7'
     highlight = '#0a1738'
+    title = '#363c4c'
     eez = land
     scale = land
 

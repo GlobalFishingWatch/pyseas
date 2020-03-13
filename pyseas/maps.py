@@ -252,6 +252,19 @@ def add_eezs(ax, use_boundaries=True, facecolor='none', edgecolor=None, linewidt
                   alpha=alpha, facecolor=facecolor, edgecolor=edgecolor, linewidth=linewidth)
 
 
+def add_figure_background(fig, color=None):
+    """Set the figure background (area around plot)
+
+    Parameters
+    ----------
+    fig : Figure
+    color : tuple or str, optional
+
+
+    """
+    color = color or plt.rcParams.get('gfw.fig.background', colors.dark.background)
+    fig.patch.set_facecolor('#f7f7f7')
+
 def create_map(subplot=(1, 1, 1), 
                 projection='global.default', extent=None,
                 bg_color=None, 

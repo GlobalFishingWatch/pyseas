@@ -326,7 +326,7 @@ grid_presence.shape
 reload()
 fig = plt.figure(figsize=(10, 6))
 # norm = mpcolors.LogNorm(vmin=1, vmax=10000)
-with plt.rc_context(styles.dark, {'axes.b'}):
+with plt.rc_context(styles.dark):
     ax, im, cb = maps.plot_raster_w_colorbar(img[::10,::10], 
                                        "Hours of Presence of per 1000km2",
                                         projection='regional.indian',
@@ -334,6 +334,5 @@ with plt.rc_context(styles.dark, {'axes.b'}):
 #                                       norm=norm,
                                       loc='top',
                                       origin='upper')
-ax.set_title('Seismic Vessels', pad=40)
-
-
+    ax.set_title('Seismic Vessels', pad=40)
+maps.add_figure_background(fig)
