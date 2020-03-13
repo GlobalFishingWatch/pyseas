@@ -295,18 +295,18 @@ def create_map(subplot=(1, 1, 1),
 
 
 
-def plot_raster_w_colorbar(raster, label='', loc='upper',
+def plot_raster_w_colorbar(raster, label='', loc='top',
                 projection=cartopy.crs.EqualEarth(), hspace=0.12,
                 bg_color=None, hide_axes=True, **kwargs):
-    assert loc in ('upper', 'lower')
-    if loc == 'upper':
+    assert loc in ('top', 'bottom')
+    if loc == 'top':
         hratios = [.015, 1]
         cb_ind, pl_ind = 0, 1
         anchor = 'NE'
     else:
         hratios = [1, 0.015]
         cb_ind, pl_ind = 1, 0
-        anchor = 'SW'
+        anchor = 'SE'
         hspace -= 0.06
 
     gs = plt.GridSpec(2, 3, height_ratios=hratios, hspace=hspace, wspace=0.015)

@@ -18,6 +18,7 @@
 # +
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.colors as mpcolors
 import cartopy.crs
 import skimage.io
 import cmocean
@@ -134,19 +135,19 @@ with plt.rc_context(styles.dark):
 reload()
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(12, 8))
-    ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], "distance to shore (km)", loc="upper",
+    ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], "distance to shore (km)", loc="top",
                                              projection='regional.north_pacific', cmap=cm.fishing)
 
 reload()
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(12, 8))
-    ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], "distance to shore (km)", loc="lower",
+    ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], "distance to shore (km)", loc="bottom",
                                              projection='regional.north_pacific', cmap=cm.fishing)
 
 reload()
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(12, 8))
-    ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], "distance to shore (km)", loc="lower",
+    ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], "distance to shore (km)", loc="bottom",
                                              projection='regional.north_pacific', cmap=cm.fishing,
                                             gridlines=True)
     ax.gridlines(linewidth=0.4, zorder=0.5)
@@ -295,5 +296,44 @@ with plt.rc_context(styles.light):
     ax = maps.create_map(projection=projection)
     maps.add_land(ax)
 #     ax.add_geometries(reproj_eez.geometry, crs=projection, edge
+
+query = """
+with seismic as 
+(select distinct ssvid from (
+select ssvid, v  from `gfw_research.vi_ssvid_v20200312` cross join
+unnest(registry_info.best_known_vessel_class) v
+ ) where v = 'seismic_vessel'
+ ),
+ good_segs as (select seg_id from `gfw_research.pipe_v20190502_segs`  where 
+ good_seg and not overlapping_and_short
+ and positions > 20)
+ select 
+ floor(lat*10) lat_bin,
+ floor(lon*10) lon_bin,
+ sum(hours) hours,
+ sum(if(nnet_score>.5,1,0)) fishing_hours
+ from `gfw_research.pipe_v20190502` 
+ join seismic
+ using(ssvid)
+ where date between timestamp("2019-01-01") and timestamp("2019-12-31")
+ and seg_id in (select seg_id from good_segs)
+ group by lat_bin, lon_bin
+ """
+grid_presence = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
+
+grid_presence.shape
+
+reload()
+fig = plt.figure(figsize=(10, 6))
+# norm = mpcolors.LogNorm(vmin=1, vmax=10000)
+with plt.rc_context(styles.dark, {'axes.b'}):
+    ax, im, cb = maps.plot_raster_w_colorbar(img[::10,::10], 
+                                       "Hours of Presence of per 1000km2",
+                                        projection='regional.indian',
+                                       cmap=cm.presence,
+#                                       norm=norm,
+                                      loc='top',
+                                      origin='upper')
+ax.set_title('Seismic Vessels', pad=40)
 
 
