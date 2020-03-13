@@ -1,8 +1,14 @@
 from matplotlib import pyplot as _plt
 from matplotlib import rcsetup as _rcsetup
 from . import colors as _colors
+from . import cm as _cm
 
 #TODO: check axes colors for light / dark
+
+
+# TODO: add gfw.colormap.family : cm.light / cm.dark
+# TODO: then one can pass cmap='fishing' or 'presence' as strings and pick up light or 
+# TODO: dark as appropriate
 
 dark = {'font.family' : 'Roboto', 
         'font.weight' : 'normal',
@@ -20,7 +26,8 @@ dark = {'font.family' : 'Roboto',
          'gfw.ocean.color' : _colors.dark.ocean,
          'gfw.eez.bordercolor' : _colors.dark.eez,
          'gfw.eez.linewidth' : 0.4,
-         'gfw.map.centrallongitude' : 0}
+         'gfw.map.centrallongitude' : 0,
+         'gfw.map.cmapsrc' : _cm.dark}
 
 light = {'font.family' : 'Roboto', 
          'font.weight' : 'normal',
@@ -38,7 +45,8 @@ light = {'font.family' : 'Roboto',
          'gfw.ocean.color' : _colors.light.ocean,
          'gfw.eez.bordercolor' : _colors.light.eez,
          'gfw.eez.linewidth' : 0.4,
-         'gfw.map.centrallongitude' : 0}
+         'gfw.map.centrallongitude' : 0,
+         'gfw.map.cmapsrc' : _cm.light}
 
 
 for k in dark:

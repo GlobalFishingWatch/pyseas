@@ -36,51 +36,79 @@ identity = cartopy.crs.PlateCarree()
 
 root = os.path.dirname(os.path.dirname(__file__))
 
+# Use this alias because we might want to rework context so we aren't abusing
+# matplotlib's context in the future.
+context = plt.rc_context
 
+# TOOD: export these into projections moduls
+# TODO: and generate class structure to hold them so
+# TOOD: can do projections.global.default
+# TODO: but keep projections._projection_info to query directly
 
 projection_info = {
     # Need both "parameters" and carotpy_parameters to override
     'global.default' : dict (
             projection = cartopy.crs.EqualEarth,
             args = {'central_longitude' : 0},
-            extent = None
+            extent = None,
+            name = 'EqualEarth @ 0°E'
         ),
     'global.atlantic_centered' : dict (
             projection = cartopy.crs.EqualEarth,
             args = {'central_longitude' : -40},
-            extent = None
+            extent = None,
+            name = 'EqualEarth @ 40°W'
         ),
     'global.pacific_centered' : dict (
             projection = cartopy.crs.EqualEarth,
             args = {'central_longitude' : 150},
-            extent = None
+            extent = None,
+            name = 'EqualEarth @ 150°E'
         ),
 
     'regional.north_pacific' : dict (
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : -165, 'central_latitude' : 25},
-            extent = (-249, -71, 0, 3.3) # Update me
+            extent = (-249, -71, 0, 3.3), # Update me
+            name = 'Lambert azimuthal equal area @ 165°E,25°N'
         ),
     'regional.pacific' : dict(
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : -165},
-            extent = (-249, -71, -3.3, 3.3)
+            extent = (-249, -71, -3.3, 3.3),
+            name = "Lambert azimuthal equal area @ 165°E,0°N"
         ),
     'regional.indian' : dict(
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : 75},
-            extent = (15, 145, -30, 15)
+            extent = (15, 145, -30, 15),
+            name = "Lambert azimuthal equal area @ 75°E,0°N"
+        ),
+    'regional.european_union' : dict(
+            projection = cartopy.crs.AlbersEqualArea,
+            args = {'central_longitude' : 15, 'central_latitude' : 50},
+            extent = (-20, 50, 25, 75),
+            name = "Albers equal area conic @ 15°E,50°N"    
         ),
 
     'country.indonesia' : dict(
             projection = cartopy.crs.LambertCylindrical,
             args = {'central_longitude' : 120},
-            extent = (80, 160, -15, 15)
+            extent = (80, 160, -15, 15),
+            name = "Lambert cylindrical @ 120°E"
         ),
     'country.ecuador_with_galapagos' : dict(
             projection = cartopy.crs.LambertCylindrical,
             args = {'central_longitude' : -85},
-            extent = (-97, -75, -7, 5)
+            extent = (-97, -75, -7, 5),
+            name = "Lambert cylindrical @ 85°W"
+        ),
+    'country.japan' : dict(
+            projection = cartopy.crs.LambertAzimuthalEqualArea,
+            args = {'central_longitude' : 137, 'central_latitude' : 38},
+            extent = (126, 148, 23, 53),
+            name = "Lambert azimuthal equal area @ 137°E,38°N",
+            hspace = 0.2
         ),
 }
 
@@ -95,6 +123,11 @@ def get_extent(region_name):
     # Overridden vales)
     return projection_info[region_name]['extent']
 
+def get_proj_description(region_name):
+    # TODO: add warning (add flag so can disable when called through files that know better)
+    # when in `regional_pacific` and `regional.north_pacific` regions (many any regions with
+    # Overridden vales)
+    return projection_info[region_name]['name']
 
 
 def add_land(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
@@ -184,6 +217,12 @@ def add_raster(ax, raster, extent=(-180, 180, -90, 90), origin='upper', **kwargs
     -------
     AxesImage
     """
+    if 'cmap' in kwargs and isinstance(kwargs['cmap'], str):
+        src = plt.rcParams['gfw.map.cmapsrc']
+        try:
+            kwargs['cmap'] = getattr(src, kwargs['cmap'])
+        except AttributeError:
+            pass
     return ax.imshow(raster, transform=identity, 
                         extent=extent, origin=origin, **kwargs)
 
@@ -268,7 +307,8 @@ def add_figure_background(fig, color=None):
 def create_map(subplot=(1, 1, 1), 
                 projection='global.default', extent=None,
                 bg_color=None, 
-                hide_axes=True):
+                hide_axes=True,
+                show_xform=True):
     """Draw a GFW themed map
 
     Parameters
@@ -283,14 +323,13 @@ def create_map(subplot=(1, 1, 1),
     -------
     GeoAxes
     """
-    if projection is None:
-        # TODO: maybe just theme default projection
-        central_longitude = plt.rcParams.get('gfw.eez.centrallongitude', 0)
-        projection = cartopy.crs.EqualEarth(central_longitude=central_longitude)
-    elif isinstance(projection, str):
+    if isinstance(projection, str):
+        proj_name = projection
         if extent is None:
-            extent = get_extent(projection)
-        projection = get_projection(projection)
+            extent = get_extent(proj_name)
+        projection = get_projection(proj_name)
+    else:
+        proj_name = None
 
 
     bg_color = bg_color or plt.rcParams.get('gfw.ocean.color', colors.dark.ocean)
@@ -304,14 +343,21 @@ def create_map(subplot=(1, 1, 1),
     if hide_axes:
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
+    if show_xform and proj_name:
+        ax.text(0.0, -0.01, get_proj_description(proj_name), fontsize=9,
+            horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
     return ax
 
 
 
 def plot_raster_w_colorbar(raster, label='', loc='top',
-                projection=cartopy.crs.EqualEarth(), hspace=0.12, wspace=0.016,
+                projection='global.default', hspace=None, wspace=0.016,
                 bg_color=None, hide_axes=True, **kwargs):
     assert loc in ('top', 'bottom')
+    if hspace is None:
+        hspace = 0.12
+        if isinstance(projection, str):
+            hspace = projection_info[projection].get('hspace', hspace)
     if loc == 'top':
         hratios = [.015, 1]
         cb_ind, pl_ind = 0, 1
@@ -320,7 +366,9 @@ def plot_raster_w_colorbar(raster, label='', loc='top',
         hratios = [1, 0.015]
         cb_ind, pl_ind = 1, 0
         anchor = 'SE'
-        hspace -= 0.06
+        hspace -= 0.10
+
+
 
     gs = plt.GridSpec(2, 3, height_ratios=hratios, hspace=hspace, wspace=wspace)
     ax, im = plot_raster(raster, gs[pl_ind, :], projection=projection, **kwargs)
@@ -330,13 +378,13 @@ def plot_raster_w_colorbar(raster, label='', loc='top',
     leg_ax = plt.subplot(gs[cb_ind, 1], frame_on=False)
     leg_ax.axes.get_xaxis().set_visible(False)
     leg_ax.axes.get_yaxis().set_visible(False)
-    _ = leg_ax.text(1, 0.5, label, fontdict={'fontsize': 12}, # TODO: stule
+    leg_ax.text(1, 0.5, label, fontdict={'fontsize': 12}, # TODO: stule
                     horizontalalignment='right', verticalalignment='center')
     return ax, im, cb 
 
 
 
-def plot_raster(raster, subplot=(1, 1, 1), projection=cartopy.crs.EqualEarth(),
+def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
                 bg_color=None, hide_axes=True, colorbar=None, 
                 gridlines=False, **kwargs):
     """Draw a GFW themed map over a raster

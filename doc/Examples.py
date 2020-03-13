@@ -23,6 +23,7 @@ import cartopy.crs
 import skimage.io
 import cmocean
 import rendered
+import numpy as np
 from pandas.plotting import register_matplotlib_converters
 import matplotlib.font_manager as fm
 register_matplotlib_converters()
@@ -51,13 +52,14 @@ img = skimage.io.imread("../untracked/named-achorages01-raster.tiff")
 
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(18, 6))
-    ax, im = maps.plot_raster(img[::10, ::10], projection='global.pacific_centered', cmap=cm.presence)
+    ax, im = maps.plot_raster(img[::10, ::10], projection='global.pacific_centered', 
+                              cmap=cm.dark.presence)
     maps.add_eezs(ax)
 
 with plt.rc_context(styles.light):
     fig = plt.figure(figsize=(18, 6))
     projection = cartopy.crs.EqualEarth(central_longitude=-160)
-    ax, im = maps.plot_raster(img[::10, ::10], projection=projection, cmap=cm.presence)
+    ax, im = maps.plot_raster(img[::10, ::10], projection=projection, cmap=cm.dark.presence)
     maps.add_eezs(ax)
 
 # ### Global Map with a Colorbar
@@ -67,7 +69,7 @@ with plt.rc_context(styles.light):
 
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(18, 6))
-    ax, im = maps.plot_raster(img[::10, ::10], cmap=cm.fishing)
+    ax, im = maps.plot_raster(img[::10, ::10], cmap=cm.dark.fishing)
     cb_ax = fig.add_axes([0.51, 0.93, 0.15, 0.012]) 
     cb = fig.colorbar(im, cb_ax, orientation='horizontal')
     _ = ax.set_title("distance to shore (km)" + " " * 47, pad=23,
@@ -76,7 +78,7 @@ with plt.rc_context(styles.dark):
 
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(12,6))
-    ax, im = maps.plot_raster(img[::40, ::40], cmap=cm.fishing)
+    ax, im = maps.plot_raster(img[::40, ::40], cmap=cm.dark.fishing)
     cb = fig.colorbar(im, ax=ax, 
                       orientation='horizontal',
                       fraction=0.02,
@@ -89,12 +91,12 @@ with plt.rc_context(styles.dark):
 reload()
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(12,7))
-    maps.plot_raster_w_colorbar(img[::40, ::40], "distance to shore (km)", cmap=cm.fishing)
+    maps.plot_raster_w_colorbar(img[::40, ::40], "distance to shore (km)", cmap=cm.dark.fishing)
 
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(12,7))
     gs = plt.GridSpec(2, 3, fig, height_ratios=[.015, 1], hspace=0, wspace=0.015)
-    ax, im = maps.plot_raster(img[::40, ::40], gs[1, :], cmap=cm.fishing)
+    ax, im = maps.plot_raster(img[::40, ::40], gs[1, :], cmap=cm.dark.fishing)
     cb_ax = plt.subplot(gs[0, 2])
     cb = fig.colorbar(im, cb_ax, orientation='horizontal', shrink=0.8)
     leg_ax = plt.subplot(gs[0, 1], frame_on=False)
@@ -106,7 +108,7 @@ with plt.rc_context(styles.dark):
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(12,7))
     gs = plt.GridSpec(2, 3, fig, height_ratios=[1, .015], hspace=0, wspace=0.015)
-    ax, im = maps.plot_raster(img[::40, ::40], gs[0, :], cmap=cm.fishing)
+    ax, im = maps.plot_raster(img[::40, ::40], gs[0, :], cmap=cm.dark.fishing)
     cb_ax = plt.subplot(gs[1, 2])
     cb = fig.colorbar(im, cb_ax, orientation='horizontal', shrink=0.8)
     leg_ax = plt.subplot(gs[1, 1], frame_on=False)
@@ -117,7 +119,7 @@ with plt.rc_context(styles.dark):
 
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(18, 6))
-    ax, im = maps.plot_raster(img[::10, ::10], cmap=cm.fishing)
+    ax, im = maps.plot_raster(img[::10, ::10], cmap=cm.dark.fishing)
     cb_ax = fig.add_axes([0.615, 0.93, 0.15, 0.012]) 
     cb = fig.colorbar(im, cb_ax, orientation='horizontal')
     _ = ax.set_title(" " * 46 + "distance to shore (km)", pad=23,
@@ -125,7 +127,7 @@ with plt.rc_context(styles.dark):
 
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(18, 6))
-    ax, im = maps.plot_raster(img[::10, ::10], projection='regional.north_pacific', cmap=cm.fishing)
+    ax, im = maps.plot_raster(img[::10, ::10], projection='regional.north_pacific', cmap=cm.dark.fishing)
     maps.add_countries(ax)
     maps.add_eezs(ax)
     cb_ax = fig.add_axes([0.645, 0.93, 0.15, 0.012]) 
@@ -137,19 +139,19 @@ reload()
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(12, 8))
     ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], "distance to shore (km)", loc="top",
-                                             projection='regional.north_pacific', cmap=cm.fishing)
+                                             projection='regional.north_pacific', cmap=cm.dark.fishing)
 
 reload()
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(12, 8))
     ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], "distance to shore (km)", loc="bottom",
-                                             projection='regional.north_pacific', cmap=cm.fishing)
+                                             projection='regional.north_pacific', cmap=cm.dark.fishing)
 
 reload()
 with plt.rc_context(styles.dark):
     fig = plt.figure(figsize=(12, 8))
     ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], "distance to shore (km)", loc="bottom",
-                                             projection='regional.north_pacific', cmap=cm.fishing,
+                                             projection='regional.north_pacific', cmap=cm.dark.fishing,
                                             gridlines=True)
     ax.gridlines(linewidth=0.4, zorder=0.5)
     maps.add_countries(ax)
@@ -320,20 +322,33 @@ unnest(registry_info.best_known_vessel_class) v
  and seg_id in (select seg_id from good_segs)
  group by lat_bin, lon_bin
  """
-grid_presence = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
+df_presence = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
+
+grid = gridmod.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10)
 
 reload()
-grid = gridmod.df2grid(grid_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10)
-
-reload()
-plt.rc('text', usetex=False)
-fig = plt.figure(figsize=(14, 10))
+fig = plt.figure(figsize=(10, 10))
 norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
-with plt.rc_context(styles.dark):
+with maps.context(styles.dark):
     ax, im, cb = maps.plot_raster_w_colorbar(np.minimum(grid, 1000), 
                                        "hours of presence per ???",
-                                        projection='global.default',
-                                       cmap=cm.dark.presence,
+                                        projection='regional.north_pacific',
+                                       cmap='presence',
+                                      norm=norm,
+                                      loc='bottom')
+    maps.add_countries(ax)
+    ax.set_title('Seismic Vessels')
+    maps.add_figure_background(fig)
+plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300)
+
+reload()
+fig = plt.figure(figsize=(10, 10))
+norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
+with maps.context(styles.dark):
+    ax, im, cb = maps.plot_raster_w_colorbar(grid, 
+                                       "hours of presence per ???",
+                                        projection='country.indonesia',
+                                       cmap='presence',
                                       norm=norm,
                                       loc='bottom')
     maps.add_countries(ax)
@@ -343,7 +358,7 @@ with plt.rc_context(styles.dark):
 plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300)
 
 reload()
-grid2 = gridmod.df2grid(grid_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10, origin='lower')
+grid2 = gridmod.df2raster(grid_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10, origin='lower')
 
 reload()
 plt.rc('text', usetex=False)
@@ -352,8 +367,8 @@ norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
 with plt.rc_context(styles.light):
     ax, im, cb = maps.plot_raster_w_colorbar(np.minimum(grid2, 1000), 
                                        "hours of presence per ???",
-                                        projection='global.default',
-                                       cmap=cm.dark.presence,
+                                        projection='country.indonesia',
+                                       cmap=cm.light.presence,
                                       norm=norm,
                                       origin='lower',
                                       loc='bottom')
@@ -362,5 +377,10 @@ with plt.rc_context(styles.light):
     ax.set_title('Seismic Vessels')
     maps.add_figure_background(fig)
 plt.savefig('/Users/timothyhochberg/Desktop/test_plot_2.png', dpi=300)
+
+
+
+360 - 223
+
 
 
