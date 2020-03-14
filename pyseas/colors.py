@@ -12,7 +12,6 @@ class _Dark(object):
 
 dark = _Dark()
 
-# TODO: check
 class _Light(object):
     land = '#C9D2D3'
     ocean = '#F6F6F4'

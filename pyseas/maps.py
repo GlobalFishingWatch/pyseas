@@ -38,7 +38,6 @@ root = os.path.dirname(os.path.dirname(__file__))
 
 # Use this alias because we might want to rework context so we aren't abusing
 # matplotlib's context in the future.
-context = plt.rc_context
 
 # TOOD: export these into projections moduls
 # TODO: and generate class structure to hold them so
@@ -70,6 +69,12 @@ projection_info = {
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : -165, 'central_latitude' : 25},
             extent = (-249, -71, 0, 3.3), # Update me
+            name = 'Lambert azimuthal equal area @ 165°E,25°N'
+        ),
+    'regional.south_pacific' : dict (
+            projection = cartopy.crs.LambertAzimuthalEqualArea,
+            args = {'central_longitude' : -140, 'central_latitude' : 0},
+            extent = (-202, -62, -45, 7), # Update me
             name = 'Lambert azimuthal equal area @ 165°E,25°N'
         ),
     'regional.pacific' : dict(
@@ -107,6 +112,20 @@ projection_info = {
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : 137, 'central_latitude' : 38},
             extent = (126, 148, 23, 53),
+            name = "Lambert azimuthal equal area @ 137°E,38°N",
+            hspace = 0.2
+        ),
+    'country.peru' : dict(
+            projection = cartopy.crs.LambertAzimuthalEqualArea,
+            args = {'central_longitude' : -80},
+            extent = (-93, -67, -20, 2),
+            name = "Lambert azimuthal equal area @ 137°E,38°N",
+            hspace = 0.2
+        ),
+    'country.panama' : dict(
+            projection = cartopy.crs.LambertAzimuthalEqualArea,
+            args = {'central_longitude' : -80},
+            extent = (-93, -67, -4, 21),
             name = "Lambert azimuthal equal area @ 137°E,38°N",
             hspace = 0.2
         ),
