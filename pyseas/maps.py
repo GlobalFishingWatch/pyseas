@@ -68,21 +68,22 @@ projection_info = {
     'regional.north_pacific' : dict (
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : -165, 'central_latitude' : 25},
-            extent = (-249, -71, 0, 3.3), # Update me
+            extent = (-249, -71, 0, 50), 
             name = 'Lambert azimuthal equal area @ 165°E,25°N'
         ),
     'regional.south_pacific' : dict (
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : -140, 'central_latitude' : 0},
-            extent = (-202, -62, -45, 7), # Update me
+            extent = (-202, -62, -65, 15), 
             name = 'Lambert azimuthal equal area @ 140°W,0°S'
         ),
     'regional.pacific' : dict(
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : -165},
-            extent = (-249, -71, -3.3, 3.3),
+            extent = (-249, -71, -50, 50),
             name = "Lambert azimuthal equal area @ 165°W,0°N"
         ),
+
     'regional.indian' : dict(
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : 75},
@@ -358,7 +359,7 @@ def create_map(subplot=(1, 1, 1),
     ax = plt.subplot(*subplot, projection=projection)
     ax.background_patch.set_facecolor(bg_color)
     if extent is not None:
-        ax.set_extent(extent)
+        ax.set_extent(extent, crs=identity)
     if hide_axes:
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
@@ -371,7 +372,7 @@ def create_map(subplot=(1, 1, 1),
 
 def plot_raster_w_colorbar(raster, label='', loc='top',
                 projection='global.default', hspace=None, wspace=0.016,
-                bg_color=None, hide_axes=True, **kwargs):
+                bg_color=None, hide_axes=True, cbformat=None, **kwargs):
     assert loc in ('top', 'bottom')
     if hspace is None:
         hspace = 0.12
@@ -393,13 +394,13 @@ def plot_raster_w_colorbar(raster, label='', loc='top',
     ax, im = plot_raster(raster, gs[pl_ind, :], projection=projection, **kwargs)
     ax.set_anchor(anchor)
     cb_ax = plt.subplot(gs[cb_ind, 2])
-    cb = plt.colorbar(im, cb_ax, orientation='horizontal', shrink=0.8)
+    cb = plt.colorbar(im, cb_ax, orientation='horizontal', shrink=0.8, format=cbformat)
     leg_ax = plt.subplot(gs[cb_ind, 1], frame_on=False)
     leg_ax.axes.get_xaxis().set_visible(False)
     leg_ax.axes.get_yaxis().set_visible(False)
     leg_ax.text(1, 0.5, label, fontdict={'fontsize': 12}, # TODO: stule
                     horizontalalignment='right', verticalalignment='center')
-    return ax, im, cb 
+    return ax, im, cb
 
 
 

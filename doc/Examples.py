@@ -272,18 +272,22 @@ unnest(registry_info.best_known_vessel_class) v
  """
 df_presence = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
-raster = rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10)
+reload()
+raster = rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10, 
+                           scale=rasters.LonLat2Km2Scaler(xyscale=10))
 
 reload()
 fig = plt.figure(figsize=(10, 10))
-norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
+norm = mpcolors.LogNorm(vmin=1, vmax=1000)
 with pycs.context(styles.dark):
-    ax, im, cb = maps.plot_raster_w_colorbar(raster, 
-                                       "hours of presence per ???",
-                                        projection='country.panama',
-                                       cmap='presence',
+    projection = cartopy.crs.EqualEarth(central_longitude=-165)
+    ax, im, cb = pycs.maps.plot_raster_w_colorbar(raster, 
+                                       "hours of presence per km2",
+                                        projection='regional.pacific',
+                                       cmap='presence', cbformat="%d",
                                       norm=norm,
                                       loc='bottom')
+    cb.set_ticks([1, 10, 100, 1000, 1000])
     maps.add_countries(ax)
     ax.set_title('Seismic Vessels')
     maps.add_figure_background(fig)
@@ -315,7 +319,7 @@ norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
 with plt.rc_context(styles.light):
     ax, im, cb = maps.plot_raster_w_colorbar(np.minimum(grid2, 1000), 
                                        "hours of presence per ???",
-                                        projection='regional.north_pacific',
+                                        projection='regional.south_pacific',
                                        cmap='presence',
                                       norm=norm,
                                       origin='lower',
@@ -386,20 +390,21 @@ grid_fishing_vessel_presence_longlines = pycs.rasters.df2raster(df_fishing[df_fi
 with plt.rc_context(pycs.styles.dark): 
     fig_min_value = 5
     fig_max_value = 5000
-    projection = cartopy.crs.LambertAzimuthalEqualArea(75, 0)
+#     projection = cartopy.crs.LambertAzimuthalEqualArea(75, 0)
     norm = mpcolors.LogNorm(vmin=fig_min_value, vmax=fig_max_value)
     fig = plt.figure(figsize=(10, 10))
     ax, im, colorbar = pycs.maps.plot_raster_w_colorbar(
                             grid_fishing_presence,
-                            "hours of presence of fishing vessels per 0.25 degree square",   
+                            "hours per ???",   
                             cmap='presence',
                             loc='bottom',  
                             extent = [min_lon + 0.01, max_lon, min_lat, max_lat],
                             norm = norm, 
-                            projection=projection)
+                            projection='regional.indian')
     pycs.maps.add_eezs(ax)
+    pycs.maps.add_countries(ax)
     ax.set_extent((15, 145, -30, 15))
-#     ax.set_title("Fishing Activity in the Indian Ocean and Study Area")
+    ax.set_title("Fishing Vessel Presence in the Indian Ocean overlaid with Study Area")
 #     ax.add_geometries([overpasses], crs = ccrs.PlateCarree(),
 #                   alpha=1, facecolor='none', edgecolor='red') # for Lat/Lon data.
     
