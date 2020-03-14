@@ -75,13 +75,13 @@ projection_info = {
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : -140, 'central_latitude' : 0},
             extent = (-202, -62, -45, 7), # Update me
-            name = 'Lambert azimuthal equal area @ 165°E,25°N'
+            name = 'Lambert azimuthal equal area @ 140°W,0°S'
         ),
     'regional.pacific' : dict(
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : -165},
             extent = (-249, -71, -3.3, 3.3),
-            name = "Lambert azimuthal equal area @ 165°E,0°N"
+            name = "Lambert azimuthal equal area @ 165°W,0°N"
         ),
     'regional.indian' : dict(
             projection = cartopy.crs.LambertAzimuthalEqualArea,
@@ -119,14 +119,14 @@ projection_info = {
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : -80},
             extent = (-93, -67, -20, 2),
-            name = "Lambert azimuthal equal area @ 137°E,38°N",
+            name = "Lambert azimuthal equal area @ 80°W",
             hspace = 0.2
         ),
     'country.panama' : dict(
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : -80},
             extent = (-93, -67, -4, 21),
-            name = "Lambert azimuthal equal area @ 137°E,38°N",
+            name = "Lambert azimuthal equal area @ 80°W",
             hspace = 0.2
         ),
 }
