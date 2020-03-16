@@ -31,6 +31,9 @@ import cartopy.feature as cfeature
 import os
 from . import colors
 import geopandas as gpd
+from cartopy.feature import ShapelyFeature
+import shapely
+
 
 identity = cartopy.crs.PlateCarree()
 
@@ -73,9 +76,10 @@ projection_info = {
         ),
     'regional.south_pacific' : dict (
             projection = cartopy.crs.LambertAzimuthalEqualArea,
-            args = {'central_longitude' : -140, 'central_latitude' : 0},
+            args = {'central_longitude' : -140, 'central_latitude' : -40}, 
             extent = (-202, -62, -65, 15), 
-            name = 'Lambert azimuthal equal area @ 140°W,0°S'
+            name = 'Lambert azimuthal equal area @ 140°W,0°S',
+            bad_land_polys = {(0, 4), (0, 49), (1,), (3,)} # Specific to natural earth version
         ),
     'regional.pacific' : dict(
             projection = cartopy.crs.LambertAzimuthalEqualArea,
@@ -150,12 +154,14 @@ def get_proj_description(region_name):
     return projection_info[region_name]['name']
 
 
-def add_land(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
+def add_land(ax, projection=None, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
     """Add land to an existing map
 
     Parameters
     ----------
     ax : matplotlib axes object
+    projection: str
+        If projection is specified, try to remove problematic land polygons
     scale : str, optional
         Resolution of NaturalEarth data to use ('10m’, ‘50m’, or ‘110m').
     edgecolor : str or tuple, optional
@@ -176,7 +182,27 @@ def add_land(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **
     edgecolor = edgecolor or plt.rcParams.get('gfw.border.color', colors.dark.border)
     facecolor = facecolor or plt.rcParams.get('gfw.land.color', colors.dark.land)
     linewidth = linewidth or plt.rcParams.get('gfw.border.linewidth', 0.4)
-    land = cfeature.NaturalEarthFeature('physical', 'land', scale,
+    land = cfeature.NaturalEarthFeature('physical', 'land', scale)
+    geometries = list(land.geometries())
+    if isinstance(projection, str):
+        bad_polys = projection_info[projection].get('bad_land_polys', ())
+        print(projection, bad_polys)
+        if bad_polys:
+            new_geometries = []
+            for i, geom in enumerate(geometries):
+                if geom.type == 'MultiPolygon':
+                    polys = []
+                    for j, p in enumerate(geom.geoms):
+                        if (i, j) not in bad_polys:
+                            polys.append(p)
+                        else:
+                            print('skipping', i, j)
+                    new_geometries.append(shapely.geometry.MultiPolygon(polys))
+                else:
+                    new_geometries.append(geom)
+        geometries = new_geometries
+
+    region = ShapelyFeature(geometries, crs=cartopy.crs.PlateCarree(),
                                             edgecolor=edgecolor,
                                             facecolor=facecolor,
                                             linewidth=linewidth,
@@ -429,5 +455,5 @@ def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
     extent = kwargs.get('extent')
     ax = create_map(subplot, projection, extent, bg_color, hide_axes)
     im = add_raster(ax, raster, **kwargs)
-    add_land(ax)
+    add_land(ax, projection)
     return  ax, im

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ---
 # jupyter:
 #   jupytext:
@@ -31,9 +32,10 @@ register_matplotlib_converters()
 from pyseas import maps, cm, styles, rasters
 import pyseas.colors
 from pyseas.contrib import plot_tracks
-import pyseas as pycs
+import pyseas as pyseas
 import imp
 def reload():
+    imp.reload(cartopy.crs)
     imp.reload(cm)
     imp.reload(pycs.colors)
     imp.reload(styles)
@@ -46,6 +48,8 @@ reload()
 # %matplotlib inline
 # -
 
+
+
 # ## Global Raster Plots
 
 # !gsutil cp -n gs://machine-learning-dev-ttl-120d/named-achorages01-raster.tiff ../untracked/
@@ -53,9 +57,9 @@ img = skimage.io.imread("../untracked/named-achorages01-raster.tiff")
 
 # ### Global map centered over the Pacific using Dark Style
 
-with pycs.context(styles.dark):
+with πcs.context(styles.dark):
     fig = plt.figure(figsize=(18, 6))
-    ax, im = pycs.maps.plot_raster(img[::10, ::10],
+    ax, im = πcs.maps.plot_raster(img[::10, ::10],
                                    projection='global.pacific_centered', 
                                    cmap='presence')
     maps.add_eezs(ax)
@@ -156,25 +160,91 @@ reload()
 with pycs.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
     ax = maps.create_map(projection='regional.indian')
-    maps.add_land(ax)
-    maps.add_countries(ax)
+#     maps.add_land(ax)
+#     maps.add_countries(ax)
     plt.show()
 
 reload()
 with pycs.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
-    ax = maps.create_map(projection='global.pacific_centered')
-    maps.add_land(ax)
+    ax = maps.create_map(projection='regional.south_pacific')
+    maps.add_land(ax, 'regional.south_pacific')
     maps.add_countries(ax)
     plt.show()
+
+import shapely
+geometries = list(land.geometries())
+# geometries[0] = shapely.geometry.MultiPolygon(geometries[0].geoms[4:5])
+geometries[0] = shapely.geometry.MultiPolygon(list(geometries[0].geoms[:4]) + 
+                                              list(geometries[0].geoms[5:49]) + 
+                                              list(geometries[0].geoms[50:]) )
+print(len(geometries[0].geoms))
+# geometries[0] = shapely.geometry.MultiPolygon(list(geometries[0].geoms[50:]))
+shapely.geometry.MultiPolygon(list(geometries[0].geoms[4:5]) + list(geometries[0].geoms[:1]) + 
+                                              list(geometries[0].geoms[49:50]))
+
+len(geometries)
+
+# +
+from cartopy.feature import ShapelyFeature
+
+fig = plt.figure(figsize=(10, 10))
+projection = cartopy.crs.LambertAzimuthalEqualArea(central_longitude=-140, central_latitude=0)#-40)
+ax = plt.subplot(111, projection=projection)
+# pycs.maps.add_countries(ax)
+ax.set_extent(pycs.maps.get_extent('regional.south_pacific'), maps.identity)
+land = cartopy.feature.NaturalEarthFeature('physical', 'land', '10m')
+# pycs.maps.add_eezs(ax)
+region = ShapelyFeature(geometries[0:2], crs=cartopy.crs.PlateCarree(), # 1 3
+                        facecolor='blue')
+ax.add_feature(region)
+# ax.coastlines()
+
+# +
 
 reload()
 with pycs.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
-    ax = maps.create_map(projection='global.atlantic_centered')
+    ax = maps.create_map(projection='regional.south_pacific')
     maps.add_land(ax)
     maps.add_countries(ax)
+    ax.set_extent((-720, 720, -90, 90), pycs.maps.identity)
     plt.show()
+
+#     6378137.0 6.872546398005343e-06 -12733636.050471636
+# >>> [[ 1.27556362e+07  1.26857595e+07  1.24768949e+07  1.21313309e+07
+#    1.16528535e+07  1.10467050e+07  1.03195264e+07  9.47928503e+06
+#    8.53518658e+06  7.49757483e+06  6.37781809e+06  5.18818464e+06
+#    3.94170836e+06  2.65204589e+06  1.33332705e+06  7.81057451e-10
+#   -1.33332705e+06 -2.65204589e+06 -3.94170836e+06 -5.18818464e+06
+#   -6.37781809e+06 -7.49757483e+06 -8.53518658e+06 -9.47928503e+06
+#   -1.03195264e+07 -1.10467050e+07 -1.16528535e+07 -1.21313309e+07
+#   -1.24768949e+07 -1.26857595e+07 -1.27556362e+07 -1.26857595e+07
+#   -1.24768949e+07 -1.21313309e+07 -1.16528535e+07 -1.10467050e+07
+#   -1.03195264e+07 -9.47928503e+06 -8.53518658e+06 -7.49757483e+06
+#   -6.37781809e+06 -5.18818464e+06 -3.94170836e+06 -2.65204589e+06
+#   -1.33332705e+06 -2.34317235e-09  1.33332705e+06  2.65204589e+06
+#    3.94170836e+06  5.18818464e+06  6.37781809e+06  7.49757483e+06
+#    8.53518658e+06  9.47928503e+06  1.03195264e+07  1.10467050e+07
+#    1.16528535e+07  1.21313309e+07  1.24768949e+07  1.26857595e+07
+#    1.27556362e+07]
+#  [ 0.00000000e+00  1.33102741e+06  2.64747180e+06  3.93490994e+06
+#    5.17923638e+06  6.36681803e+06  7.48464348e+06  8.52046561e+06
+#    9.46293574e+06  1.03017280e+07  1.10276523e+07  1.16327554e+07
+#    1.21104075e+07  1.24553756e+07  1.26638799e+07  1.27336361e+07
+#    1.26638799e+07  1.24553756e+07  1.21104075e+07  1.16327554e+07
+#    1.10276523e+07  1.03017280e+07  9.46293574e+06  8.52046561e+06
+#    7.48464348e+06  6.36681803e+06  5.17923638e+06  3.93490994e+06
+#    2.64747180e+06  1.33102741e+06  1.55942066e-09 -1.33102741e+06
+#   -2.64747180e+06 -3.93490994e+06 -5.17923638e+06 -6.36681803e+06
+#   -7.48464348e+06 -8.52046561e+06 -9.46293574e+06 -1.03017280e+07
+#   -1.10276523e+07 -1.16327554e+07 -1.21104075e+07 -1.24553756e+07
+#   -1.26638799e+07 -1.27336361e+07 -1.26638799e+07 -1.24553756e+07
+#   -1.21104075e+07 -1.16327554e+07 -1.10276523e+07 -1.03017280e+07
+#   -9.46293574e+06 -8.52046561e+06 -7.48464348e+06 -6.36681803e+06
+#   -5.17923638e+06 -3.93490994e+06 -2.64747180e+06 -1.33102741e+06
+#   -3.11884133e-09]]
+# -
 
 reload()
 with pycs.context(styles.light):
@@ -241,13 +311,6 @@ with plt.rc_context(styles.light):
     maps.add_land(ax)
     ax.add_geometries(reproj_eez.geometry, crs=projection, edgecolor='w', alpha=1, linewidth=1)
 
-with plt.rc_context(styles.light):
-    fig = plt.figure(figsize=(18, 6))
-    projection = cartopy.crs.PlateCarree(central_longitude=160)
-    ax = maps.create_map(projection=projection)
-    maps.add_land(ax)
-#     ax.add_geometries(reproj_eez.geometry, crs=projection, edge
-
 query = """
 with seismic as 
 (select distinct ssvid from (
@@ -273,18 +336,17 @@ unnest(registry_info.best_known_vessel_class) v
 df_presence = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
 reload()
-raster = rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10, 
-                           scale=rasters.LonLat2Km2Scaler(xyscale=10))
+raster = rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10, per_km2=True)
 
 reload()
 fig = plt.figure(figsize=(10, 10))
-norm = mpcolors.LogNorm(vmin=1, vmax=1000)
+norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
 with pycs.context(styles.dark):
     projection = cartopy.crs.EqualEarth(central_longitude=-165)
     ax, im, cb = pycs.maps.plot_raster_w_colorbar(raster, 
                                        "hours of presence per km2",
                                         projection='regional.pacific',
-                                       cmap='presence', cbformat="%d",
+                                       cmap='presence', 
                                       norm=norm,
                                       loc='bottom')
     cb.set_ticks([1, 10, 100, 1000, 1000])
@@ -295,10 +357,12 @@ plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300)
 
 reload()
 fig = plt.figure(figsize=(14, 10))
-norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
-with maps.context(styles.dark):
+norm = mpcolors.LogNorm(vmin=1, vmax=10000)
+# norm = mpcolors.Normalize(vmin=1, vmax=10000)
+# raster[raster == 0] = np.nan
+with pycs.context(styles.dark):
     ax, im, cb = maps.plot_raster_w_colorbar(raster, 
-                                       "hours of presence per ???",
+                                       "hours of presence per km2",
                                         projection='country.indonesia',
                                        cmap='presence',
                                       norm=norm,
@@ -310,14 +374,15 @@ with maps.context(styles.dark):
 plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300)
 
 reload()
-grid2 = pycs.rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10, origin='lower')
+raster2 = pycs.rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', 
+                                 xyscale=10, origin='lower', per_km2=True)
 
 reload()
 plt.rc('text', usetex=False)
 fig = plt.figure(figsize=(14, 10))
-norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
+norm = mpcolors.LogNorm(vmin=1, vmax=10000)
 with plt.rc_context(styles.light):
-    ax, im, cb = maps.plot_raster_w_colorbar(np.minimum(grid2, 1000), 
+    ax, im, cb = maps.plot_raster_w_colorbar(raster2, 
                                        "hours of presence per ???",
                                         projection='regional.south_pacific',
                                        cmap='presence',
@@ -372,30 +437,19 @@ df_fishing = pd.read_gbq(q, project_id='world-fishing-827')
 
 # +
 reload()
-min_lon = 0
-min_lat = -55
-max_lon = 150
-max_lat = 33
 
-grid_fishing  = pycs.rasters.df2raster(df_fishing, 'lon_bin', 'lat_bin', 'fishing_hours', xyscale=4,
-                                     extent = [min_lon, max_lon, min_lat, max_lat])
-grid_fishing_longlines  = pycs.rasters.df2raster(df_fishing[df_fishing.vessel_class=='drifting_longlines'],
-                                                'lon_bin', 'lat_bin', 'fishing_hours', xyscale=4,
-                                               extent = [min_lon, max_lon, min_lat, max_lat])
 grid_fishing_presence  = pycs.rasters.df2raster(df_fishing, 'lon_bin', 'lat_bin', 'hours', xyscale=4,
-                                              extent = [min_lon, max_lon, min_lat, max_lat])
-grid_fishing_vessel_presence_longlines = pycs.rasters.df2raster(df_fishing[df_fishing.vessel_class=='drifting_longlines'],
-                                                'lon_bin', 'lat_bin', 'hours', xyscale=4,
-                                                              extent = [min_lon, max_lon, min_lat, max_lat])
+                                              extent = [min_lon, max_lon, min_lat, max_lat],
+                                                per_km2=True, scale=60)
+
 with plt.rc_context(pycs.styles.dark): 
-    fig_min_value = 5
-    fig_max_value = 5000
-#     projection = cartopy.crs.LambertAzimuthalEqualArea(75, 0)
+    fig_min_value = 1
+    fig_max_value = 100
     norm = mpcolors.LogNorm(vmin=fig_min_value, vmax=fig_max_value)
     fig = plt.figure(figsize=(10, 10))
     ax, im, colorbar = pycs.maps.plot_raster_w_colorbar(
                             grid_fishing_presence,
-                            "hours per ???",   
+                            "seconds per square km",   
                             cmap='presence',
                             loc='bottom',  
                             extent = [min_lon + 0.01, max_lon, min_lat, max_lat],
@@ -403,18 +457,13 @@ with plt.rc_context(pycs.styles.dark):
                             projection='regional.indian')
     pycs.maps.add_eezs(ax)
     pycs.maps.add_countries(ax)
-    ax.set_extent((15, 145, -30, 15))
+    ax.set_extent((15, 145, -30, 15), crs=maps.identity)
     ax.set_title("Fishing Vessel Presence in the Indian Ocean overlaid with Study Area")
 #     ax.add_geometries([overpasses], crs = ccrs.PlateCarree(),
 #                   alpha=1, facecolor='none', edgecolor='red') # for Lat/Lon data.
     
+# -
 
-# +
-def reverse(code):
-    c1 = code[1:3]
-    c2 = code[3:5]
-    c3 = code[5:7]
-    vals = (255 - int(c, 16) for c in [c1, c2, c3])
-    return '#' + ''.join(hex(x)[2:] for x in vals)
 
-reverse('#0c276c')
+
+grid_fishing_presence.shape
