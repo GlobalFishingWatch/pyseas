@@ -25,6 +25,7 @@ Add a `colorbar` to a raster plot
 See also `contrib.plot_tracks` for examples of using `add_plot`
 
 """
+from ._monkey_patch_cartopy import monkey_patch_cartopy
 import matplotlib.pyplot as plt
 import cartopy
 import cartopy.feature as cfeature
@@ -34,6 +35,7 @@ import geopandas as gpd
 from cartopy.feature import ShapelyFeature
 import shapely
 
+monkey_patch_cartopy()
 
 identity = cartopy.crs.PlateCarree()
 
@@ -79,7 +81,7 @@ projection_info = {
             args = {'central_longitude' : -140, 'central_latitude' : -40}, 
             extent = (-202, -62, -65, 15), 
             name = 'Lambert azimuthal equal area @ 140°W,0°S',
-            bad_land_polys = {(0, 4), (0, 49), (1,), (3,)} # Specific to natural earth version
+            # bad_land_polys = {(0, 4)} # Specific to natural earth version
         ),
     'regional.pacific' : dict(
             projection = cartopy.crs.LambertAzimuthalEqualArea,
@@ -87,7 +89,24 @@ projection_info = {
             extent = (-249, -71, -50, 50),
             name = "Lambert azimuthal equal area @ 165°W,0°N"
         ),
-
+    'regional.atlantic' : dict(
+            projection = cartopy.crs.LambertAzimuthalEqualArea,
+            args = {'central_longitude' : -30}, 
+            extent = (-80, 20, -75, 75), 
+            name = 'Lambert azimuthal equal area @ 30°W,0°S',
+        ),
+    'regional.north_atlantic' : dict(
+            projection = cartopy.crs.LambertAzimuthalEqualArea,
+            args = {'central_longitude' : -30, 'central_latitude' : 35}, 
+            extent = (-80, 20, -5, 75), 
+            name = 'Lambert azimuthal equal area @ 30°W,0°S',
+        ),
+    'regional.south_atlantic' : dict(
+            projection = cartopy.crs.LambertAzimuthalEqualArea,
+            args = {'central_longitude' : -20, 'central_latitude' : -35}, 
+            extent = (-55, 15, -55, 5), 
+            name = 'Lambert azimuthal equal area @ 30°W,0°S',
+        ),
     'regional.indian' : dict(
             projection = cartopy.crs.LambertAzimuthalEqualArea,
             args = {'central_longitude' : 75},
@@ -118,6 +137,13 @@ projection_info = {
             args = {'central_longitude' : 137, 'central_latitude' : 38},
             extent = (126, 148, 23, 53),
             name = "Lambert azimuthal equal area @ 137°E,38°N",
+            hspace = 0.2
+        ),
+    'country.chile' : dict(
+            projection = cartopy.crs.LambertAzimuthalEqualArea,
+            args = {'central_longitude' : -80, 'central_latitude' : -35},
+            extent = (-100, -60, -60, -10),
+            name = "Lambert azimuthal equal area @ 80°W",
             hspace = 0.2
         ),
     'country.peru' : dict(
@@ -182,31 +208,33 @@ def add_land(ax, projection=None, scale='10m', edgecolor=None, facecolor=None, l
     edgecolor = edgecolor or plt.rcParams.get('gfw.border.color', colors.dark.border)
     facecolor = facecolor or plt.rcParams.get('gfw.land.color', colors.dark.land)
     linewidth = linewidth or plt.rcParams.get('gfw.border.linewidth', 0.4)
-    land = cfeature.NaturalEarthFeature('physical', 'land', scale)
-    geometries = list(land.geometries())
-    if isinstance(projection, str):
-        bad_polys = projection_info[projection].get('bad_land_polys', ())
-        print(projection, bad_polys)
-        if bad_polys:
-            new_geometries = []
-            for i, geom in enumerate(geometries):
-                if geom.type == 'MultiPolygon':
-                    polys = []
-                    for j, p in enumerate(geom.geoms):
-                        if (i, j) not in bad_polys:
-                            polys.append(p)
-                        else:
-                            print('skipping', i, j)
-                    new_geometries.append(shapely.geometry.MultiPolygon(polys))
-                else:
-                    new_geometries.append(geom)
-        geometries = new_geometries
-
-    region = ShapelyFeature(geometries, crs=cartopy.crs.PlateCarree(),
+    land = cfeature.NaturalEarthFeature('physical', 'land', scale,
                                             edgecolor=edgecolor,
                                             facecolor=facecolor,
                                             linewidth=linewidth,
                                             **kwargs)
+    # geometries = list(land.geometries())
+    # if isinstance(projection, str):
+    #     bad_polys = projection_info[projection].get('bad_land_polys', ())
+    #     if bad_polys:
+    #         new_geometries = []
+    #         for i, geom in enumerate(geometries):
+    #             if (i,) not in bad_polys:
+    #                 if geom.type == 'MultiPolygon':
+    #                     polys = []
+    #                     for j, p in enumerate(geom.geoms):
+    #                         if (i, j) not in bad_polys:
+    #                             polys.append(p)
+    #                     new_geometries.append(shapely.geometry.MultiPolygon(polys))
+    #                 else:
+    #                     new_geometries.append(geom)
+    #         geometries = new_geometries
+
+    # region = ShapelyFeature(geometries, crs=cartopy.crs.PlateCarree(),
+    #                                         edgecolor=edgecolor,
+    #                                         facecolor=facecolor,
+    #                                         linewidth=linewidth,
+    #                                         **kwargs)
     return ax.add_feature(land)
 
 def add_countries(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):

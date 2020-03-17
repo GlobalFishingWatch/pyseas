@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # ---
 # jupyter:
 #   jupytext:
@@ -32,10 +31,87 @@ register_matplotlib_converters()
 from pyseas import maps, cm, styles, rasters
 import pyseas.colors
 from pyseas.contrib import plot_tracks
-import pyseas as pyseas
+import pyseas as pyseas, pyseas as pycs
 import imp
+
+import shapely.geometry as sgeom
+from shapely.prepared import prep
+
+# def _rings_to_multi_polygon(self, rings, is_ccw):
+#         exterior_rings = []
+#         interior_rings = []
+#         for ring in rings:
+#             if ring.is_ccw != is_ccw:
+#                 interior_rings.append(ring)
+#             else:
+#                 exterior_rings.append(ring)
+
+#         polygon_bits = []
+
+#         # Turn all the exterior rings into polygon definitions,
+#         # "slurping up" any interior rings they contain.
+#         for exterior_ring in exterior_rings:
+#             polygon = sgeom.Polygon(exterior_ring)
+#             prep_polygon = prep(polygon)
+#             holes = []
+#             for interior_ring in interior_rings[:]:
+#                 if prep_polygon.contains(interior_ring):
+#                     holes.append(interior_ring)
+#                     interior_rings.remove(interior_ring)
+#                 elif polygon.crosses(interior_ring):
+#                     # Likely that we have an invalid geometry such as
+#                     # that from #509 or #537.
+#                     holes.append(interior_ring)
+#                     interior_rings.remove(interior_ring)
+#             polygon_bits.append((exterior_ring.coords,
+#                                  [ring.coords for ring in holes]))
+
+#         # # Any left over "interior" rings need "inverting" with respect
+#         # # to the boundary.
+#         # if interior_rings:
+#         #     boundary_poly = self.domain
+#         #     x3, y3, x4, y4 = boundary_poly.bounds
+#         #     bx = (x4 - x3) * 0.1
+#         #     by = (y4 - y3) * 0.1
+#         #     x3 -= bx
+#         #     y3 -= by
+#         #     x4 += bx
+#         #     y4 += by
+#         #     for ring in interior_rings:
+#         #         # Use shapely buffer in an attempt to fix invalid geometries
+#         #         polygon = sgeom.Polygon(ring).buffer(0)
+#         #         if not polygon.is_empty and polygon.is_valid:
+#         #             x1, y1, x2, y2 = polygon.bounds
+#         #             bx = (x2 - x1) * 0.1
+#         #             by = (y2 - y1) * 0.1
+#         #             x1 -= bx
+#         #             y1 -= by
+#         #             x2 += bx
+#         #             y2 += by
+#         #             box = sgeom.box(min(x1, x3), min(y1, y3),
+#         #                             max(x2, x4), max(y2, y4))
+
+#         #             # Invert the polygon
+#         #             polygon = box.difference(polygon)
+
+#         #             # Intersect the inverted polygon with the boundary
+#         #             polygon = boundary_poly.intersection(polygon)
+
+#         #             if not polygon.is_empty:
+#         #                 polygon_bits.append(polygon)
+
+#         if polygon_bits:
+#             multi_poly = sgeom.MultiPolygon(polygon_bits)
+#         else:
+#             multi_poly = sgeom.MultiPolygon()
+#         return multi_poly
+from pyseas._monkey_patch_cartopy import monkey_patch_cartopy
+
+
 def reload():
     imp.reload(cartopy.crs)
+    monkey_patch_cartopy()
+#     cartopy.crs.Projection._rings_to_multi_polygon = _rings_to_multi_polygon
     imp.reload(cm)
     imp.reload(pycs.colors)
     imp.reload(styles)
@@ -46,9 +122,10 @@ def reload():
 reload()
 
 # %matplotlib inline
+
+# +
+# conda upgrade --channel conda-forge cartopy
 # -
-
-
 
 # ## Global Raster Plots
 
@@ -57,9 +134,10 @@ img = skimage.io.imread("../untracked/named-achorages01-raster.tiff")
 
 # ### Global map centered over the Pacific using Dark Style
 
-with πcs.context(styles.dark):
+reload()
+with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(18, 6))
-    ax, im = πcs.maps.plot_raster(img[::10, ::10],
+    ax, im = maps.plot_raster(img[::10, ::10],
                                    projection='global.pacific_centered', 
                                    cmap='presence')
     maps.add_eezs(ax)
@@ -151,7 +229,7 @@ with pycs.context(styles.light):
 reload()
 with pycs.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
-    ax = maps.create_map(projection='regional.north_pacific')
+    ax = maps.create_map(projection='regional.south_pacific')
     maps.add_land(ax)
     maps.add_countries(ax)
     plt.show()
@@ -159,92 +237,18 @@ with pycs.context(styles.light):
 reload()
 with pycs.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
-    ax = maps.create_map(projection='regional.indian')
-#     maps.add_land(ax)
-#     maps.add_countries(ax)
+    ax = maps.create_map(projection='country.chile')
+    maps.add_land(ax)
+    maps.add_countries(ax)
     plt.show()
 
 reload()
-with pycs.context(styles.light):
+with pycs.context(styles.dark):
     fig = plt.figure(figsize=(10, 10))
     ax = maps.create_map(projection='regional.south_pacific')
     maps.add_land(ax, 'regional.south_pacific')
     maps.add_countries(ax)
     plt.show()
-
-import shapely
-geometries = list(land.geometries())
-# geometries[0] = shapely.geometry.MultiPolygon(geometries[0].geoms[4:5])
-geometries[0] = shapely.geometry.MultiPolygon(list(geometries[0].geoms[:4]) + 
-                                              list(geometries[0].geoms[5:49]) + 
-                                              list(geometries[0].geoms[50:]) )
-print(len(geometries[0].geoms))
-# geometries[0] = shapely.geometry.MultiPolygon(list(geometries[0].geoms[50:]))
-shapely.geometry.MultiPolygon(list(geometries[0].geoms[4:5]) + list(geometries[0].geoms[:1]) + 
-                                              list(geometries[0].geoms[49:50]))
-
-len(geometries)
-
-# +
-from cartopy.feature import ShapelyFeature
-
-fig = plt.figure(figsize=(10, 10))
-projection = cartopy.crs.LambertAzimuthalEqualArea(central_longitude=-140, central_latitude=0)#-40)
-ax = plt.subplot(111, projection=projection)
-# pycs.maps.add_countries(ax)
-ax.set_extent(pycs.maps.get_extent('regional.south_pacific'), maps.identity)
-land = cartopy.feature.NaturalEarthFeature('physical', 'land', '10m')
-# pycs.maps.add_eezs(ax)
-region = ShapelyFeature(geometries[0:2], crs=cartopy.crs.PlateCarree(), # 1 3
-                        facecolor='blue')
-ax.add_feature(region)
-# ax.coastlines()
-
-# +
-
-reload()
-with pycs.context(styles.light):
-    fig = plt.figure(figsize=(10, 10))
-    ax = maps.create_map(projection='regional.south_pacific')
-    maps.add_land(ax)
-    maps.add_countries(ax)
-    ax.set_extent((-720, 720, -90, 90), pycs.maps.identity)
-    plt.show()
-
-#     6378137.0 6.872546398005343e-06 -12733636.050471636
-# >>> [[ 1.27556362e+07  1.26857595e+07  1.24768949e+07  1.21313309e+07
-#    1.16528535e+07  1.10467050e+07  1.03195264e+07  9.47928503e+06
-#    8.53518658e+06  7.49757483e+06  6.37781809e+06  5.18818464e+06
-#    3.94170836e+06  2.65204589e+06  1.33332705e+06  7.81057451e-10
-#   -1.33332705e+06 -2.65204589e+06 -3.94170836e+06 -5.18818464e+06
-#   -6.37781809e+06 -7.49757483e+06 -8.53518658e+06 -9.47928503e+06
-#   -1.03195264e+07 -1.10467050e+07 -1.16528535e+07 -1.21313309e+07
-#   -1.24768949e+07 -1.26857595e+07 -1.27556362e+07 -1.26857595e+07
-#   -1.24768949e+07 -1.21313309e+07 -1.16528535e+07 -1.10467050e+07
-#   -1.03195264e+07 -9.47928503e+06 -8.53518658e+06 -7.49757483e+06
-#   -6.37781809e+06 -5.18818464e+06 -3.94170836e+06 -2.65204589e+06
-#   -1.33332705e+06 -2.34317235e-09  1.33332705e+06  2.65204589e+06
-#    3.94170836e+06  5.18818464e+06  6.37781809e+06  7.49757483e+06
-#    8.53518658e+06  9.47928503e+06  1.03195264e+07  1.10467050e+07
-#    1.16528535e+07  1.21313309e+07  1.24768949e+07  1.26857595e+07
-#    1.27556362e+07]
-#  [ 0.00000000e+00  1.33102741e+06  2.64747180e+06  3.93490994e+06
-#    5.17923638e+06  6.36681803e+06  7.48464348e+06  8.52046561e+06
-#    9.46293574e+06  1.03017280e+07  1.10276523e+07  1.16327554e+07
-#    1.21104075e+07  1.24553756e+07  1.26638799e+07  1.27336361e+07
-#    1.26638799e+07  1.24553756e+07  1.21104075e+07  1.16327554e+07
-#    1.10276523e+07  1.03017280e+07  9.46293574e+06  8.52046561e+06
-#    7.48464348e+06  6.36681803e+06  5.17923638e+06  3.93490994e+06
-#    2.64747180e+06  1.33102741e+06  1.55942066e-09 -1.33102741e+06
-#   -2.64747180e+06 -3.93490994e+06 -5.17923638e+06 -6.36681803e+06
-#   -7.48464348e+06 -8.52046561e+06 -9.46293574e+06 -1.03017280e+07
-#   -1.10276523e+07 -1.16327554e+07 -1.21104075e+07 -1.24553756e+07
-#   -1.26638799e+07 -1.27336361e+07 -1.26638799e+07 -1.24553756e+07
-#   -1.21104075e+07 -1.16327554e+07 -1.10276523e+07 -1.03017280e+07
-#   -9.46293574e+06 -8.52046561e+06 -7.48464348e+06 -6.36681803e+06
-#   -5.17923638e+06 -3.93490994e+06 -2.64747180e+06 -1.33102741e+06
-#   -3.11884133e-09]]
-# -
 
 reload()
 with pycs.context(styles.light):
@@ -340,7 +344,7 @@ raster = rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=1
 
 reload()
 fig = plt.figure(figsize=(10, 10))
-norm = mpcolors.LogNorm(vmin=0.01, vmax=1000)
+norm = mpcolors.LogNorm(vmin=0.01, vmax=100)
 with pycs.context(styles.dark):
     projection = cartopy.crs.EqualEarth(central_longitude=-165)
     ax, im, cb = pycs.maps.plot_raster_w_colorbar(raster, 
@@ -357,9 +361,7 @@ plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300)
 
 reload()
 fig = plt.figure(figsize=(14, 10))
-norm = mpcolors.LogNorm(vmin=1, vmax=10000)
-# norm = mpcolors.Normalize(vmin=1, vmax=10000)
-# raster[raster == 0] = np.nan
+norm = mpcolors.LogNorm(vmin=0.01, vmax=1)
 with pycs.context(styles.dark):
     ax, im, cb = maps.plot_raster_w_colorbar(raster, 
                                        "hours of presence per km2",
@@ -380,10 +382,10 @@ raster2 = pycs.rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours',
 reload()
 plt.rc('text', usetex=False)
 fig = plt.figure(figsize=(14, 10))
-norm = mpcolors.LogNorm(vmin=1, vmax=10000)
+norm = mpcolors.LogNorm(vmin=0.01, vmax=1)
 with plt.rc_context(styles.light):
     ax, im, cb = maps.plot_raster_w_colorbar(raster2, 
-                                       "hours of presence per ???",
+                                       "hours of presence per km2
                                         projection='regional.south_pacific',
                                        cmap='presence',
                                       norm=norm,
@@ -466,4 +468,29 @@ with plt.rc_context(pycs.styles.dark):
 
 
 
-grid_fishing_presence.shape
+
+
+import cartopy.feature as cfeature
+land = cfeature.NaturalEarthFeature('physical', 'land', scale='10m')
+
+geometries = list(land.geometries())
+
+for i, geom in enumerate(geometries):
+    print(i, geom.geom_type)
+    if geom.geom_type == 'Polygon':
+        for k, x in enumerate(geom.interiors):
+            if x.is_ccw != geom.exterio.is_ccw:
+                print(i, k)
+    else:
+        for j, poly in enumerate(geom):
+            for k, x in enumerate(poly.interiors):
+                if x.is_ccw != poly.exterior.is_ccw:
+                    print(i, j, k)
+
+with pysea
+fig = plt.figure(figsize=(12, 8))
+ts = [pd.Timestamp(x).to_pydatetime() for x in df.timestamp]
+ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(ts, df.lon, df.lat, df['ssvid'] )
+fig.suptitle(df['ssvid'].iloc[0] + ' - tracks ' , y=0.93)    #+ new_msgs.iloc[0].which
+plt.show()
+                  
