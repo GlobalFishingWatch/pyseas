@@ -28,92 +28,24 @@ from pandas.plotting import register_matplotlib_converters
 import matplotlib.font_manager as fm
 register_matplotlib_converters()
 
-from pyseas import maps, cm, styles, rasters
+from pyseas import maps, cm, styles, rasters, util
 import pyseas.colors
 from pyseas.contrib import plot_tracks
 import pyseas as pyseas, pyseas as pycs
+from pyseas import scale_bar
 import imp
 
 import shapely.geometry as sgeom
 from shapely.prepared import prep
 
-# def _rings_to_multi_polygon(self, rings, is_ccw):
-#         exterior_rings = []
-#         interior_rings = []
-#         for ring in rings:
-#             if ring.is_ccw != is_ccw:
-#                 interior_rings.append(ring)
-#             else:
-#                 exterior_rings.append(ring)
-
-#         polygon_bits = []
-
-#         # Turn all the exterior rings into polygon definitions,
-#         # "slurping up" any interior rings they contain.
-#         for exterior_ring in exterior_rings:
-#             polygon = sgeom.Polygon(exterior_ring)
-#             prep_polygon = prep(polygon)
-#             holes = []
-#             for interior_ring in interior_rings[:]:
-#                 if prep_polygon.contains(interior_ring):
-#                     holes.append(interior_ring)
-#                     interior_rings.remove(interior_ring)
-#                 elif polygon.crosses(interior_ring):
-#                     # Likely that we have an invalid geometry such as
-#                     # that from #509 or #537.
-#                     holes.append(interior_ring)
-#                     interior_rings.remove(interior_ring)
-#             polygon_bits.append((exterior_ring.coords,
-#                                  [ring.coords for ring in holes]))
-
-#         # # Any left over "interior" rings need "inverting" with respect
-#         # # to the boundary.
-#         # if interior_rings:
-#         #     boundary_poly = self.domain
-#         #     x3, y3, x4, y4 = boundary_poly.bounds
-#         #     bx = (x4 - x3) * 0.1
-#         #     by = (y4 - y3) * 0.1
-#         #     x3 -= bx
-#         #     y3 -= by
-#         #     x4 += bx
-#         #     y4 += by
-#         #     for ring in interior_rings:
-#         #         # Use shapely buffer in an attempt to fix invalid geometries
-#         #         polygon = sgeom.Polygon(ring).buffer(0)
-#         #         if not polygon.is_empty and polygon.is_valid:
-#         #             x1, y1, x2, y2 = polygon.bounds
-#         #             bx = (x2 - x1) * 0.1
-#         #             by = (y2 - y1) * 0.1
-#         #             x1 -= bx
-#         #             y1 -= by
-#         #             x2 += bx
-#         #             y2 += by
-#         #             box = sgeom.box(min(x1, x3), min(y1, y3),
-#         #                             max(x2, x4), max(y2, y4))
-
-#         #             # Invert the polygon
-#         #             polygon = box.difference(polygon)
-
-#         #             # Intersect the inverted polygon with the boundary
-#         #             polygon = boundary_poly.intersection(polygon)
-
-#         #             if not polygon.is_empty:
-#         #                 polygon_bits.append(polygon)
-
-#         if polygon_bits:
-#             multi_poly = sgeom.MultiPolygon(polygon_bits)
-#         else:
-#             multi_poly = sgeom.MultiPolygon()
-#         return multi_poly
 from pyseas._monkey_patch_cartopy import monkey_patch_cartopy
 
 
 def reload():
-    imp.reload(cartopy.crs)
-    monkey_patch_cartopy()
-#     cartopy.crs.Projection._rings_to_multi_polygon = _rings_to_multi_polygon
-    imp.reload(cm)
+    imp.reload(util)
+    imp.reload(scale_bar)
     imp.reload(pycs.colors)
+    imp.reload(cm)
     imp.reload(styles)
     imp.reload(maps)
     imp.reload(plot_tracks)
@@ -171,7 +103,7 @@ with pycs.context(styles.dark):
     ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], 
                                              "distance to shore (km)", 
                                              loc="top",
-                                             projection='regional.north_pacific', 
+                                             projection='regional.atlantic', 
                                              cmap='fishing')
 
 # ## Adding Gridlines
@@ -202,19 +134,55 @@ query = """
     """
 msgs = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
+plt.rcParams['axes.prop_cycle']
+
+ssvids = sorted(set(msgs.ssvid))
+ssvids
+
+reload()
+for style, style_name in [(pyseas.styles.light, 'light'), 
+                          (pyseas.styles.dark, 'dark')]:
+    with pyseas.context(style):
+        fig = plt.figure(figsize=(10, 10))
+        ax = maps.create_map(projection='regional.north_pacific')
+        maps.add_land(ax)
+        maps.add_plot(ax, msgs.lon, msgs.lat, msgs.ssvid)
+
+
 # +
 # TODO: Plotted tracks are still ugly and don't follow style guidelines
+reload()
 
-df = msgs[(msgs.ssvid == "220413000")]
-for style in [styles.light, styles.dark]:
+def find_ranges(lons):
+    ranges = []
+    i0 = 0
+    for i, lon in enumerate(lons):
+        if abs(lons[i0] - lon) > 180:
+            ranges.append((i0, i))
+            i0 = i + 1
+    ranges.append((i0, len(lons)))
+    return ranges
+    
+for style, style_name in [(pyseas.styles.light, 'light'), 
+                          (pyseas.styles.dark, 'dark')]:
     with pycs.context(style):
-        fig = plt.figure(figsize=(10, 5))
+        cycle = iter(plt.rcParams['axes.prop_cycle'])
+        fig = plt.figure(figsize=(10, 10))
         ax = maps.create_map(projection='regional.north_pacific')
-        maps.add_plot(ax, df.lon, df.lat, 'g.', transform=maps.identity)
         maps.add_land(ax)
-        maps.add_eezs(ax)
+        for ssvid in ssvids:
+            df = msgs[(msgs.ssvid == ssvid)]
+            props = next(cycle)
+            for i0, i1 in find_ranges(df.lon.values):
+                
+                ax.plot(df.lon.iloc[i0:i1], df.lat.iloc[i0:i1], 
+                              transform=maps.identity, **props, linewidth=1)
+        plt.savefig('/Users/timothyhochberg/Desktop/test_tracks_{}.png'.format(
+                style_name), dpi=300)
         plt.show()
 # -
+
+
 
 # ## Predefined Regional Styles
 
@@ -283,28 +251,6 @@ rendered.publish_to_github('./Examples.ipynb',
                            'pyseas/doc', action='push')
 
 # ## Below this point is messy
-
-# Indian Ocean
-with plt.rc_context(styles.light):
-    fig = plt.figure(figsize=(10, 5))
-    projection = cartopy.crs.LambertAzimuthalEqualArea(75, 0)
-    ax = maps.create_map(projection=projection)
-    maps.add_land(ax)
-    maps.add_eezs(ax)
-    maps.add_countries(ax)
-    ax.set_extent((15, 145, -30, 15))
-    plt.show()
-
-# Indian Ocean
-with plt.rc_context(styles.light):
-    fig = plt.figure(figsize=(10, 5))
-    projection = cartopy.crs.LambertAzimuthalEqualArea(75, 0)
-    ax = maps.create_map(projection=projection)
-    maps.add_land(ax)
-    maps.add_eezs(ax)
-    maps.add_countries(ax)
-    ax.set_extent((15, 145, -30, 15))
-    plt.show()
 
 reproj_eez = gpd.read_file('/Users/timothyhochberg/Downloads/eez_ee_160.gpkg')
 
@@ -385,7 +331,7 @@ fig = plt.figure(figsize=(14, 10))
 norm = mpcolors.LogNorm(vmin=0.01, vmax=1)
 with plt.rc_context(styles.light):
     ax, im, cb = maps.plot_raster_w_colorbar(raster2, 
-                                       "hours of presence per km2
+                                       "hours of presence per km2",
                                         projection='regional.south_pacific',
                                        cmap='presence',
                                       norm=norm,
@@ -487,10 +433,120 @@ for i, geom in enumerate(geometries):
                 if x.is_ccw != poly.exterior.is_ccw:
                     print(i, j, k)
 
-with pysea
-fig = plt.figure(figsize=(12, 8))
-ts = [pd.Timestamp(x).to_pydatetime() for x in df.timestamp]
-ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(ts, df.lon, df.lat, df['ssvid'] )
-fig.suptitle(df['ssvid'].iloc[0] + ' - tracks ' , y=0.93)    #+ new_msgs.iloc[0].which
-plt.show()
-                  
+reload()
+with pyseas.context(pyseas.styles.dark):
+    fig = plt.figure(figsize=(12, 8))
+    ts = [pd.Timestamp(x).to_pydatetime() for x in df.timestamp]
+    ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(ts, df.lon, df.lat, df['ssvid'] )
+    maps.add_figure_background(fig)
+    fig.suptitle(df['ssvid'].iloc[0] + ' - tracks ' , y=0.93) 
+    plt.show()
+
+
+query = """
+WITH 
+
+good_segs as (
+select seg_id from `gfw_research.pipe_v20190502_segs` 
+where good_seg and not overlapping_and_short 
+and positions > 20),
+
+source as (
+select ssvid, vessel_id, timestamp, lat, lon, course, speed, elevation_m
+FROM
+    `pipe_production_v20190502.position_messages_2018*`
+where seg_id in (select * from good_segs)
+),
+
+ssvid_list as (
+select distinct ssvid from 
+source
+where ssvid in (SELECT cast(id as string) FROM machine_learning_dev_ttl_120d.det_info_mmsi_v20200124
+                where split=0)
+order by farm_fingerprint(ssvid)
+limit 2
+)
+
+SELECT
+source.*, score.nnet_score as nnet_score
+from source
+LEFT JOIN
+    `machine_learning_dev_ttl_120d.fd_vid_20200320_results_*` score
+  ON
+    source.vessel_id = score.vessel_id
+    AND source.timestamp BETWEEN score.start_time
+    AND score.end_time
+where ssvid in (select * from ssvid_list)
+order by timestamp
+"""
+fishing_df = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
+
+# +
+reload()
+
+ssvids = sorted(set(fishing_df.ssvid))[1:]
+
+with pyseas.context(pyseas.styles.dark):
+    for ssvid in ssvids:
+        ssvid_df = fishing_df[fishing_df.ssvid == ssvid]
+        ssvid_df = ssvid_df.sort_values(by='timestamp')
+        if not len(ssvid_df):
+            continue
+            
+        proj, extent, descr = plot_tracks.find_projection(ssvid_df.lon, ssvid_df.lat)
+        fig = plt.figure(figsize=(10, 10))
+        ax = maps.create_map(projection=proj, proj_descr=descr)
+        
+        maps.add_land(ax)
+        maps.add_countries(ax)
+        is_fishing = (ssvid_df.nnet_score.values > 0.5)      
+        
+        maps.add_plot(ax, ssvid_df.lon.values, ssvid_df.lat.values, is_fishing, 
+                      props=styles.dark['gfw.map.fishingprops'], break_on_change=True)
+        
+        ax.set_extent(extent, crs=maps.identity)
+        ax.set_title(ssvid)
+        maps.add_figure_background(fig)
+
+    
+        plt.show()
+
+# +
+reload()
+
+ssvids = sorted(set(fishing_df.ssvid))[1:]
+
+with pyseas.context(pyseas.styles.dark):
+    for ssvid in ssvids:
+        
+        dfn = fishing_df[fishing_df.ssvid == ssvid]
+        dfn = dfn.sort_values(by='timestamp')
+        is_fishing = (dfn.nnet_score > 0.5)      
+
+        fig = plt.figure(figsize=(12, 12))
+        info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
+                                 dfn.lat, dfn.speed, dfn.elevation_m, is_fishing)
+        
+        maps.add_scalebar(info.map_ax, info.extent)
+        maps.add_figure_background(fig)
+        
+        plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300)
+        
+        plt.show()
+# -
+
+import matplotlib
+# matplotlib.rcParamsDefault
+pd.Series
+
+df = df.sort_values(by='timestamp')
+n =120
+reload()
+with pyseas.context(pyseas.styles.dark):
+    fig = plt.figure(figsize=(12, 8))
+    projection, extent, descr = plot_tracks.find_projection(df.lon, df.lat)
+    ax = maps.create_map(projection=projection, proj_descr=descr)
+    maps.add_land(ax)
+    maps.add_plot(ax, df.lon.values[:n], df.lat.values[:n])
+    ax.set_extent(extent, crs=maps.identity)
+    plt.show()

@@ -32,8 +32,12 @@ import cartopy.feature as cfeature
 import os
 from . import colors
 import geopandas as gpd
+import numpy as np
 from cartopy.feature import ShapelyFeature
 import shapely
+from shapely.geometry import MultiLineString
+from .scale_bar import add_scalebar
+
 
 monkey_patch_cartopy()
 
@@ -301,16 +305,64 @@ def add_raster(ax, raster, extent=(-180, 180, -90, 90), origin='upper', **kwargs
                         extent=extent, origin=origin, **kwargs)
 
 
-def add_plot(ax, *args, **kwargs):
+
+def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
+    assert len(x) == len(y) == len(mask) , (len(x),  len(y), len(mask))
+    i = 0
+    ml_coords = []
+    last_x = None
+    crds = []
+    while i < len(mask):
+
+        while i < len(mask) and not mask[i]:
+            i += 1
+
+        if last_x is None:
+            last_x = x[i]
+
+        while (i < len(mask)) and mask[i]:
+            if x_is_lon:
+                if abs(x[i] - last_x) > 180:
+                    ml_coords.append(crds)
+                    crds = []
+            crds.append((x[i], y[i]))
+            last_x = x[i]
+            i += 1
+
+        if break_on_change:
+            ml_coords.append(crds)
+            crds = []
+
+
+    ml_coords.append(crds)
+
+    ml_coords = [x for x in ml_coords if len(x) > 1]
+    return ml_coords
+        
+
+def add_plot(ax, lon, lat, kind=None, props=None, break_on_change=False, *args, **kwargs):
     """Add a plot to an existing map
 
     Parameters
     ----------
     ax : matplotlib axes object
+    lon : sequence of float
+    lat : sequence of float
+    kind : sequence of hashable, optional
+        Length must match lon/lat and values are used to index into the
+        `props` map.
+    props : dict, optional.
+        Maps `kind` of first and last point of each segment to plot style.
+         By default, sorted values from `kind`
+        are mapped to 'axes.prop_cycle'. `props` for segments between 
+        points with different `kind` value are looked up under `None`.
+        If `None` is missing, these points are not plotted.
     
     Other Parameters
     ----------------
     Keyword args are passed on to ax.plot.
+
+    TODO: more detail
 
     This function hides the need to specify the transform in the common
     case. Unless the transform is specified it defaults to PlateCarree,
@@ -320,9 +372,37 @@ def add_plot(ax, *args, **kwargs):
     -------
     A list of Line2D objects.
     """
+    assert len(lon) == len(lat)
     if 'transform' not in kwargs:
         kwargs['transform'] = identity
-    ax.plot(*args,  **kwargs)
+    if kind is None:
+        kind = np.ones(len(lon))
+    else:
+        kind = np.asarray(kind)
+        assert len(kind) == len(lon)
+
+    if props is None:
+        raw_kinds = sorted(set(kind))
+        props = {(k, k) : v for (k, v) in zip(raw_kinds, plt.rcParams['gfw.map.trackprops'])}
+    kinds = list(props.keys())
+
+    for k1, k2 in kinds:
+        if (k1, k2) not in props:
+            continue
+        mask1 = (kind == k1)
+        if k2 == k1:
+            mask2 = mask1
+        else:
+            mask2 = (kind == k2)
+
+        mask = np.zeros_like(mask1)
+        mask[:-1] = mask1[:-1] & mask2[1:]
+        mask[1:] |= mask1[:-1] & mask2[1:]
+
+        if mask.sum():
+            ml_coords = _build_multiline_string_coords(lon, lat, mask, break_on_change)   
+            mls = MultiLineString(ml_coords)
+            ax.add_geometries([mls], crs=identity, **props[k1, k2])
 
 
 _eezs = {}
@@ -379,10 +459,12 @@ def add_figure_background(fig, color=None):
     fig.patch.set_facecolor('#f7f7f7')
 
 def create_map(subplot=(1, 1, 1), 
-                projection='global.default', extent=None,
+                projection='global.default', 
+                extent=None,
                 bg_color=None, 
                 hide_axes=True,
-                show_xform=True):
+                show_xform=True,
+                proj_descr=None):
     """Draw a GFW themed map
 
     Parameters
@@ -398,13 +480,11 @@ def create_map(subplot=(1, 1, 1),
     GeoAxes
     """
     if isinstance(projection, str):
-        proj_name = projection
+        if proj_descr is None:
+            proj_descr = get_proj_description(projection)
         if extent is None:
-            extent = get_extent(proj_name)
-        projection = get_projection(proj_name)
-    else:
-        proj_name = None
-
+            extent = get_extent(projection)
+        projection = get_projection(projection)
 
     bg_color = bg_color or plt.rcParams.get('gfw.ocean.color', colors.dark.ocean)
     if not isinstance(subplot, tuple):
@@ -417,8 +497,10 @@ def create_map(subplot=(1, 1, 1),
     if hide_axes:
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
-    if show_xform and proj_name:
-        ax.text(0.0, -0.01, get_proj_description(proj_name), fontsize=9,
+    if show_xform and proj_descr:
+        # TODO: stylize fontsize (gfw.maps.projlabelsize?)
+        ax.text(0.0, -0.01, proj_descr, fontsize=9, weight=plt.rcParams['axes.labelweight'],
+            color=plt.rcParams['axes.labelcolor'],
             horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
     return ax
 

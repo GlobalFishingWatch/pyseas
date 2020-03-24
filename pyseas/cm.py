@@ -32,21 +32,6 @@ import numpy as _np
 import skimage.color as _skcolor
 
 
-def _flip_colors(hexcodes):
-    # import numpy as np
-    # def hex2rgb(code):
-    #     return [int(x, 16) / 255.0 for x in [code[1:3], code[3:5], code[5:7]]]
-    # def rgb2hex(vals):
-    #     return '#' + ''.join('{:02X}'.format(int(round(255 * x))) for x in vals)
-    # rgb = np.array([hex2rgb(x) for x in hexcodes])[None, :, :]
-    # hsv = _skcolor.rgb2hsv(rgb)
-    # hsv[:, :, 1] = np.array(hsv[:, ::-1, 1])
-    # hsv[:, :, 2] = np.array(hsv[:, ::-1, 2])
-    # rgb = _skcolor.hsv2rgb(hsv)
-    # hexcodes = [rgb2hex(x) for x in rgb[0]]
-    return hexcodes[::-1]
-
-
 def _hex2cmap(name, hex_colors, flip=False):
     '''Convert sequence of hex colors to matplotlib cmap
 
@@ -61,7 +46,7 @@ def _hex2cmap(name, hex_colors, flip=False):
     LinearSegmentedColormap
     '''
     if flip:
-        hex_colors = _flip_colors(hex_colors)
+        hex_colors = hex_colors[::-1]
     def ramp(i0, i1):
         float_colors = [(int(x[i0:i1], 16) / 256.0) for x in hex_colors]
         ramp = zip(_np.linspace(0, 1, len(hex_colors), endpoint=True), float_colors, float_colors)

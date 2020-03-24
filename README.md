@@ -16,6 +16,8 @@ A library to make GFW style map plots in Python.
 ## Installation
 
 Current recommendation is `pip install -e .`.
+Install cartopy using `conda install -c conda-forge cartopy`
+Install geopandans using `conda install -c conda-forge geopandas`
 
 ### Installing EEZ data
 
