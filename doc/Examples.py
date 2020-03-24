@@ -257,15 +257,6 @@ rendered.publish_to_github('./Examples.ipynb',
 
 # ## Below this point is messy
 
-reproj_eez = gpd.read_file('/Users/timothyhochberg/Downloads/eez_ee_160.gpkg')
-
-with plt.rc_context(styles.light):
-    fig = plt.figure(figsize=(18, 6))
-    projection = cartopy.crs.EqualEarth(central_longitude=160)
-    ax = maps.create_map(projection=projection)
-    maps.add_land(ax)
-    ax.add_geometries(reproj_eez.geometry, crs=projection, edgecolor='w', alpha=1, linewidth=1)
-
 query = """
 with seismic as 
 (select distinct ssvid from (
