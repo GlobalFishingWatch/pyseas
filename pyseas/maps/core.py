@@ -30,20 +30,19 @@ import matplotlib.pyplot as plt
 import cartopy
 import cartopy.feature as cfeature
 import os
-from . import colors
+from .. import colors
 import geopandas as gpd
 import numpy as np
 from cartopy.feature import ShapelyFeature
 import shapely
 from shapely.geometry import MultiLineString
-from .scale_bar import add_scalebar
 
 
 monkey_patch_cartopy()
 
 identity = cartopy.crs.PlateCarree()
 
-root = os.path.dirname(os.path.dirname(__file__))
+root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 # Use this alias because we might want to rework context so we aren't abusing
 # matplotlib's context in the future.
@@ -217,28 +216,6 @@ def add_land(ax, projection=None, scale='10m', edgecolor=None, facecolor=None, l
                                             facecolor=facecolor,
                                             linewidth=linewidth,
                                             **kwargs)
-    # geometries = list(land.geometries())
-    # if isinstance(projection, str):
-    #     bad_polys = projection_info[projection].get('bad_land_polys', ())
-    #     if bad_polys:
-    #         new_geometries = []
-    #         for i, geom in enumerate(geometries):
-    #             if (i,) not in bad_polys:
-    #                 if geom.type == 'MultiPolygon':
-    #                     polys = []
-    #                     for j, p in enumerate(geom.geoms):
-    #                         if (i, j) not in bad_polys:
-    #                             polys.append(p)
-    #                     new_geometries.append(shapely.geometry.MultiPolygon(polys))
-    #                 else:
-    #                     new_geometries.append(geom)
-    #         geometries = new_geometries
-
-    # region = ShapelyFeature(geometries, crs=cartopy.crs.PlateCarree(),
-    #                                         edgecolor=edgecolor,
-    #                                         facecolor=facecolor,
-    #                                         linewidth=linewidth,
-    #                                         **kwargs)
     return ax.add_feature(land)
 
 def add_countries(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):

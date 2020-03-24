@@ -28,32 +28,43 @@ from pandas.plotting import register_matplotlib_converters
 import matplotlib.font_manager as fm
 register_matplotlib_converters()
 
-from pyseas import maps, cm, styles, rasters, util
+from pyseas import maps, cm, styles, util
 import pyseas.colors
 from pyseas.contrib import plot_tracks
-import pyseas as pyseas, pyseas as pycs
-from pyseas import scale_bar
+from pyseas.maps import scalebar, core, rasters
 import imp
 
 import shapely.geometry as sgeom
 from shapely.prepared import prep
 
-from pyseas._monkey_patch_cartopy import monkey_patch_cartopy
+from pyseas.maps._monkey_patch_cartopy import monkey_patch_cartopy
 
 
 def reload():
     imp.reload(util)
-    imp.reload(scale_bar)
-    imp.reload(pycs.colors)
+    imp.reload(scalebar)
+    imp.reload(pyseas.colors)
     imp.reload(cm)
     imp.reload(styles)
+    imp.reload(rasters)
+    imp.reload(core)
     imp.reload(maps)
     imp.reload(plot_tracks)
-    imp.reload(rasters)
-    imp.reload(pycs)
+    imp.reload(pyseas)
 reload()
 
 # %matplotlib inline
+# -
+
+# ## Recomended Style
+#
+# Import maps and styles directly. For other modules, reference
+# through the pyseas namespace.
+#
+#      import pyseas
+#      from pyseas import maps, styles
+#      
+#  Tentative and subject to revision.
 
 # +
 # conda upgrade --channel conda-forge cartopy
@@ -76,7 +87,7 @@ with pyseas.context(styles.dark):
 
 # ## Simple, Manual Colorbar
 
-with pycs.context(styles.dark):
+with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(12,6))
     ax, im = maps.plot_raster(img[::40, ::40], cmap='fishing')
     cb = fig.colorbar(im, ax=ax, 
@@ -91,14 +102,14 @@ with pycs.context(styles.dark):
 # ## Auto Colorbar
 
 reload()
-with pycs.context(styles.dark):
+with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(12,7))
     maps.plot_raster_w_colorbar(img[::40, ::40], 
                                 "distance to shore (km)", 
                                 cmap='fishing')
 
 reload()
-with pycs.context(styles.dark):
+with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(12, 8))
     ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], 
                                              "distance to shore (km)", 
@@ -109,7 +120,7 @@ with pycs.context(styles.dark):
 # ## Adding Gridlines
 
 reload()
-with pycs.context(styles.dark):
+with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(12, 8))
     ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], 
                                              "distance to shore (km)", 
@@ -118,9 +129,6 @@ with pycs.context(styles.dark):
                                              cmap='fishing')
     ax.gridlines(linewidth=0.4, zorder=0.5)
     maps.add_countries(ax)
-
-import geopandas as gpd
-eezs = gpd.read_file("../untracked/data/eez_boundaries_v11.gpkg")
 
 # ## Plotting Tracks
 
@@ -165,7 +173,7 @@ def find_ranges(lons):
     
 for style, style_name in [(pyseas.styles.light, 'light'), 
                           (pyseas.styles.dark, 'dark')]:
-    with pycs.context(style):
+    with pyseas.context(style):
         cycle = iter(plt.rcParams['axes.prop_cycle'])
         fig = plt.figure(figsize=(10, 10))
         ax = maps.create_map(projection='regional.north_pacific')
@@ -181,13 +189,10 @@ for style, style_name in [(pyseas.styles.light, 'light'),
                 style_name), dpi=300)
         plt.show()
 # -
-
-
-
 # ## Predefined Regional Styles
 
 reload()
-with pycs.context(styles.light):
+with pyseas.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
     ax = maps.create_map(projection='regional.pacific')
     maps.add_land(ax)
@@ -195,7 +200,7 @@ with pycs.context(styles.light):
     plt.show()
 
 reload()
-with pycs.context(styles.light):
+with pyseas.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
     ax = maps.create_map(projection='regional.south_pacific')
     maps.add_land(ax)
@@ -203,7 +208,7 @@ with pycs.context(styles.light):
     plt.show()
 
 reload()
-with pycs.context(styles.light):
+with pyseas.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
     ax = maps.create_map(projection='country.chile')
     maps.add_land(ax)
@@ -211,7 +216,7 @@ with pycs.context(styles.light):
     plt.show()
 
 reload()
-with pycs.context(styles.dark):
+with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(10, 10))
     ax = maps.create_map(projection='regional.south_pacific')
     maps.add_land(ax, 'regional.south_pacific')
@@ -219,7 +224,7 @@ with pycs.context(styles.dark):
     plt.show()
 
 reload()
-with pycs.context(styles.light):
+with pyseas.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
     ax = maps.create_map(projection='country.ecuador_with_galapagos')
     maps.add_land(ax)
@@ -227,7 +232,7 @@ with pycs.context(styles.light):
     plt.show()
 
 reload()
-with pycs.context(styles.dark):
+with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(10, 10))
     ax = maps.create_map(projection='country.indonesia')
     maps.add_land(ax)
@@ -240,7 +245,7 @@ with pycs.context(styles.dark):
 
 df = msgs[(msgs.ssvid == "413461490")]
 reload()
-with pycs.context(styles.dark):
+with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(10, 5))
     ts = [pd.Timestamp(x).to_pydatetime() for x in df.timestamp]
     ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(ts, df.lon, df.lat)
@@ -286,14 +291,14 @@ unnest(registry_info.best_known_vessel_class) v
 df_presence = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
 reload()
-raster = rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10, per_km2=True)
+raster = maps.rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10, per_km2=True)
 
 reload()
 fig = plt.figure(figsize=(10, 10))
 norm = mpcolors.LogNorm(vmin=0.01, vmax=100)
-with pycs.context(styles.dark):
+with pyseas.context(styles.dark):
     projection = cartopy.crs.EqualEarth(central_longitude=-165)
-    ax, im, cb = pycs.maps.plot_raster_w_colorbar(raster, 
+    ax, im, cb = maps.plot_raster_w_colorbar(raster, 
                                        "hours of presence per km2",
                                         projection='regional.pacific',
                                        cmap='presence', 
@@ -308,7 +313,7 @@ plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300)
 reload()
 fig = plt.figure(figsize=(14, 10))
 norm = mpcolors.LogNorm(vmin=0.01, vmax=1)
-with pycs.context(styles.dark):
+with pyseas.context(styles.dark):
     ax, im, cb = maps.plot_raster_w_colorbar(raster, 
                                        "hours of presence per km2",
                                         projection='country.indonesia',
@@ -322,7 +327,7 @@ with pycs.context(styles.dark):
 plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300)
 
 reload()
-raster2 = pycs.rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', 
+raster2 = maps.rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', 
                                  xyscale=10, origin='lower', per_km2=True)
 
 reload()
@@ -386,16 +391,16 @@ df_fishing = pd.read_gbq(q, project_id='world-fishing-827')
 # +
 reload()
 
-grid_fishing_presence  = pycs.rasters.df2raster(df_fishing, 'lon_bin', 'lat_bin', 'hours', xyscale=4,
+grid_fishing_presence  = maps.rasters.df2raster(df_fishing, 'lon_bin', 'lat_bin', 'hours', xyscale=4,
                                               extent = [min_lon, max_lon, min_lat, max_lat],
                                                 per_km2=True, scale=60)
 
-with plt.rc_context(pycs.styles.dark): 
+with plt.rc_context(styles.dark): 
     fig_min_value = 1
     fig_max_value = 100
     norm = mpcolors.LogNorm(vmin=fig_min_value, vmax=fig_max_value)
     fig = plt.figure(figsize=(10, 10))
-    ax, im, colorbar = pycs.maps.plot_raster_w_colorbar(
+    ax, im, colorbar = maps.plot_raster_w_colorbar(
                             grid_fishing_presence,
                             "seconds per square km",   
                             cmap='presence',
@@ -403,36 +408,14 @@ with plt.rc_context(pycs.styles.dark):
                             extent = [min_lon + 0.01, max_lon, min_lat, max_lat],
                             norm = norm, 
                             projection='regional.indian')
-    pycs.maps.add_eezs(ax)
-    pycs.maps.add_countries(ax)
+    pyseas.maps.add_eezs(ax)
+    pyseas.maps.add_countries(ax)
     ax.set_extent((15, 145, -30, 15), crs=maps.identity)
     ax.set_title("Fishing Vessel Presence in the Indian Ocean overlaid with Study Area")
 #     ax.add_geometries([overpasses], crs = ccrs.PlateCarree(),
 #                   alpha=1, facecolor='none', edgecolor='red') # for Lat/Lon data.
     
 # -
-
-
-
-
-
-import cartopy.feature as cfeature
-land = cfeature.NaturalEarthFeature('physical', 'land', scale='10m')
-
-geometries = list(land.geometries())
-
-for i, geom in enumerate(geometries):
-    print(i, geom.geom_type)
-    if geom.geom_type == 'Polygon':
-        for k, x in enumerate(geom.interiors):
-            if x.is_ccw != geom.exterio.is_ccw:
-                print(i, k)
-    else:
-        for j, poly in enumerate(geom):
-            for k, x in enumerate(poly.interiors):
-                if x.is_ccw != poly.exterior.is_ccw:
-                    print(i, j, k)
-
 reload()
 with pyseas.context(pyseas.styles.dark):
     fig = plt.figure(figsize=(12, 8))
@@ -541,8 +524,6 @@ with pyseas.context(pyseas.styles.light):
         plt.show()
 # -
 
-
-
 import matplotlib
 # matplotlib.rcParamsDefault
 pd.Series
@@ -558,3 +539,5 @@ with pyseas.context(pyseas.styles.dark):
     maps.add_plot(ax, df.lon.values[:n], df.lat.values[:n])
     ax.set_extent(extent, crs=maps.identity)
     plt.show()
+
+

@@ -11,7 +11,7 @@ from matplotlib.collections import LineCollection
 from matplotlib.colors import to_rgba
 import matplotlib.dates as mdates
 
-from .. import maps
+from ..maps import core as maps
 from .. import styles
 from ..util import asarray
 
@@ -142,7 +142,8 @@ def plot_tracks_panel(timestamps, lons, lats, track_ids=None ,
     ax3.set_ylim(lat0, lat1)
     return ax1, ax2, ax3
 
-def add_subpanel(gs, timestamp, y, kind, label, miny=None, maxy=None, show_xticks=True):
+def add_subpanel(gs, timestamp, y, kind, label, miny=None, maxy=None, 
+                    show_xticks=True, tick_label_width=5):
     ax = plt.subplot(gs)
 
     props = styles.dark['gfw.plot.fishingprops']

@@ -182,7 +182,7 @@ def scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
 KM_PER_DEG_LAT = 110.574
 KM_PER_DEG_LON0 = 111.320
 
-def add_scalebar(ax, extent, location=(0.46, 0.05), color=None):
+def add_scalebar(ax, extent, location=(0.05, 0.05), color=None):
     lat_extent = (extent[3] - extent[2]) / 2.0
     lon_extent = (extent[1] - extent[0]) / 2.0
     
@@ -193,7 +193,7 @@ def add_scalebar(ax, extent, location=(0.46, 0.05), color=None):
         #
         # Find the power of 10 in kilometers smaller than the distance
         # and adjust to meters if the scale is less than a kilometer
-        bar_length =  10 ** np.floor(np.log10(dist))
+        bar_length =  10 ** round(np.log10(dist))
         if bar_length >= 1:
             bar_length = int(bar_length)
             metres_per_unit = 1000
@@ -206,5 +206,9 @@ def add_scalebar(ax, extent, location=(0.46, 0.05), color=None):
         if color is None:
             color = plt.rcParams['axes.labelcolor']
 
-        scale_bar(ax, location, bar_length, metres_per_unit, unit_name, color=color)
+        # if location == 'lower right':
+        #     location = ()
+
+        scale_bar(ax, location, bar_length, metres_per_unit, unit_name, 
+            color=color, text_kwargs={'size' : 11, 'weight' : 'medium'})
     return ax
