@@ -190,7 +190,7 @@ PlotFishingPanelInfo = namedtuple('PlotFishingPanelInfo',
     ['map_ax', 'lon_ax', 'lat_ax', 'speed_ax', 'depth_ax', 'extent'])
 
 def plot_fishing_panel(timestamp, lon, lat, speed, elevation, is_fishing ,
-                        padding_degrees=None, extent=None):
+                        padding_degrees=None, extent=None, map_ratio=3):
     """
 
     """
@@ -201,7 +201,7 @@ def plot_fishing_panel(timestamp, lon, lat, speed, elevation, is_fishing ,
         padding_degrees = DEFAULT_PADDING_DEG
         
     proj, extent, descr = find_projection(lon, lat)
-    gs = gridspec.GridSpec(5, 1, height_ratios=[3, 1, 1, 1, 1])
+    gs = gridspec.GridSpec(5, 1, height_ratios=[map_ratio, 1, 1, 1, 1])
 
     ax1 = maps.create_map(gs[0], projection=proj, proj_descr=descr)
     
@@ -215,6 +215,9 @@ def plot_fishing_panel(timestamp, lon, lat, speed, elevation, is_fishing ,
     
     ax1.set_extent(extent, crs=maps.identity)
 
+    # TODO: fix y label alignment by using a standard format that alway pads to 4 digits.
+    # Then can leave depth alone.
+
     ax2 = add_subpanel(gs[1], timestamp, lon, is_fishing, 'lon', show_xticks=False)
     ax3 = add_subpanel(gs[2], timestamp, lat, is_fishing, 'lat', show_xticks=False)
     ax4 = add_subpanel(gs[3], timestamp, speed, is_fishing, 'speed (knots)', miny=0, show_xticks=False)
@@ -225,6 +228,9 @@ def plot_fishing_panel(timestamp, lon, lat, speed, elevation, is_fishing ,
         label = 'depth (m)'
     ax5 = add_subpanel(gs[4], timestamp, -elevation, is_fishing, label, miny=0)
     ax5.invert_yaxis()
+
+    for ax in [ax2, ax3, ax4, ax5]:
+        ax.set_facecolor(plt.rcParams['gfw.ocean.color'])
 
     return PlotFishingPanelInfo(ax1, ax2, ax3, ax4, ax5, extent)
 

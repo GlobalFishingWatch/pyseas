@@ -510,13 +510,16 @@ with pyseas.context(pyseas.styles.dark):
 
     
         plt.show()
+# -
+
+from scipy.signal import medfilt
 
 # +
 reload()
 
 ssvids = sorted(set(fishing_df.ssvid))[1:]
 
-with pyseas.context(pyseas.styles.dark):
+with pyseas.context(pyseas.styles.light):
     for ssvid in ssvids:
         
         dfn = fishing_df[fishing_df.ssvid == ssvid]
@@ -525,15 +528,20 @@ with pyseas.context(pyseas.styles.dark):
 
         fig = plt.figure(figsize=(12, 12))
         info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
-                                 dfn.lat, dfn.speed, dfn.elevation_m, is_fishing)
+                                 dfn.lat, medfilt(dfn.speed.values,11), 
+                                 dfn.elevation_m, is_fishing,
+                                 map_ratio=6)
         
         maps.add_scalebar(info.map_ax, info.extent)
         maps.add_figure_background(fig)
         
-        plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300)
+        plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
+                   facecolor=plt.rcParams['gfw.fig.background'])
         
         plt.show()
 # -
+
+
 
 import matplotlib
 # matplotlib.rcParamsDefault

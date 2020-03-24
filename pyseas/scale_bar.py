@@ -1,6 +1,7 @@
 import numpy as np
 import cartopy.crs as ccrs
 import cartopy.geodesic as cgeo
+import matplotlib.pyplot as plt
 
 
 def _axes_to_lonlat(ax, coords):
@@ -181,7 +182,7 @@ def scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
 KM_PER_DEG_LAT = 110.574
 KM_PER_DEG_LON0 = 111.320
 
-def add_scalebar(ax, extent, location=(0.46, 0.05)):
+def add_scalebar(ax, extent, location=(0.46, 0.05), color=None):
     lat_extent = (extent[3] - extent[2]) / 2.0
     lon_extent = (extent[1] - extent[0]) / 2.0
     
@@ -202,7 +203,8 @@ def add_scalebar(ax, extent, location=(0.46, 0.05)):
             metres_per_unit = 1
             unit_name = 'm'
         
-        scale_bar(ax, location, bar_length, metres_per_unit, unit_name,
-                  # TODO: color needs to be adapted according to the background
-                  color='white')
+        if color is None:
+            color = plt.rcParams['axes.labelcolor']
+
+        scale_bar(ax, location, bar_length, metres_per_unit, unit_name, color=color)
     return ax
