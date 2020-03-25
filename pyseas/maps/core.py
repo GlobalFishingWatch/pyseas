@@ -433,7 +433,7 @@ def add_figure_background(fig, color=None):
 
     """
     color = color or plt.rcParams.get('gfw.fig.background', colors.dark.background)
-    fig.patch.set_facecolor('#f7f7f7')
+    fig.patch.set_facecolor(color)
 
 def create_map(subplot=(1, 1, 1), 
                 projection='global.default', 

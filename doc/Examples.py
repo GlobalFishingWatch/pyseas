@@ -488,31 +488,93 @@ with pyseas.context(pyseas.styles.dark):
 
 from scipy.signal import medfilt
 
+
+
 # +
 reload()
 
 ssvids = sorted(set(fishing_df.ssvid))[1:]
 
+# TODO: figure out style for dark panel (use gfw.panel.background as color)
+# See Juan Carlos's example in this post: 
+# https://globalfishingwatch.slack.com/archives/CUW93UNLS/p1585062098015100
+# (Obvious things: background, and line/tick colors)
 with pyseas.context(pyseas.styles.light):
-    for ssvid in ssvids:
-        
-        dfn = fishing_df[fishing_df.ssvid == ssvid]
-        dfn = dfn.sort_values(by='timestamp')
-        is_fishing = (dfn.nnet_score > 0.5)      
+    with pyseas.context({'gfw.fig.background' : 'white',
+                         'gfw.ocean.color' : 'white',
+                          'gfw.fig.background' : 'white'}):
+        for ssvid in ssvids:
 
-        fig = plt.figure(figsize=(12, 12))
-        info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
-                                 dfn.lat, medfilt(dfn.speed.values,11), 
-                                 dfn.elevation_m, is_fishing,
-                                 map_ratio=6)
-        
-        maps.add_scalebar(info.map_ax, info.extent)
-        maps.add_figure_background(fig)
-        
-        plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
-                   facecolor=plt.rcParams['gfw.fig.background'])
-        
-        plt.show()
+            dfn = fishing_df[fishing_df.ssvid == ssvid]
+            dfn = dfn.sort_values(by='timestamp')
+            is_fishing = (dfn.nnet_score > 0.5)      
+
+            fig = plt.figure(figsize=(12, 12))
+            info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
+                                     dfn.lat, is_fishing,
+                                     plots = [
+#                     {'label' : 'lon', 'values' : dfn.lon},
+#                     {'label' : 'lat', 'values' : dfn.lat}, 
+                    {'label' : 'speed (knots)', 'values' : medfilt(dfn.speed.values,11), 
+                        'min_y' : 0},
+                    {'label' : 'depth (km)', 'values' : -dfn.elevation_m / 1000,
+                        'min_y' : 0, 'invert_yaxis' : True},                       
+                                     ],
+                                     map_ratio=6,
+                                     annotations=7,
+                                    annotation_y_shift=0.5)
+
+            maps.add_scalebar(info.map_ax, info.extent)
+            maps.add_figure_background(fig)
+
+            plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
+                       facecolor=plt.rcParams['gfw.fig.background'])
+
+            plt.show()
+# -
+
+hex(255 - int('9b', 16)) #7b7464
+
+# +
+reload()
+
+ssvids = sorted(set(fishing_df.ssvid))[1:]
+
+# TODO: figure out style for dark panel (use gfw.panel.background as color)
+# See Juan Carlos's example in this post: 
+# https://globalfishingwatch.slack.com/archives/CUW93UNLS/p1585062098015100
+# (Obvious things: background, and line/tick colors)
+
+edge_color = '#EEEEEE'  #'#7b7464'
+
+with pyseas.context(pyseas.styles.dark):
+    with pyseas.context({'gfw.fig.background' : pyseas.colors.dark.ocean,
+#                          'xtick.color' : '#848b9b',
+#                          'ytick.color' : '#848b9b',
+                         'xtick.color' : edge_color,
+                         'ytick.color' : edge_color,                       
+                         'axes.edgecolor' :edge_color,
+                        }):
+        for ssvid in ssvids:
+
+            dfn = fishing_df[fishing_df.ssvid == ssvid]
+            dfn = dfn.sort_values(by='timestamp')
+            is_fishing = (dfn.nnet_score > 0.5)      
+
+            fig = plt.figure(figsize=(12, 12))
+            info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
+                                     dfn.lat, medfilt(dfn.speed.values,11), 
+                                     dfn.elevation_m, is_fishing,
+                                     map_ratio=6)
+
+            maps.add_scalebar(info.map_ax, info.extent)
+            maps.add_figure_background(fig)
+            info.map_ax.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])
+
+            plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
+                       facecolor=plt.rcParams['gfw.fig.background'])
+
+            plt.show()
 # -
 
 import matplotlib
@@ -531,4 +593,4 @@ with pyseas.context(pyseas.styles.dark):
     ax.set_extent(extent, crs=maps.identity)
     plt.show()
 
-
+plt.rcParams.keys()

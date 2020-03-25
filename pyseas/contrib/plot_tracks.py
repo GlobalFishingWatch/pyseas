@@ -188,24 +188,25 @@ def add_subpanel(gs, timestamp, y, kind, label, miny=None, maxy=None,
     return ax
 
 PlotFishingPanelInfo = namedtuple('PlotFishingPanelInfo',
-    ['map_ax', 'lon_ax', 'lat_ax', 'speed_ax', 'depth_ax', 'extent'])
+    ['map_ax', 'plot_axes', 'extent'])
 
-def plot_fishing_panel(timestamp, lon, lat, speed, elevation, is_fishing ,
-                        padding_degrees=None, extent=None, map_ratio=3):
+def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots,
+                        padding_degrees=None, extent=None, map_ratio=3,
+                        annotations=3, annotation_y_shift=0.3):
     """
 
     """
-    timestamp, lon, lat, speed, elevation, is_fishing = [asarray(x) for x in 
-                                    (timestamp, lon, lat, speed, elevation, is_fishing)]
+    timestamp, lon, lat, is_fishing = [asarray(x) for x in 
+                                    (timestamp, lon, lat, is_fishing)]
     assert padding_degrees is None or extent is None
     if padding_degrees is None:
         padding_degrees = DEFAULT_PADDING_DEG
         
     proj, extent, descr = find_projection(lon, lat)
-    gs = gridspec.GridSpec(5, 1, height_ratios=[map_ratio, 1, 1, 1, 1])
+    gs = gridspec.GridSpec(1 + len(plots), 1, height_ratios=[map_ratio] + [1] * len(plots))
 
     ax1 = maps.create_map(gs[0], projection=proj, proj_descr=descr)
-    
+
     maps.add_land(ax1)
     maps.add_countries(ax1)
 
@@ -216,23 +217,39 @@ def plot_fishing_panel(timestamp, lon, lat, speed, elevation, is_fishing ,
     
     ax1.set_extent(extent, crs=maps.identity)
 
-    # TODO: fix y label alignment by using a standard format that alway pads to 4 digits.
-    # Then can leave depth alone.
+    axes = []
+    for i, d in enumerate(plots):
+        ax = add_subpanel(gs[i + 1], timestamp, asarray(d['values']), is_fishing, d['label'], 
+                          show_xticks=(i == len(plots) - 1),
+                          miny = d.get('min_y'),
+                          maxy = d.get('max_y')
+                          )
+        if d.get('invert_yaxis'):
+            ax.invert_yaxis()
+        axes.append(ax)
 
-    ax2 = add_subpanel(gs[1], timestamp, lon, is_fishing, 'lon', show_xticks=False)
-    ax3 = add_subpanel(gs[2], timestamp, lat, is_fishing, 'lat', show_xticks=False)
-    ax4 = add_subpanel(gs[3], timestamp, speed, is_fishing, 'speed (knots)', miny=0, show_xticks=False)
-    if min(elevation) <= -995:
-        elevation /= 1000
-        label = 'depth (km)'
-    else:
-        label = 'depth (m)'
-    ax5 = add_subpanel(gs[4], timestamp, -elevation, is_fishing, label, miny=0)
-    ax5.invert_yaxis()
+    if annotations:
+        assert annotations > 1
+        time_range = (timestamp[-1] - timestamp[0])
+        # assert time_range > 0
+        dts = [(x - timestamp[0]) / time_range for x in timestamp]
+        indices = np.searchsorted(dts, np.linspace(0, 1, annotations))
+        axn = axes[-1]
+        # TODO: make configurable, and clean up auto detect
+        ylim = (axn.get_ylim()[0] - annotation_y_shift if plots[-1].get('invert_yaxis') 
+           else axn.get_ylim()[1] + annotation_y_shift)
+        axn.tick_params(axis='x', direction='inout')
+        for i, ndx in enumerate(indices):
+            ax1.text(lon[ndx], lat[ndx], str(i + 1), transform=maps.identity,
+                fontdict={'color' : 'black', 'weight': 'bold', 'size' : 10},
+                bbox=dict(facecolor='none', edgecolor='black', boxstyle='circle'))
+            axes[-1].text(timestamp[ndx], ylim, str(i + 1), horizontalalignment='center',
+                fontdict={'color' : 'black', 'weight': 'bold', 'size' : 12})
 
-    for ax in [ax2, ax3, ax4, ax5]:
+
+    for ax in axes:
         ax.set_facecolor(plt.rcParams['gfw.ocean.color'])
 
-    return PlotFishingPanelInfo(ax1, ax2, ax3, ax4, ax5, extent)
+    return PlotFishingPanelInfo(ax1, axes, extent)
 
 
