@@ -1,20 +1,21 @@
 # Projection Info
-Region | Projection | Center | Extent | Thumbnail
+Name | Projection | Center | Extent | Thumbnail
 ------ | ---------- | ------ | ------ | ---------
-global.default | EqualEarth | 0°E  |  | 
-global.atlantic_centered | EqualEarth | 40°W  |  | 
-global.pacific_centered | EqualEarth | 150°E  |  | 
-regional.north_pacific | LambertAzimuthalEqualArea | 165°W 25°N  | (249°W 0°N) (71°W 50°N) | 
-regional.south_pacific | LambertAzimuthalEqualArea | 140°W 40°S  | (202°W 65°S) (62°W 15°N) | 
-regional.pacific | LambertAzimuthalEqualArea | 165°W  | (249°W 50°S) (71°W 50°N) | 
-regional.atlantic | LambertAzimuthalEqualArea | 30°W  | (80°W 75°S) (20°E 75°N) | 
-regional.north_atlantic | LambertAzimuthalEqualArea | 30°W 35°N  | (80°W 5°S) (20°E 75°N) | 
-regional.south_atlantic | LambertAzimuthalEqualArea | 20°W 35°S  | (55°W 55°S) (15°E 5°N) | 
-regional.indian | LambertAzimuthalEqualArea | 75°E  | (15°E 30°S) (145°E 15°N) | 
-regional.european_union | AlbersEqualArea | 15°E 50°N  | (20°W 25°N) (50°E 75°N) | 
-country.indonesia | LambertCylindrical | 120°E  | (80°E 15°S) (160°E 15°N) | 
-country.ecuador_with_galapagos | LambertCylindrical | 85°W  | (97°W 7°S) (75°W 5°N) | 
-country.japan | LambertAzimuthalEqualArea | 137°E 38°N  | (126°E 23°N) (148°E 53°N) | 
-country.chile | LambertAzimuthalEqualArea | 80°W 35°S  | (100°W 60°S) (60°W 10°S) | 
-country.peru | LambertAzimuthalEqualArea | 80°W  | (93°W 20°S) (67°W 2°N) | 
-country.panama | LambertAzimuthalEqualArea | 80°W  | (93°W 4°S) (67°W 21°N) | 
+global.default | EqualEarth | 0°E  |  | ![thumbnail of global.default](images/global-default.png)
+global.atlantic_centered | EqualEarth | 40°W  |  | ![thumbnail of global.atlantic_centered](images/global-atlantic_centered.png)
+global.pacific_centered | EqualEarth | 150°E  |  | ![thumbnail of global.pacific_centered](images/global-pacific_centered.png)
+global.indian_centered | EqualEarth | 70°E  |  | ![thumbnail of global.indian_centered](images/global-indian_centered.png)
+regional.north_pacific | LambertAzimuthalEqualArea | 165°W 25°N  | (249°W&nbsp;0°N) (71°W&nbsp;50°N) | ![thumbnail of regional.north_pacific](images/regional-north_pacific.png)
+regional.south_pacific | LambertAzimuthalEqualArea | 140°W 40°S  | (202°W&nbsp;65°S) (62°W&nbsp;15°N) | ![thumbnail of regional.south_pacific](images/regional-south_pacific.png)
+regional.pacific | LambertAzimuthalEqualArea | 165°W  | (249°W&nbsp;50°S) (71°W&nbsp;50°N) | ![thumbnail of regional.pacific](images/regional-pacific.png)
+regional.atlantic | LambertAzimuthalEqualArea | 30°W  | (80°W&nbsp;75°S) (20°E&nbsp;75°N) | ![thumbnail of regional.atlantic](images/regional-atlantic.png)
+regional.north_atlantic | LambertAzimuthalEqualArea | 30°W 35°N  | (80°W&nbsp;5°S) (20°E&nbsp;75°N) | ![thumbnail of regional.north_atlantic](images/regional-north_atlantic.png)
+regional.south_atlantic | LambertAzimuthalEqualArea | 20°W 35°S  | (55°W&nbsp;55°S) (15°E&nbsp;5°N) | ![thumbnail of regional.south_atlantic](images/regional-south_atlantic.png)
+regional.indian | LambertAzimuthalEqualArea | 75°E  | (15°E&nbsp;30°S) (145°E&nbsp;15°N) | ![thumbnail of regional.indian](images/regional-indian.png)
+regional.european_union | AlbersEqualArea | 15°E 50°N  | (20°W&nbsp;25°N) (50°E&nbsp;75°N) | ![thumbnail of regional.european_union](images/regional-european_union.png)
+country.indonesia | LambertCylindrical | 120°E  | (80°E&nbsp;15°S) (160°E&nbsp;15°N) | ![thumbnail of country.indonesia](images/country-indonesia.png)
+country.ecuador_with_galapagos | LambertCylindrical | 85°W  | (97°W&nbsp;7°S) (75°W&nbsp;5°N) | ![thumbnail of country.ecuador_with_galapagos](images/country-ecuador_with_galapagos.png)
+country.japan | LambertAzimuthalEqualArea | 137°E 38°N  | (126°E&nbsp;23°N) (148°E&nbsp;53°N) | ![thumbnail of country.japan](images/country-japan.png)
+country.chile | LambertAzimuthalEqualArea | 80°W 35°S  | (100°W&nbsp;60°S) (60°W&nbsp;10°S) | ![thumbnail of country.chile](images/country-chile.png)
+country.peru | LambertAzimuthalEqualArea | 80°W  | (93°W&nbsp;20°S) (67°W&nbsp;2°N) | ![thumbnail of country.peru](images/country-peru.png)
+country.panama | LambertAzimuthalEqualArea | 80°W  | (93°W&nbsp;4°S) (67°W&nbsp;21°N) | ![thumbnail of country.panama](images/country-panama.png)

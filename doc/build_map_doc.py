@@ -11,7 +11,7 @@ def format_extent(obj):
         return ''
     lon0, lon1 = [format_lon(x) for x in obj['extent'][:2]]
     lat0, lat1 = [format_lat(x) for x in obj['extent'][2:]]
-    return '({} {}) ({} {})'.format(lon0, lat0, lon1, lat1)
+    return '({}&nbsp;{}) ({}&nbsp;{})'.format(lon0, lat0, lon1, lat1)
 
 def format_center(obj):
     args = obj['args']
@@ -20,14 +20,22 @@ def format_center(obj):
     return '{} {}'.format(format_lon(args['central_longitude']),
                           format_lat(args['central_latitude']))
 
+def format_thumbnail(proj, obj):
+    name = proj.replace('.', '-') + '.png'
+    return '![thumbnail of {}](images/{})'.format(proj, name)
+
+
+
 def build_doc(obj):
     lines = ['# Projection Info']
-    lines.append('Region | Projection | Center | Extent | Thumbnail')
+    lines.append('Name | Projection | Center | Extent | Thumbnail')
     lines.append('------ | ---------- | ------ | ------ | ---------')
     for k, v in obj.items():
         v['extent'] = format_extent(v)
         v['center'] = format_center(v)
-        lines.append('{region} | {projection} | {center}  | {extent} | '.format(region=k, **v))
+        v['thumbnail'] = format_thumbnail(k, v)
+        lines.append('{region} | {projection} | {center}  | {extent} | {thumbnail}'.format(
+                            region=k, **v))
     return '\n'.join(lines) 
 
 

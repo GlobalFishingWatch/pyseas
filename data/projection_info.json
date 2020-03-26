@@ -23,6 +23,14 @@
         "extent": null,
         "name": "EqualEarth @ 150\u00b0E"
     },
+    "global.indian_centered": {
+        "projection": "EqualEarth",
+        "args": {
+            "central_longitude": 70
+        },
+        "extent": null,
+        "name": "EqualEarth @ 70\u00b0E"
+    },
     "regional.north_pacific": {
         "projection": "LambertAzimuthalEqualArea",
         "args": {
