@@ -244,7 +244,9 @@ def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots,
                 fontdict={'color' : 'black', 'weight': 'bold', 'size' : 10},
                 bbox=dict(facecolor='none', edgecolor='black', boxstyle='circle'))
             axes[-1].text(timestamp[ndx], ylim, str(i + 1), horizontalalignment='center',
-                fontdict={'color' : 'black', 'weight': 'bold', 'size' : 12})
+                fontdict={#'color' : 'black', 'weight': 'bold',
+                 'size' : 12}
+                )
 
 
     for ax in axes:

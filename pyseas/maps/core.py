@@ -29,6 +29,7 @@ from ._monkey_patch_cartopy import monkey_patch_cartopy
 import matplotlib.pyplot as plt
 import cartopy
 import cartopy.feature as cfeature
+import json
 import os
 from .. import colors
 import geopandas as gpd
@@ -47,123 +48,143 @@ root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 # Use this alias because we might want to rework context so we aren't abusing
 # matplotlib's context in the future.
 
+
 # TOOD: export these into projections moduls
 # TODO: and generate class structure to hold them so
 # TOOD: can do projections.global.default
-# TODO: but keep projections._projection_info to query directly
+# TODO: but keep projections.projection_info to query directly
 
-projection_info = {
-    # Need both "parameters" and carotpy_parameters to override
-    'global.default' : dict (
-            projection = cartopy.crs.EqualEarth,
-            args = {'central_longitude' : 0},
-            extent = None,
-            name = 'EqualEarth @ 0°E'
-        ),
-    'global.atlantic_centered' : dict (
-            projection = cartopy.crs.EqualEarth,
-            args = {'central_longitude' : -40},
-            extent = None,
-            name = 'EqualEarth @ 40°W'
-        ),
-    'global.pacific_centered' : dict (
-            projection = cartopy.crs.EqualEarth,
-            args = {'central_longitude' : 150},
-            extent = None,
-            name = 'EqualEarth @ 150°E'
-        ),
-
-    'regional.north_pacific' : dict (
-            projection = cartopy.crs.LambertAzimuthalEqualArea,
-            args = {'central_longitude' : -165, 'central_latitude' : 25},
-            extent = (-249, -71, 0, 50), 
-            name = 'Lambert azimuthal equal area @ 165°E,25°N'
-        ),
-    'regional.south_pacific' : dict (
-            projection = cartopy.crs.LambertAzimuthalEqualArea,
-            args = {'central_longitude' : -140, 'central_latitude' : -40}, 
-            extent = (-202, -62, -65, 15), 
-            name = 'Lambert azimuthal equal area @ 140°W,0°S',
-            # bad_land_polys = {(0, 4)} # Specific to natural earth version
-        ),
-    'regional.pacific' : dict(
-            projection = cartopy.crs.LambertAzimuthalEqualArea,
-            args = {'central_longitude' : -165},
-            extent = (-249, -71, -50, 50),
-            name = "Lambert azimuthal equal area @ 165°W,0°N"
-        ),
-    'regional.atlantic' : dict(
-            projection = cartopy.crs.LambertAzimuthalEqualArea,
-            args = {'central_longitude' : -30}, 
-            extent = (-80, 20, -75, 75), 
-            name = 'Lambert azimuthal equal area @ 30°W,0°S',
-        ),
-    'regional.north_atlantic' : dict(
-            projection = cartopy.crs.LambertAzimuthalEqualArea,
-            args = {'central_longitude' : -30, 'central_latitude' : 35}, 
-            extent = (-80, 20, -5, 75), 
-            name = 'Lambert azimuthal equal area @ 30°W,0°S',
-        ),
-    'regional.south_atlantic' : dict(
-            projection = cartopy.crs.LambertAzimuthalEqualArea,
-            args = {'central_longitude' : -20, 'central_latitude' : -35}, 
-            extent = (-55, 15, -55, 5), 
-            name = 'Lambert azimuthal equal area @ 30°W,0°S',
-        ),
-    'regional.indian' : dict(
-            projection = cartopy.crs.LambertAzimuthalEqualArea,
-            args = {'central_longitude' : 75},
-            extent = (15, 145, -30, 15),
-            name = "Lambert azimuthal equal area @ 75°E,0°N"
-        ),
-    'regional.european_union' : dict(
-            projection = cartopy.crs.AlbersEqualArea,
-            args = {'central_longitude' : 15, 'central_latitude' : 50},
-            extent = (-20, 50, 25, 75),
-            name = "Albers equal area conic @ 15°E,50°N"    
-        ),
-
-    'country.indonesia' : dict(
-            projection = cartopy.crs.LambertCylindrical,
-            args = {'central_longitude' : 120},
-            extent = (80, 160, -15, 15),
-            name = "Lambert cylindrical @ 120°E"
-        ),
-    'country.ecuador_with_galapagos' : dict(
-            projection = cartopy.crs.LambertCylindrical,
-            args = {'central_longitude' : -85},
-            extent = (-97, -75, -7, 5),
-            name = "Lambert cylindrical @ 85°W"
-        ),
-    'country.japan' : dict(
-            projection = cartopy.crs.LambertAzimuthalEqualArea,
-            args = {'central_longitude' : 137, 'central_latitude' : 38},
-            extent = (126, 148, 23, 53),
-            name = "Lambert azimuthal equal area @ 137°E,38°N",
-            hspace = 0.2
-        ),
-    'country.chile' : dict(
-            projection = cartopy.crs.LambertAzimuthalEqualArea,
-            args = {'central_longitude' : -80, 'central_latitude' : -35},
-            extent = (-100, -60, -60, -10),
-            name = "Lambert azimuthal equal area @ 80°W",
-            hspace = 0.2
-        ),
-    'country.peru' : dict(
-            projection = cartopy.crs.LambertAzimuthalEqualArea,
-            args = {'central_longitude' : -80},
-            extent = (-93, -67, -20, 2),
-            name = "Lambert azimuthal equal area @ 80°W",
-            hspace = 0.2
-        ),
-    'country.panama' : dict(
-            projection = cartopy.crs.LambertAzimuthalEqualArea,
-            args = {'central_longitude' : -80},
-            extent = (-93, -67, -4, 21),
-            name = "Lambert azimuthal equal area @ 80°W",
-            hspace = 0.2
-        ),
+_projections = {
+    'EqualEarth' : cartopy.crs.EqualEarth,
+    'LambertAzimuthalEqualArea' : cartopy.crs.LambertAzimuthalEqualArea,
+    'AlbersEqualArea' : cartopy.crs.AlbersEqualArea,
+    'LambertCylindrical' : cartopy.crs.LambertCylindrical,
 }
+
+def load_projections():
+
+    path = os.path.join(root, 'data/projection_info.json')
+    with open(path) as f:
+        info = json.load(f)
+    for k, v in info.items():
+        v['projection'] = _projections[v['projection']]
+        info[k] = v
+    return info
+
+projection_info = load_projections()
+
+# projection_info = {
+#     # Need both "parameters" and carotpy_parameters to override
+#     'global.default' : dict (
+#             projection = cartopy.crs.EqualEarth,
+#             args = {'central_longitude' : 0},
+#             extent = None,
+#             name = 'EqualEarth @ 0°E'
+#         ),
+#     'global.atlantic_centered' : dict (
+#             projection = cartopy.crs.EqualEarth,
+#             args = {'central_longitude' : -40},
+#             extent = None,
+#             name = 'EqualEarth @ 40°W'
+#         ),
+#     'global.pacific_centered' : dict (
+#             projection = cartopy.crs.EqualEarth,
+#             args = {'central_longitude' : 150},
+#             extent = None,
+#             name = 'EqualEarth @ 150°E'
+#         ),
+
+#     'regional.north_pacific' : dict (
+#             projection = cartopy.crs.LambertAzimuthalEqualArea,
+#             args = {'central_longitude' : -165, 'central_latitude' : 25},
+#             extent = (-249, -71, 0, 50), 
+#             name = 'Lambert azimuthal equal area @ 165°E,25°N'
+#         ),
+#     'regional.south_pacific' : dict (
+#             projection = cartopy.crs.LambertAzimuthalEqualArea,
+#             args = {'central_longitude' : -140, 'central_latitude' : -40}, 
+#             extent = (-202, -62, -65, 15), 
+#             name = 'Lambert azimuthal equal area @ 140°W,0°S',
+#             # bad_land_polys = {(0, 4)} # Specific to natural earth version
+#         ),
+#     'regional.pacific' : dict(
+#             projection = cartopy.crs.LambertAzimuthalEqualArea,
+#             args = {'central_longitude' : -165},
+#             extent = (-249, -71, -50, 50),
+#             name = "Lambert azimuthal equal area @ 165°W,0°N"
+#         ),
+#     'regional.atlantic' : dict(
+#             projection = cartopy.crs.LambertAzimuthalEqualArea,
+#             args = {'central_longitude' : -30}, 
+#             extent = (-80, 20, -75, 75), 
+#             name = 'Lambert azimuthal equal area @ 30°W,0°S',
+#         ),
+#     'regional.north_atlantic' : dict(
+#             projection = cartopy.crs.LambertAzimuthalEqualArea,
+#             args = {'central_longitude' : -30, 'central_latitude' : 35}, 
+#             extent = (-80, 20, -5, 75), 
+#             name = 'Lambert azimuthal equal area @ 30°W,0°S',
+#         ),
+#     'regional.south_atlantic' : dict(
+#             projection = cartopy.crs.LambertAzimuthalEqualArea,
+#             args = {'central_longitude' : -20, 'central_latitude' : -35}, 
+#             extent = (-55, 15, -55, 5), 
+#             name = 'Lambert azimuthal equal area @ 30°W,0°S',
+#         ),
+#     'regional.indian' : dict(
+#             projection = cartopy.crs.LambertAzimuthalEqualArea,
+#             args = {'central_longitude' : 75},
+#             extent = (15, 145, -30, 15),
+#             name = "Lambert azimuthal equal area @ 75°E,0°N"
+#         ),
+#     'regional.european_union' : dict(
+#             projection = cartopy.crs.AlbersEqualArea,
+#             args = {'central_longitude' : 15, 'central_latitude' : 50},
+#             extent = (-20, 50, 25, 75),
+#             name = "Albers equal area conic @ 15°E,50°N"    
+#         ),
+
+#     'country.indonesia' : dict(
+#             projection = cartopy.crs.LambertCylindrical,
+#             args = {'central_longitude' : 120},
+#             extent = (80, 160, -15, 15),
+#             name = "Lambert cylindrical @ 120°E"
+#         ),
+#     'country.ecuador_with_galapagos' : dict(
+#             projection = cartopy.crs.LambertCylindrical,
+#             args = {'central_longitude' : -85},
+#             extent = (-97, -75, -7, 5),
+#             name = "Lambert cylindrical @ 85°W"
+#         ),
+#     'country.japan' : dict(
+#             projection = cartopy.crs.LambertAzimuthalEqualArea,
+#             args = {'central_longitude' : 137, 'central_latitude' : 38},
+#             extent = (126, 148, 23, 53),
+#             name = "Lambert azimuthal equal area @ 137°E,38°N",
+#             hspace = 0.2
+#         ),
+#     'country.chile' : dict(
+#             projection = cartopy.crs.LambertAzimuthalEqualArea,
+#             args = {'central_longitude' : -80, 'central_latitude' : -35},
+#             extent = (-100, -60, -60, -10),
+#             name = "Lambert azimuthal equal area @ 80°W",
+#             hspace = 0.2
+#         ),
+#     'country.peru' : dict(
+#             projection = cartopy.crs.LambertAzimuthalEqualArea,
+#             args = {'central_longitude' : -80},
+#             extent = (-93, -67, -20, 2),
+#             name = "Lambert azimuthal equal area @ 80°W",
+#             hspace = 0.2
+#         ),
+#     'country.panama' : dict(
+#             projection = cartopy.crs.LambertAzimuthalEqualArea,
+#             args = {'central_longitude' : -80},
+#             extent = (-93, -67, -4, 21),
+#             name = "Lambert azimuthal equal area @ 80°W",
+#             hspace = 0.2
+#         ),
+# }
 
 
 def get_projection(region_name):
@@ -440,7 +461,7 @@ def create_map(subplot=(1, 1, 1),
                 extent=None,
                 bg_color=None, 
                 hide_axes=True,
-                show_xform=True,
+                show_xform=False,
                 proj_descr=None):
     """Draw a GFW themed map
 

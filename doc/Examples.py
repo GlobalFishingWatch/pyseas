@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ---
 # jupyter:
 #   jupytext:
@@ -117,6 +118,16 @@ with pyseas.context(styles.dark):
                                              projection='regional.atlantic', 
                                              cmap='fishing')
 
+reload()
+with pyseas.context(styles.light):
+    fig = plt.figure(figsize=(12, 8))
+    ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], 
+                                             "distance to shore (km)", 
+                                             loc="top",
+                                             projection='regional.atlantic', 
+                                             cmap='presence')
+    ax.gridlines(linewidth=0.4, zorder=0.5)
+
 # ## Adding Gridlines
 
 reload()
@@ -185,10 +196,23 @@ for style, style_name in [(pyseas.styles.light, 'light'),
                 
                 ax.plot(df.lon.iloc[i0:i1], df.lat.iloc[i0:i1], 
                               transform=maps.identity, **props, linewidth=1)
+        gl = ax.gridlines(linewidth=0.4, zorder=0.5)
+        extent = ax.get_extent(crs=maps.identity)
+#         print(gl.xlocator.tick_values(*extent[:2]))
+#         print(gl.ylocator.tick_values(*extent[2:]))
+        for lon, lat, lbl, ngl in [(180, -3.8, "180°W", 0),
+                                   (-120, -8.5, "120°W", 0),
+                                   (-50.5, 30, "30°N", 0),
+                                   (-37.0, 15, "15°N", 0),
+                                  ]:
+            ax.text(lon, lat, lbl, transform=maps.identity, rotation=ngl, 
+                   horizontalalignment='center')
         plt.savefig('/Users/timothyhochberg/Desktop/test_tracks_{}.png'.format(
                 style_name), dpi=300)
         plt.show()
 # -
+
+
 # ## Predefined Regional Styles
 
 reload()
@@ -197,6 +221,16 @@ with pyseas.context(styles.light):
     ax = maps.create_map(projection='regional.pacific')
     maps.add_land(ax)
     maps.add_countries(ax)
+    gl = ax.gridlines(linewidth=0.4, zorder=0.5)
+    extent = ax.get_extent(crs=maps.identity)
+    print(gl.xlocator.tick_values(*extent[:2]))
+    print(gl.ylocator.tick_values(*extent[2:]))
+    for lon, lat, lbl, ngl in [(-179, 4, "180°W", 90),
+                               (-155, 12, "15°N", 0)]:
+        ax.text(lon, lat, lbl, transform=maps.identity, rotation=ngl
+#         fontdict={'color' : 'black', 'weight': 'bold', 'size' : 10},
+#         bbox=dict(facecolor='none', edgecolor='black', boxstyle='circle')
+            )
     plt.show()
 
 reload()
@@ -252,8 +286,10 @@ with pyseas.context(styles.dark):
 
 # ## Publish
 
-rendered.publish_to_github('./Examples.ipynb', 
-                           'pyseas/doc', action='push')
+# +
+# rendered.publish_to_github('./Examples.ipynb', 
+#                            'pyseas/doc', action='push')
+# -
 
 # ## Below this point is messy
 
@@ -456,11 +492,11 @@ order by timestamp
 fishing_df = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
 # +
-reload()
+reload() # >>>
 
 ssvids = sorted(set(fishing_df.ssvid))[1:]
 
-with pyseas.context(pyseas.styles.dark):
+with pyseas.context(pyseas.styles.light):
     for ssvid in ssvids:
         ssvid_df = fishing_df[fishing_df.ssvid == ssvid]
         ssvid_df = ssvid_df.sort_values(by='timestamp')
@@ -470,7 +506,32 @@ with pyseas.context(pyseas.styles.dark):
         proj, extent, descr = plot_tracks.find_projection(ssvid_df.lon, ssvid_df.lat)
         fig = plt.figure(figsize=(10, 10))
         ax = maps.create_map(projection=proj, proj_descr=descr)
+
+        gl = ax.gridlines(linewidth=0.4, zorder=0.5, alpha=0.5)        
         
+        ax.set_extent(extent, crs=maps.identity)
+        
+#         print(gl.xlocator.tick_values(*extent[:2]))
+#         print(gl.ylocator.tick_values(*extent[2:]))
+        for lon, lat, lbl, ngl in [
+                                    (30, -46.2, "30°E", 0),
+                                    (40, -48.5, "40°E", 0),
+                                    (50, -50, "50°E", 0),
+                                    (60, -50.7, "60°E", 0),
+                                    (70, -50.8, "70°E", 0),
+
+                                   (81.4, -42, "42°S", 0),
+                                   (80.1, -36, "36°S", 0),
+                                   (79, -30, "30°S", 0),
+                                   (78, -24, "24°S", 0),
+                                   (77.4, -18, "18°S", 0),
+                                   (77, -12, "12°S", 0),
+
+
+#                                    (-37.0, 15, "15°N", 0),
+                                  ]:
+            ax.text(lon, lat, lbl, transform=maps.identity, rotation=ngl, 
+                   horizontalalignment='center')
         maps.add_land(ax)
         maps.add_countries(ax)
         is_fishing = (ssvid_df.nnet_score.values > 0.5)      
@@ -479,16 +540,17 @@ with pyseas.context(pyseas.styles.dark):
                       props=styles.dark['gfw.map.fishingprops'], break_on_change=True)
         
         ax.set_extent(extent, crs=maps.identity)
-        ax.set_title(ssvid)
+#         maps.add_scalebar(ax, extent)
+
+#         ax.set_title(ssvid)
         maps.add_figure_background(fig)
 
-    
+        plt.savefig('/Users/timothyhochberg/Desktop/test_grid.png', dpi=300)
+
         plt.show()
 # -
 
 from scipy.signal import medfilt
-
-
 
 # +
 reload()
@@ -563,8 +625,15 @@ with pyseas.context(pyseas.styles.dark):
 
             fig = plt.figure(figsize=(12, 12))
             info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
-                                     dfn.lat, medfilt(dfn.speed.values,11), 
-                                     dfn.elevation_m, is_fishing,
+                                     dfn.lat, is_fishing,
+                                     plots = [
+                    {'label' : 'lon', 'values' : dfn.lon},
+                    {'label' : 'lat', 'values' : dfn.lat}, 
+                    {'label' : 'speed (knots)', 'values' : medfilt(dfn.speed.values,11), 
+                        'min_y' : 0},
+                    {'label' : 'depth (km)', 'values' : -dfn.elevation_m / 1000,
+                        'min_y' : 0, 'invert_yaxis' : True}, 
+                                     ],
                                      map_ratio=6)
 
             maps.add_scalebar(info.map_ax, info.extent)
@@ -577,10 +646,6 @@ with pyseas.context(pyseas.styles.dark):
             plt.show()
 # -
 
-import matplotlib
-# matplotlib.rcParamsDefault
-pd.Series
-
 df = df.sort_values(by='timestamp')
 n =120
 reload()
@@ -592,5 +657,3 @@ with pyseas.context(pyseas.styles.dark):
     maps.add_plot(ax, df.lon.values[:n], df.lat.values[:n])
     ax.set_extent(extent, crs=maps.identity)
     plt.show()
-
-plt.rcParams.keys()

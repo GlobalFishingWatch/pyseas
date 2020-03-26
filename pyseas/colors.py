@@ -14,9 +14,9 @@ dark = _Dark()
 
 class _Light(object):
     land = '#C9D2D3'
-    ocean = '#F6F6F4'
+    ocean = '#FFFFFF'
     border = '#B4B4B4'
-    background = '#f7f7f7'
+    background = '#FFFFFF'
     highlight = '#0a1738'
     title = '#363c4c'
     eez = land

@@ -6,10 +6,10 @@ A library to make GFW style map plots in Python.
 
 ## To Do
 
-* Make colorbars not painful
-* lat and lon markers with numbers (styleable)
-* Styleble map regions
-* Scalebar
+* Make lat and lon markers with numbers easy and styleable
+    - See examples for how to do it the hard way.
+    - Also: https://gist.github.com/ajdawson/dd536f786741e987ae4e
+* Bulletproof Scalebar
 * Guides on how to highlight multiple areas
 * Categorical color scheme to tell fleets apart
 

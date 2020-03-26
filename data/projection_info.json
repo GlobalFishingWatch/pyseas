@@ -1,0 +1,219 @@
+{
+    "global.default": {
+        "projection": "EqualEarth",
+        "args": {
+            "central_longitude": 0
+        },
+        "extent": null,
+        "name": "EqualEarth @ 0\u00b0E"
+    },
+    "global.atlantic_centered": {
+        "projection": "EqualEarth",
+        "args": {
+            "central_longitude": -40
+        },
+        "extent": null,
+        "name": "EqualEarth @ 40\u00b0W"
+    },
+    "global.pacific_centered": {
+        "projection": "EqualEarth",
+        "args": {
+            "central_longitude": 150
+        },
+        "extent": null,
+        "name": "EqualEarth @ 150\u00b0E"
+    },
+    "regional.north_pacific": {
+        "projection": "LambertAzimuthalEqualArea",
+        "args": {
+            "central_longitude": -165,
+            "central_latitude": 25
+        },
+        "extent": [
+            -249,
+            -71,
+            0,
+            50
+        ],
+        "name": "Lambert azimuthal equal area @ 165\u00b0E,25\u00b0N"
+    },
+    "regional.south_pacific": {
+        "projection": "LambertAzimuthalEqualArea",
+        "args": {
+            "central_longitude": -140,
+            "central_latitude": -40
+        },
+        "extent": [
+            -202,
+            -62,
+            -65,
+            15
+        ],
+        "name": "Lambert azimuthal equal area @ 140\u00b0W,0\u00b0S"
+    },
+    "regional.pacific": {
+        "projection": "LambertAzimuthalEqualArea",
+        "args": {
+            "central_longitude": -165
+        },
+        "extent": [
+            -249,
+            -71,
+            -50,
+            50
+        ],
+        "name": "Lambert azimuthal equal area @ 165\u00b0W,0\u00b0N"
+    },
+    "regional.atlantic": {
+        "projection": "LambertAzimuthalEqualArea",
+        "args": {
+            "central_longitude": -30
+        },
+        "extent": [
+            -80,
+            20,
+            -75,
+            75
+        ],
+        "name": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S"
+    },
+    "regional.north_atlantic": {
+        "projection": "LambertAzimuthalEqualArea",
+        "args": {
+            "central_longitude": -30,
+            "central_latitude": 35
+        },
+        "extent": [
+            -80,
+            20,
+            -5,
+            75
+        ],
+        "name": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S"
+    },
+    "regional.south_atlantic": {
+        "projection": "LambertAzimuthalEqualArea",
+        "args": {
+            "central_longitude": -20,
+            "central_latitude": -35
+        },
+        "extent": [
+            -55,
+            15,
+            -55,
+            5
+        ],
+        "name": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S"
+    },
+    "regional.indian": {
+        "projection": "LambertAzimuthalEqualArea",
+        "args": {
+            "central_longitude": 75
+        },
+        "extent": [
+            15,
+            145,
+            -30,
+            15
+        ],
+        "name": "Lambert azimuthal equal area @ 75\u00b0E,0\u00b0N"
+    },
+    "regional.european_union": {
+        "projection": "AlbersEqualArea",
+        "args": {
+            "central_longitude": 15,
+            "central_latitude": 50
+        },
+        "extent": [
+            -20,
+            50,
+            25,
+            75
+        ],
+        "name": "Albers equal area conic @ 15\u00b0E,50\u00b0N"
+    },
+    "country.indonesia": {
+        "projection": "LambertCylindrical",
+        "args": {
+            "central_longitude": 120
+        },
+        "extent": [
+            80,
+            160,
+            -15,
+            15
+        ],
+        "name": "Lambert cylindrical @ 120\u00b0E"
+    },
+    "country.ecuador_with_galapagos": {
+        "projection": "LambertCylindrical",
+        "args": {
+            "central_longitude": -85
+        },
+        "extent": [
+            -97,
+            -75,
+            -7,
+            5
+        ],
+        "name": "Lambert cylindrical @ 85\u00b0W"
+    },
+    "country.japan": {
+        "projection": "LambertAzimuthalEqualArea",
+        "args": {
+            "central_longitude": 137,
+            "central_latitude": 38
+        },
+        "extent": [
+            126,
+            148,
+            23,
+            53
+        ],
+        "name": "Lambert azimuthal equal area @ 137\u00b0E,38\u00b0N",
+        "hspace": 0.2
+    },
+    "country.chile": {
+        "projection": "LambertAzimuthalEqualArea",
+        "args": {
+            "central_longitude": -80,
+            "central_latitude": -35
+        },
+        "extent": [
+            -100,
+            -60,
+            -60,
+            -10
+        ],
+        "name": "Lambert azimuthal equal area @ 80\u00b0W",
+        "hspace": 0.2
+    },
+    "country.peru": {
+        "projection": "LambertAzimuthalEqualArea",
+        "args": {
+            "central_longitude": -80
+        },
+        "extent": [
+            -93,
+            -67,
+            -20,
+            2
+        ],
+        "name": "Lambert azimuthal equal area @ 80\u00b0W",
+        "hspace": 0.2
+    },
+    "country.panama": {
+        "projection": "LambertAzimuthalEqualArea",
+        "args": {
+            "central_longitude": -80
+        },
+        "extent": [
+            -93,
+            -67,
+            -4,
+            21
+        ],
+        "name": "Lambert azimuthal equal area @ 80\u00b0W",
+        "hspace": 0.2
+    }
+}
