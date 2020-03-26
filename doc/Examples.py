@@ -76,6 +76,10 @@ reload()
 # !gsutil cp -n gs://machine-learning-dev-ttl-120d/named-achorages01-raster.tiff ../untracked/
 img = skimage.io.imread("../untracked/named-achorages01-raster.tiff")
 
+reload()
+ax = maps.create_map(projection='country.japan')
+maps.add_land(ax)
+
 # ### Global map centered over the Pacific using Dark Style
 
 reload()

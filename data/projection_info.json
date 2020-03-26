@@ -38,10 +38,10 @@
             "central_latitude": 25
         },
         "extent": [
-            -249,
-            -71,
-            0,
-            50
+            -250,
+            -70,
+            -10,
+            60
         ],
         "name": "Lambert azimuthal equal area @ 165\u00b0E,25\u00b0N"
     },
@@ -52,10 +52,10 @@
             "central_latitude": -40
         },
         "extent": [
-            -202,
-            -62,
-            -65,
-            15
+            -250,
+            -70,
+            -70,
+            10
         ],
         "name": "Lambert azimuthal equal area @ 140\u00b0W,0\u00b0S"
     },
@@ -65,10 +65,10 @@
             "central_longitude": -165
         },
         "extent": [
-            -249,
-            -71,
-            -50,
-            50
+            -250,
+            -70,
+            -65,
+            65
         ],
         "name": "Lambert azimuthal equal area @ 165\u00b0W,0\u00b0N"
     },
@@ -119,10 +119,10 @@
             "central_longitude": 75
         },
         "extent": [
-            15,
-            145,
+            20,
+            140,
             -30,
-            15
+            70
         ],
         "name": "Lambert azimuthal equal area @ 75\u00b0E,0\u00b0N"
     },
@@ -133,8 +133,8 @@
             "central_latitude": 50
         },
         "extent": [
-            -20,
-            50,
+            -25,
+            55,
             25,
             75
         ],
@@ -148,8 +148,8 @@
         "extent": [
             80,
             160,
-            -15,
-            15
+            -20,
+            20
         ],
         "name": "Lambert cylindrical @ 120\u00b0E"
     },
@@ -160,8 +160,8 @@
         },
         "extent": [
             -97,
-            -75,
-            -7,
+            -73,
+            -10,
             5
         ],
         "name": "Lambert cylindrical @ 85\u00b0W"
@@ -173,10 +173,10 @@
             "central_latitude": 38
         },
         "extent": [
-            126,
-            148,
-            23,
-            53
+            125,
+            155,
+            26,
+            50
         ],
         "name": "Lambert azimuthal equal area @ 137\u00b0E,38\u00b0N",
         "pyseas.colorbar.hspace": 0.2
@@ -202,10 +202,10 @@
             "central_longitude": -80
         },
         "extent": [
-            -93,
-            -67,
-            -20,
-            2
+            -95,
+            -65,
+            -25,
+            5
         ],
         "name": "Lambert azimuthal equal area @ 80\u00b0W",
         "pyseas.colorbar.hspace": 0.2
@@ -216,10 +216,10 @@
             "central_longitude": -80
         },
         "extent": [
-            -93,
-            -67,
-            -4,
-            21
+            -88,
+            -72,
+            -2,
+            15
         ],
         "name": "Lambert azimuthal equal area @ 80\u00b0W",
         "pyseas.colorbar.hspace": 0.2
