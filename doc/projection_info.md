@@ -6,7 +6,7 @@ global.atlantic_centered | EqualEarth | 40°W  |  | ![thumbnail of global.atlant
 global.pacific_centered | EqualEarth | 150°E  |  | ![thumbnail of global.pacific_centered](images/global-pacific_centered.png)
 global.indian_centered | EqualEarth | 70°E  |  | ![thumbnail of global.indian_centered](images/global-indian_centered.png)
 regional.north_pacific | LambertAzimuthalEqualArea | 165°W 25°N  | (250°W&nbsp;10°S) (70°W&nbsp;60°N) | ![thumbnail of regional.north_pacific](images/regional-north_pacific.png)
-regional.south_pacific | LambertAzimuthalEqualArea | 140°W 40°S  | (250°W&nbsp;70°S) (70°W&nbsp;10°N) | ![thumbnail of regional.south_pacific](images/regional-south_pacific.png)
+regional.south_pacific | LambertAzimuthalEqualArea | 160°W 30°S  | (250°W&nbsp;70°S) (70°W&nbsp;10°N) | ![thumbnail of regional.south_pacific](images/regional-south_pacific.png)
 regional.pacific | LambertAzimuthalEqualArea | 165°W  | (250°W&nbsp;65°S) (70°W&nbsp;65°N) | ![thumbnail of regional.pacific](images/regional-pacific.png)
 regional.atlantic | LambertAzimuthalEqualArea | 30°W  | (80°W&nbsp;75°S) (20°E&nbsp;75°N) | ![thumbnail of regional.atlantic](images/regional-atlantic.png)
 regional.north_atlantic | LambertAzimuthalEqualArea | 30°W 35°N  | (80°W&nbsp;5°S) (20°E&nbsp;75°N) | ![thumbnail of regional.north_atlantic](images/regional-north_atlantic.png)
