@@ -353,7 +353,8 @@ def add_gridlines(ax, zorder=0.5, **kwargs):
             kwargs[name] = plt.rcParams['grid.' + name]
     return ax.gridlines(zorder=zorder, **kwargs)
 
-def add_gridlabels(ax, gl, lons=None, lats=None, fig=None, **kwargs):
+def add_gridlabels(ax, gl, lons=None, lats=None, fig=None, 
+                    lon_side='bottom', lat_side='left', **kwargs):
     if fig is None:
         fig = plt.gcf()
     extent = ax.get_extent(crs=identity)
@@ -368,8 +369,8 @@ def add_gridlabels(ax, gl, lons=None, lats=None, fig=None, **kwargs):
     fig.canvas.draw()
     ax.xaxis.set_major_formatter(ticks.LONGITUDE_FORMATTER) 
     ax.yaxis.set_major_formatter(ticks.LATITUDE_FORMATTER)
-    ticks.lambert_xticks(ax, lons)
-    ticks.lambert_yticks(ax, lats)
+    ticks.draw_xticks(ax, lons, side=lon_side)
+    ticks.draw_yticks(ax, lats, side=lat_side)
 
 def create_map(subplot=(1, 1, 1), 
                 projection='global.default', 

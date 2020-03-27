@@ -699,10 +699,11 @@ reload()
 df = df.sort_values(by='timestamp')
 n =120
 reload()
-with pyseas.context(pyseas.styles.light):
-    fig = plt.figure(figsize=(9, 12), frameon=True)
-    ax = maps.create_map(projection='regional.south_pacific')
-    gl = maps.add_gridlines(ax)
+with pyseas.context(pyseas.styles.dark):
+    fig = plt.figure(figsize=(9, 9), frameon=True)
+    ax = maps.create_map(projection='regional.european_union')
+    gl = maps.add_gridlines(ax, color='white', alpha=0.7)
+    maps.add_raster(ax, img[::40, ::40])
     maps.add_gridlabels(ax, gl)
     maps.add_land(ax)
     maps.add_countries(ax)
@@ -710,5 +711,50 @@ with pyseas.context(pyseas.styles.light):
                facecolor=plt.rcParams['gfw.fig.background'])
     plt.show()
 
+
+# +
+reload()
+
+ssvids = sorted(set(fishing_df.ssvid))[1:]
+
+# TODO: figure out style for dark panel (use gfw.panel.background as color)
+# See Juan Carlos's example in this post: 
+# https://globalfishingwatch.slack.com/archives/CUW93UNLS/p1585062098015100
+# (Obvious things: background, and line/tick colors)
+with pyseas.context(pyseas.styles.light):
+    with pyseas.context({'gfw.fig.background' : 'white',
+                         'gfw.ocean.color' : 'white',
+                          'gfw.fig.background' : 'white'}):
+        for ssvid in ssvids:
+
+            dfn = fishing_df[fishing_df.ssvid == ssvid]
+            dfn = dfn.sort_values(by='timestamp')
+            is_fishing = (dfn.nnet_score > 0.5)      
+
+            fig = plt.figure(figsize=(12, 12))
+            info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
+                                     dfn.lat, is_fishing,
+                                     plots = [
+#                     {'label' : 'lon', 'values' : dfn.lon},
+#                     {'label' : 'lat', 'values' : dfn.lat}, 
+                    {'label' : 'speed (knots)', 'values' : medfilt(dfn.speed.values,11), 
+                        'min_y' : 0},
+                    {'label' : 'depth (km)', 'values' : -dfn.elevation_m / 1000,
+                        'min_y' : 0, 'invert_yaxis' : True},                       
+                                     ],
+                                     map_ratio=6,
+                                     annotations=7,
+                                    annotation_y_shift=0.5)
+
+#             maps.add_scalebar(info.map_ax, info.extent)
+            gl = maps.add_gridlines(info.map_ax)
+            maps.add_gridlabels(info.map_ax, gl, lat_side='right', lon_side='top')
+            maps.add_figure_background(fig)
+
+            plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
+                       facecolor=plt.rcParams['gfw.fig.background'])
+
+            plt.show()
+# -
 
 
