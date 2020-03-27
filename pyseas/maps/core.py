@@ -81,24 +81,18 @@ def get_projection(region_name):
     return info['projection'](**info['args'])
 
 def get_extent(region_name):
-    # TODO: add warning (add flag so can disable when called through files that know better)
-    # when in `regional_pacific` and `regional.north_pacific` regions (many any regions with
-    # Overridden vales)
     return projection_info[region_name]['extent']
 
 def get_proj_description(region_name):
-    # TODO: add warning (add flag so can disable when called through files that know better)
-    # when in `regional_pacific` and `regional.north_pacific` regions (many any regions with
-    # Overridden vales)
     return projection_info[region_name]['name']
 
 
-def add_land(ax, projection=None, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
+def add_land(ax=None, projection=None, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
     """Add land to an existing map
 
     Parameters
     ----------
-    ax : matplotlib axes object
+    ax : matplotlib axes object, optional
     projection: str
         If projection is specified, try to remove problematic land polygons
     scale : str, optional
@@ -118,6 +112,8 @@ def add_land(ax, projection=None, scale='10m', edgecolor=None, facecolor=None, l
     -------
     FeatureArtist
     """
+    if ax is None:
+        ax = plt.gca()
     edgecolor = edgecolor or plt.rcParams.get('gfw.border.color', colors.dark.border)
     facecolor = facecolor or plt.rcParams.get('gfw.land.color', colors.dark.land)
     linewidth = linewidth or plt.rcParams.get('gfw.border.linewidth', 0.4)
@@ -128,12 +124,12 @@ def add_land(ax, projection=None, scale='10m', edgecolor=None, facecolor=None, l
                                             **kwargs)
     return ax.add_feature(land)
 
-def add_countries(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
+def add_countries(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
     """Add land to an existing map
 
     Parameters
     ----------
-    ax : matplotlib axes object
+    ax : matplotlib axes object, optional
     scale : str, optional
         Resolution of NaturalEarth data to use ('10m’, ‘50m’, or ‘110m').
     edgecolor : str or tuple, optional
@@ -151,6 +147,8 @@ def add_countries(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=Non
     -------
     FeatureArtist
     """
+    if ax is None:
+        ax = plt.gca()
     edgecolor = edgecolor or plt.rcParams.get('gfw.border.color', colors.dark.border)
     facecolor = facecolor or plt.rcParams.get('gfw.land.color', colors.dark.land)
     linewidth = linewidth or plt.rcParams.get('gfw.border.linewidth', 0.4)
@@ -162,12 +160,12 @@ def add_countries(ax, scale='10m', edgecolor=None, facecolor=None, linewidth=Non
     return ax.add_feature(land)
 
 
-def add_raster(ax, raster, extent=(-180, 180, -90, 90), origin='upper', **kwargs):
+def add_raster(raster, ax=None, extent=(-180, 180, -90, 90), origin='upper', **kwargs):
     """Add a raster to an existing map
 
     Parameters
     ----------
-    ax : matplotlib axes object
+    ax : matplotlib axes object, optional
     raster : 2D array
     extent : tuple of int, optional
         (lon_min, lon_max, lat_min, lat_max) of the raster
@@ -182,6 +180,8 @@ def add_raster(ax, raster, extent=(-180, 180, -90, 90), origin='upper', **kwargs
     -------
     AxesImage
     """
+    if ax is None:
+        ax = plt.gca()
     if 'cmap' in kwargs and isinstance(kwargs['cmap'], str):
         src = plt.rcParams['gfw.map.cmapsrc']
         try:
@@ -227,12 +227,11 @@ def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
     return ml_coords
         
 
-def add_plot(ax, lon, lat, kind=None, props=None, break_on_change=False, *args, **kwargs):
+def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, *args, **kwargs):
     """Add a plot to an existing map
 
     Parameters
     ----------
-    ax : matplotlib axes object
     lon : sequence of float
     lat : sequence of float
     kind : sequence of hashable, optional
@@ -244,6 +243,10 @@ def add_plot(ax, lon, lat, kind=None, props=None, break_on_change=False, *args, 
         are mapped to 'axes.prop_cycle'. `props` for segments between 
         points with different `kind` value are looked up under `None`.
         If `None` is missing, these points are not plotted.
+    ax : matplotlib axes object, optional
+    break_on_change : bool, optional
+        Whether to create a new segment when kind changes. Generally True for fishing plots
+        and False for vessel plots.
     
     Other Parameters
     ----------------
@@ -259,6 +262,8 @@ def add_plot(ax, lon, lat, kind=None, props=None, break_on_change=False, *args, 
     -------
     A list of Line2D objects.
     """
+    if ax is None:
+        ax = plt.gca()
     assert len(lon) == len(lat)
     if 'transform' not in kwargs:
         kwargs['transform'] = identity
@@ -294,12 +299,12 @@ def add_plot(ax, lon, lat, kind=None, props=None, break_on_change=False, *args, 
 
 _eezs = {}
 
-def add_eezs(ax, use_boundaries=True, facecolor='none', edgecolor=None, linewidth=None, alpha=1):
+def add_eezs(ax=None, use_boundaries=True, facecolor='none', edgecolor=None, linewidth=None, alpha=1):
     """Add EEZs to an existing map
 
     Parameters
     ----------
-    ax : matplotlib axes object
+    ax : matplotlib axes object, optional
     use_boundaries : bool, optional
         use the boundaries version of EEZs which is smaller and faster, but not as detailed.
     facecolor : str, optional
@@ -314,6 +319,8 @@ def add_eezs(ax, use_boundaries=True, facecolor='none', edgecolor=None, linewidt
     -------
     FeatureArtist
     """
+    if ax is None:
+        ax = plt.gca()
     if use_boundaries:
         path = os.path.join(root, 'untracked/data/eez_boundaries_v11.gpkg')
     else:
@@ -332,31 +339,72 @@ def add_eezs(ax, use_boundaries=True, facecolor='none', edgecolor=None, linewidt
                   alpha=alpha, facecolor=facecolor, edgecolor=edgecolor, linewidth=linewidth)
 
 
-def add_figure_background(fig, color=None):
+def add_figure_background(fig=None, color=None):
     """Set the figure background (area around plot)
 
     Parameters
     ----------
-    fig : Figure
+    fig : Figure, optional
     color : tuple or str, optional
-
-
     """
+    if fig is None:
+        fig = plt.gcf()
     color = color or plt.rcParams.get('gfw.fig.background', colors.dark.background)
     fig.patch.set_facecolor(color)
 
-# TODO: allow side ticks drawn on to be set
 
-def add_gridlines(ax, zorder=0.5, **kwargs):
+def add_gridlines(ax=None, zorder=0.5, **kwargs):
+    """Add latitude and longitude lines to plot
+
+    Parameters
+    ----------
+    ax : Axes, optional
+    zorder: float, optional
+        By default, lines are placed over water, but under land
+
+
+    Other Parameters
+    ----------------
+    Keyword args are passed on to ax.gridlines
+
+    Returns
+    -------
+    Gridliner
+    """
+    if ax is None:
+        ax = plt.gca()
     for name in ['linewidth', 'linestyle', 'color', 'alpha']:
         if name not in kwargs:
             kwargs[name] = plt.rcParams['grid.' + name]
     return ax.gridlines(zorder=zorder, **kwargs)
 
-def add_gridlabels(ax, gl, lons=None, lats=None, fig=None, 
-                    lon_side='bottom', lat_side='left', **kwargs):
+def add_gridlabels(gl, lons=None, lats=None, ax=None, fig=None, 
+                    lon_side='bottom', lat_side='left'):
+    """Add latitude and longitude labels to plot
+
+    Parameters
+    ----------
+    gl : Gridliner returned from `add_gridlines`
+    lons : sequence of float
+    lats : sequence of float
+    ax : Axes, optional
+    fig : Figure, optional
+    lon_side : str, optional
+        'top' or 'bottom (default)
+    lat_side : str, optional
+        'right' or 'left' (default)
+    ax : Axes, optional
+
+    Other Parameters
+    ----------------
+    Keyword args are passed on to ax.gridlines
+
+    """
+    
     if fig is None:
         fig = plt.gcf()
+    if ax is None:
+        ax = plt.gca()
     extent = ax.get_extent(crs=identity)
     if lons is None:
         lons = gl.xlocator.tick_values(*extent[:2])
@@ -371,6 +419,7 @@ def add_gridlabels(ax, gl, lons=None, lats=None, fig=None,
     ax.yaxis.set_major_formatter(ticks.LATITUDE_FORMATTER)
     ticks.draw_xticks(ax, lons, side=lon_side)
     ticks.draw_yticks(ax, lats, side=lat_side)
+
 
 def create_map(subplot=(1, 1, 1), 
                 projection='global.default', 
@@ -419,41 +468,6 @@ def create_map(subplot=(1, 1, 1),
     return ax
 
 
-
-def plot_raster_w_colorbar(raster, label='', loc='top',
-                projection='global.default', hspace=None, wspace=0.016,
-                bg_color=None, hide_axes=True, cbformat=None, **kwargs):
-    assert loc in ('top', 'bottom')
-    if hspace is None:
-        hspace = 0.12
-        if isinstance(projection, str):
-            hspace = projection_info[projection].get('pyseas.colorbar.hspace', hspace)
-    if loc == 'top':
-        hratios = [.015, 1]
-        cb_ind, pl_ind = 0, 1
-        anchor = 'NE'
-    else:
-        hratios = [1, 0.015]
-        cb_ind, pl_ind = 1, 0
-        anchor = 'SE'
-        hspace -= 0.10
-
-
-
-    gs = plt.GridSpec(2, 3, height_ratios=hratios, hspace=hspace, wspace=wspace)
-    ax, im = plot_raster(raster, gs[pl_ind, :], projection=projection, **kwargs)
-    ax.set_anchor(anchor)
-    cb_ax = plt.subplot(gs[cb_ind, 2])
-    cb = plt.colorbar(im, cb_ax, orientation='horizontal', shrink=0.8, format=cbformat)
-    leg_ax = plt.subplot(gs[cb_ind, 1], frame_on=False)
-    leg_ax.axes.get_xaxis().set_visible(False)
-    leg_ax.axes.get_yaxis().set_visible(False)
-    leg_ax.text(1, 0.5, label, fontdict={'fontsize': 12}, # TODO: stule
-                    horizontalalignment='right', verticalalignment='center')
-    return ax, im, cb
-
-
-
 def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
                 bg_color=None, hide_axes=True, colorbar=None, 
                 gridlines=False, **kwargs):
@@ -478,6 +492,63 @@ def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
     """
     extent = kwargs.get('extent')
     ax = create_map(subplot, projection, extent, bg_color, hide_axes)
-    im = add_raster(ax, raster, **kwargs)
+    im = add_raster(raster, ax=ax, **kwargs)
     add_land(ax, projection)
     return  ax, im
+
+
+def plot_raster_w_colorbar(raster, label='', loc='top',
+                projection='global.default', hspace=None, wspace=0.016,
+                bg_color=None, hide_axes=True, cbformat=None, **kwargs):
+    """Draw a GFW themed map over a raster with a colorbar
+
+    Parameters
+    ----------
+    raster : 2D array
+    label : str, optional
+    loc : str, optional
+    projection : cartopy.crs.Projection, optional
+    hspace : float, optional
+        space between colorbar and axis
+    wspace : float, optional
+        horizontal space adjustment
+    bg_color : str or tuple, optional
+    hide_axes : bool
+        if `true`, hide x and y axes
+    cbformat : formatter
+    
+    Other Parameters
+    ----------------
+    Keyword args are passed on to plot_raster.
+
+    Returns
+    -------
+    (GeoAxes, AxesImage)
+    """
+    assert loc in ('top', 'bottom')
+    if hspace is None:
+        hspace = 0.12
+        if isinstance(projection, str):
+            hspace = projection_info[projection].get('pyseas.colorbar.hspace', hspace)
+    if loc == 'top':
+        hratios = [.015, 1]
+        cb_ind, pl_ind = 0, 1
+        anchor = 'NE'
+    else:
+        hratios = [1, 0.015]
+        cb_ind, pl_ind = 1, 0
+        anchor = 'SE'
+        hspace -= 0.10
+
+    gs = plt.GridSpec(2, 3, height_ratios=hratios, hspace=hspace, wspace=wspace)
+    ax, im = plot_raster(raster, gs[pl_ind, :], projection=projection, **kwargs)
+    ax.set_anchor(anchor)
+    cb_ax = plt.subplot(gs[cb_ind, 2])
+    cb = plt.colorbar(im, cb_ax, orientation='horizontal', shrink=0.8, format=cbformat)
+    leg_ax = plt.subplot(gs[cb_ind, 1], frame_on=False)
+    leg_ax.axes.get_xaxis().set_visible(False)
+    leg_ax.axes.get_yaxis().set_visible(False)
+    leg_ax.text(1, 0.5, label, fontdict={'fontsize': 12}, # TODO: stule
+                    horizontalalignment='right', verticalalignment='center')
+    plt.sca(ax)
+    return ax, im, cb

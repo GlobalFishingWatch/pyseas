@@ -169,9 +169,9 @@ for style, style_name in [(pyseas.styles.light, 'light'),
                           (pyseas.styles.dark, 'dark')]:
     with pyseas.context(style):
         fig = plt.figure(figsize=(10, 10))
-        ax = maps.create_map(projection='regional.north_pacific')
-        maps.add_land(ax)
-        maps.add_plot(ax, msgs.lon, msgs.lat, msgs.ssvid)
+        maps.create_map(projection='regional.north_pacific')
+        maps.add_land()
+        maps.add_plot(msgs.lon, msgs.lat, msgs.ssvid)
 
 
 # +
@@ -542,7 +542,7 @@ with pyseas.context(pyseas.styles.light):
         maps.add_countries(ax)
         is_fishing = (ssvid_df.nnet_score.values > 0.5)      
         
-        maps.add_plot(ax, ssvid_df.lon.values, ssvid_df.lat.values, is_fishing, 
+        maps.add_plot(ssvid_df.lon.values, ssvid_df.lat.values, is_fishing, ax=ax,
                       props=styles.dark['gfw.map.fishingprops'], break_on_change=True)
         
         ax.set_extent(extent, crs=maps.identity)
@@ -652,49 +652,6 @@ with pyseas.context(pyseas.styles.dark):
             plt.show()
 # -
 
-extent
-list(np.linspace(113.2, 114.2, 11))
-
-    ax.gridlines(xlocs=xticks, ylocs=yticks, linewidth=0.4, zorder=0.5, alpha=0.5)        
-
-# +
-#         print(gl.xlocator.tick_values(*extent[:2]))
-#         print(gl.ylocator.tick_values(*extent[2:]))
-
-# +
-import cartopy.mpl.gridliner
-
-
-# TODO: allow side ticks drawn on to be set
-
-def get_gridlocs(lim):
-    return cartopy.mpl.gridliner.degree_locator.tick_values(*lim)
-    
-def add_gridlines(ax, zorder=0.5, **kwargs):
-    if lons is None:
-        lons = gl.xlocator.tick_values(*extent[:2])
-    if lats is None:
-        lats = gl.ylocator.tick_values(*extent[2:])
-    for name in ['linewidth', 'linestyle', 'color', 'alpha']:
-        if name not in kwargs:
-            kwargs[name] = plt.rcParams['grid.' + name]
-    return ax.gridlines(zorder=zorder, xlocs=lons, ylocs=lats, **kwargs)
-
-def add_gridlabels(fig, ax, gl, lons=None, lats=None, **kwargs):
-    extent = ax.get_extent(crs=maps.identity)
-    if lons is None:
-        lons = gl.xlocator.tick_values(*extent[:2])
-    if lats is None:
-        lats = gl.ylocator.tick_values(*extent[2:])
-    fig.canvas.draw()
-    ax.xaxis.set_major_formatter(ticks.LONGITUDE_FORMATTER) 
-    ax.yaxis.set_major_formatter(ticks.LATITUDE_FORMATTER)
-    ticks.lambert_xticks(ax, lons)
-    ticks.lambert_yticks(ax, lats)
-
-
-# -
-
 reload()
 df = df.sort_values(by='timestamp')
 n =120
@@ -703,10 +660,10 @@ with pyseas.context(pyseas.styles.dark):
     fig = plt.figure(figsize=(9, 9), frameon=True)
     ax = maps.create_map(projection='regional.european_union')
     gl = maps.add_gridlines(ax, color='white', alpha=0.7)
-    maps.add_raster(ax, img[::40, ::40])
-    maps.add_gridlabels(ax, gl)
-    maps.add_land(ax)
-    maps.add_countries(ax)
+    maps.add_raster(img[::40, ::40])
+    maps.add_gridlabels(gl)
+    maps.add_land()
+    maps.add_countries()
     plt.savefig('/Users/timothyhochberg/Desktop/test_grids.png', dpi=300,
                facecolor=plt.rcParams['gfw.fig.background'])
     plt.show()
@@ -732,7 +689,7 @@ with pyseas.context(pyseas.styles.light):
             is_fishing = (dfn.nnet_score > 0.5)      
 
             fig = plt.figure(figsize=(12, 12))
-            info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
+            plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
                                      dfn.lat, is_fishing,
                                      plots = [
 #                     {'label' : 'lon', 'values' : dfn.lon},
@@ -747,8 +704,8 @@ with pyseas.context(pyseas.styles.light):
                                     annotation_y_shift=0.5)
 
 #             maps.add_scalebar(info.map_ax, info.extent)
-            gl = maps.add_gridlines(info.map_ax)
-            maps.add_gridlabels(info.map_ax, gl, lat_side='right', lon_side='top')
+            gl = maps.add_gridlines()
+            maps.add_gridlabels(gl, lat_side='right')
             maps.add_figure_background(fig)
 
             plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,

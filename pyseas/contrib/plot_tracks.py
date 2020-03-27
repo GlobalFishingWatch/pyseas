@@ -107,7 +107,7 @@ def plot_tracks_panel(timestamps, lons, lats, track_ids=None ,
     ax3 = plt.subplot(gs[2])
 
     if alpha_valid_pts > 0:
-        maps.add_plot(ax1, valid_lons, valid_lats, fmt='.', markersize=2, 
+        maps.add_plot(valid_lons, valid_lats, ax=ax1, fmt='.', markersize=2, 
                  alpha=alpha_valid_pts, color='grey')
 
         valid_times = timestamps[valid_mask]
@@ -117,7 +117,7 @@ def plot_tracks_panel(timestamps, lons, lats, track_ids=None ,
                  alpha=alpha_valid_pts, color='grey')
     
     if alpha_invalid_pts > 0 and (~valid_mask).sum():
-        maps.add_plot(ax1, lons[~valid_mask], lats[~valid_mask], fmt='+', markersize=2,
+        maps.add_plot(lons[~valid_mask], lats[~valid_mask], ax=ax1, fmt='+', markersize=2,
                  alpha=alpha_invalid_pts, color='red', transform=maps.identity)
         invalid_times = timestamps[~valid_mask]
         ax2.plot(invalid_times, lons[~valid_mask], marker='+', markersize=2, 
@@ -128,7 +128,7 @@ def plot_tracks_panel(timestamps, lons, lats, track_ids=None ,
     for i, (m, props) in enumerate(zip(masks, track_cycler)):
         x = lons[m]
         y = lats[m]
-        maps.add_plot(ax1, x, y, fmt='-', label=id_list[i], linewidth=0.5, **props)
+        maps.add_plot(x, y, ax=ax1, fmt='-', label=id_list[i], linewidth=0.5, **props)
         ts = timestamps[m]
         ax2.plot(ts, lons[m], linewidth=0.5, **props)
         ax3.plot(ts, lats[m], linewidth=0.5, **props)
@@ -212,7 +212,7 @@ def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots,
 
     props = styles.dark['gfw.map.fishingprops']
     
-    maps.add_plot(ax1, lon, lat, is_fishing, 
+    maps.add_plot(lon, lat, is_fishing, ax=ax1, 
                   props=props, break_on_change=True)
     
     ax1.set_extent(extent, crs=maps.identity)
@@ -251,7 +251,7 @@ def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots,
 
     for ax in axes:
         ax.set_facecolor(plt.rcParams['gfw.ocean.color'])
-
+    plt.sca(ax1)
     return PlotFishingPanelInfo(ax1, axes, extent)
 
 

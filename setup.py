@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "pyseas",
-    version = "0.0.1",
+    version = "0.0.2",
     author = "Tim Hochberg",
     author_email = "tim@globalfishingwatch.org",
     description = ("Python Utilities for GFW Research and Innovation Group."),
