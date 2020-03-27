@@ -39,10 +39,12 @@ import shapely.geometry as sgeom
 from shapely.prepared import prep
 
 from pyseas.maps._monkey_patch_cartopy import monkey_patch_cartopy
+from pyseas.maps import ticks
 
 
 def reload():
     imp.reload(util)
+    imp.reload(ticks)
     imp.reload(scalebar)
     imp.reload(pyseas.colors)
     imp.reload(cm)
@@ -77,7 +79,7 @@ reload()
 img = skimage.io.imread("../untracked/named-achorages01-raster.tiff")
 
 reload()
-ax = maps.create_map(projection='country.japan')
+ax = maps.create_map(projection='country.peru')
 maps.add_land(ax)
 
 # ### Global map centered over the Pacific using Dark Style
@@ -650,14 +652,63 @@ with pyseas.context(pyseas.styles.dark):
             plt.show()
 # -
 
+extent
+list(np.linspace(113.2, 114.2, 11))
+
+    ax.gridlines(xlocs=xticks, ylocs=yticks, linewidth=0.4, zorder=0.5, alpha=0.5)        
+
+# +
+#         print(gl.xlocator.tick_values(*extent[:2]))
+#         print(gl.ylocator.tick_values(*extent[2:]))
+
+# +
+import cartopy.mpl.gridliner
+
+
+# TODO: allow side ticks drawn on to be set
+
+def get_gridlocs(lim):
+    return cartopy.mpl.gridliner.degree_locator.tick_values(*lim)
+    
+def add_gridlines(ax, zorder=0.5, **kwargs):
+    if lons is None:
+        lons = gl.xlocator.tick_values(*extent[:2])
+    if lats is None:
+        lats = gl.ylocator.tick_values(*extent[2:])
+    for name in ['linewidth', 'linestyle', 'color', 'alpha']:
+        if name not in kwargs:
+            kwargs[name] = plt.rcParams['grid.' + name]
+    return ax.gridlines(zorder=zorder, xlocs=lons, ylocs=lats, **kwargs)
+
+def add_gridlabels(fig, ax, gl, lons=None, lats=None, **kwargs):
+    extent = ax.get_extent(crs=maps.identity)
+    if lons is None:
+        lons = gl.xlocator.tick_values(*extent[:2])
+    if lats is None:
+        lats = gl.ylocator.tick_values(*extent[2:])
+    fig.canvas.draw()
+    ax.xaxis.set_major_formatter(ticks.LONGITUDE_FORMATTER) 
+    ax.yaxis.set_major_formatter(ticks.LATITUDE_FORMATTER)
+    ticks.lambert_xticks(ax, lons)
+    ticks.lambert_yticks(ax, lats)
+
+
+# -
+
+reload()
 df = df.sort_values(by='timestamp')
 n =120
 reload()
-with pyseas.context(pyseas.styles.dark):
-    fig = plt.figure(figsize=(12, 8))
-    projection, extent, descr = plot_tracks.find_projection(df.lon, df.lat)
-    ax = maps.create_map(projection=projection, proj_descr=descr)
+with pyseas.context(pyseas.styles.light):
+    fig = plt.figure(figsize=(9, 12), frameon=True)
+    ax = maps.create_map(projection='regional.south_pacific')
+    gl = maps.add_gridlines(ax)
+    maps.add_gridlabels(ax, gl)
     maps.add_land(ax)
-    maps.add_plot(ax, df.lon.values[:n], df.lat.values[:n])
-    ax.set_extent(extent, crs=maps.identity)
+    maps.add_countries(ax)
+    plt.savefig('/Users/timothyhochberg/Desktop/test_grids.png', dpi=300,
+               facecolor=plt.rcParams['gfw.fig.background'])
     plt.show()
+
+
+

@@ -48,13 +48,13 @@
     "regional.south_pacific": {
         "projection": "LambertAzimuthalEqualArea",
         "args": {
-            "central_longitude": -140,
-            "central_latitude": -40
+            "central_longitude": -165,
+            "central_latitude": -25
         },
         "extent": [
             -250,
             -70,
-            -70,
+            -60,
             10
         ],
         "name": "Lambert azimuthal equal area @ 140\u00b0W,0\u00b0S"

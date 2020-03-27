@@ -37,7 +37,13 @@ del _nonfishprops, _fishprops
 # TODO: then one can pass cmap='fishing' or 'presence' as strings and pick up light or 
 # TODO: dark as appropriate
 
+
+
 dark = {
+        'grid.alpha': 0.5,
+        'grid.color': '#b0b0b0',
+        'grid.linestyle': '-',
+        'grid.linewidth': 0.4,
         'axes.prop_cycle' : _track_cycler,
         'font.family' : 'Roboto', 
         'font.weight' : 'medium',
@@ -63,7 +69,12 @@ dark = {
          'gfw.map.fishingprops' : _fishing_props,
          'gfw.plot.fishingprops' : _linefishing_props}
 
-light = {'axes.prop_cycle' : _track_cycler,
+light = {
+         'grid.alpha': 0.5,
+         'grid.color': '#b0b0b0',
+         'grid.linestyle': '-',
+         'grid.linewidth': 0.4,
+         'axes.prop_cycle' : _track_cycler,
          'font.family' : 'Roboto', 
          'font.weight' : 'normal',
          'xtick.color' : '#848b9b',

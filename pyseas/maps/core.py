@@ -29,6 +29,7 @@ from ._monkey_patch_cartopy import monkey_patch_cartopy
 import matplotlib.pyplot as plt
 import cartopy
 import cartopy.feature as cfeature
+import cartopy.mpl.gridliner
 import json
 import os
 from .. import colors
@@ -37,6 +38,7 @@ import numpy as np
 from cartopy.feature import ShapelyFeature
 import shapely
 from shapely.geometry import MultiLineString
+from . import ticks
 
 
 monkey_patch_cartopy()
@@ -342,6 +344,32 @@ def add_figure_background(fig, color=None):
     """
     color = color or plt.rcParams.get('gfw.fig.background', colors.dark.background)
     fig.patch.set_facecolor(color)
+
+# TODO: allow side ticks drawn on to be set
+
+def add_gridlines(ax, zorder=0.5, **kwargs):
+    for name in ['linewidth', 'linestyle', 'color', 'alpha']:
+        if name not in kwargs:
+            kwargs[name] = plt.rcParams['grid.' + name]
+    return ax.gridlines(zorder=zorder, **kwargs)
+
+def add_gridlabels(ax, gl, lons=None, lats=None, fig=None, **kwargs):
+    if fig is None:
+        fig = plt.gcf()
+    extent = ax.get_extent(crs=identity)
+    if lons is None:
+        lons = gl.xlocator.tick_values(*extent[:2])
+        if 180 and -180 in lons:
+            lons = list(lons)
+            del lons[lons.index(-180)]
+            lons = np.array(lons)
+    if lats is None:
+        lats = gl.ylocator.tick_values(*extent[2:])
+    fig.canvas.draw()
+    ax.xaxis.set_major_formatter(ticks.LONGITUDE_FORMATTER) 
+    ax.yaxis.set_major_formatter(ticks.LATITUDE_FORMATTER)
+    ticks.lambert_xticks(ax, lons)
+    ticks.lambert_yticks(ax, lats)
 
 def create_map(subplot=(1, 1, 1), 
                 projection='global.default', 
