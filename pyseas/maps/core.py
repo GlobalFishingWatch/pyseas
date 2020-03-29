@@ -195,10 +195,10 @@ def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
         while i < len(mask) and not mask[i]:
             i += 1
 
-        if last_x is None:
+        if i < len(mask) and last_x is None:
             last_x = x[i]
 
-        while (i < len(mask)) and mask[i]:
+        while i < len(mask) and mask[i]:
             if x_is_lon:
                 if abs(x[i] - last_x) > 180:
                     ml_coords.append(crds)
