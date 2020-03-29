@@ -175,7 +175,6 @@ for style, style_name in [(pyseas.styles.light, 'light'),
 
 
 # +
-# TODO: Plotted tracks are still ugly and don't follow style guidelines
 reload()
 
 def find_ranges(lons):
@@ -224,13 +223,13 @@ for style, style_name in [(pyseas.styles.light, 'light'),
 reload()
 with pyseas.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
-    ax = maps.create_map(projection='regional.pacific')
+    ax = maps.create_map(projection='country.indonesia')
     maps.add_land(ax)
     maps.add_countries(ax)
     gl = ax.gridlines(linewidth=0.4, zorder=0.5)
     extent = ax.get_extent(crs=maps.identity)
-    print(gl.xlocator.tick_values(*extent[:2]))
-    print(gl.ylocator.tick_values(*extent[2:]))
+#     print(gl.xlocator.tick_values(*extent[:2]))
+#     print(gl.ylocator.tick_values(*extent[2:]))
     for lon, lat, lbl, ngl in [(-179, 4, "180°W", 90),
                                (-155, 12, "15°N", 0)]:
         ax.text(lon, lat, lbl, transform=maps.identity, rotation=ngl
@@ -283,12 +282,14 @@ with pyseas.context(styles.dark):
 
 # ### Plot Tracks and Lat/Lon vs Time
 
+set(df.seg_id)
+
 df = msgs[(msgs.ssvid == "413461490")]
 reload()
-with pyseas.context(styles.dark):
-    fig = plt.figure(figsize=(10, 5))
-    ts = [pd.Timestamp(x).to_pydatetime() for x in df.timestamp]
-    ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(ts, df.lon, df.lat)
+with pyseas.context(styles.light):
+    fig = plt.figure(figsize=(10, 10))
+    ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat,
+                                                 df.seg_id)
 
 # ## Publish
 
@@ -296,8 +297,6 @@ with pyseas.context(styles.dark):
 # rendered.publish_to_github('./Examples.ipynb', 
 #                            'pyseas/doc', action='push')
 # -
-
-# ## Below this point is messy
 
 query = """
 with seismic as 
@@ -370,15 +369,18 @@ norm = mpcolors.LogNorm(vmin=0.01, vmax=1)
 with plt.rc_context(styles.light):
     ax, im, cb = maps.plot_raster_w_colorbar(raster2, 
                                        "hours of presence per km2",
-                                        projection='regional.south_pacific',
+                                        projection='regional.european_union',
                                        cmap='presence',
                                       norm=norm,
                                       origin='lower',
-                                      loc='bottom')
-    maps.add_countries(ax)
-    maps.add_eezs(ax)
-    ax.set_title('Seismic Vessels')
-    maps.add_figure_background(fig)
+                                      loc='bottom',
+                                      hspace=0.2)
+    maps.add_countries()
+    maps.add_eezs()
+    ax.set_title('Seismic Vessels', pad=.2)
+    maps.add_figure_background()
+    gl = maps.add_gridlines()
+    maps.add_gridlabels(gl)
 plt.savefig('/Users/timothyhochberg/Desktop/test_plot_2.png', dpi=300)
 
 min_lon = 0
@@ -450,12 +452,11 @@ with plt.rc_context(styles.dark):
     
 # -
 reload()
-with pyseas.context(pyseas.styles.dark):
+with pyseas.context(pyseas.styles.light):
     fig = plt.figure(figsize=(12, 8))
     ts = [pd.Timestamp(x).to_pydatetime() for x in df.timestamp]
-    ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(ts, df.lon, df.lat, df['ssvid'] )
-    maps.add_figure_background(fig)
-    fig.suptitle(df['ssvid'].iloc[0] + ' - tracks ' , y=0.93) 
+    ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(ts, df.lon, df.lat)
+    fig.suptitle(df['ssvid'].iloc[0] + ' - tracks ' , y=0.92) 
     plt.show()
 
 
@@ -498,79 +499,11 @@ order by timestamp
 fishing_df = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
 # +
-reload() # >>>
-
-ssvids = sorted(set(fishing_df.ssvid))[1:]
-
-with pyseas.context(pyseas.styles.light):
-    for ssvid in ssvids:
-        ssvid_df = fishing_df[fishing_df.ssvid == ssvid]
-        ssvid_df = ssvid_df.sort_values(by='timestamp')
-        if not len(ssvid_df):
-            continue
-            
-        proj, extent, descr = plot_tracks.find_projection(ssvid_df.lon, ssvid_df.lat)
-        fig = plt.figure(figsize=(10, 10))
-        ax = maps.create_map(projection=proj, proj_descr=descr)
-
-        gl = ax.gridlines(linewidth=0.4, zorder=0.5, alpha=0.5)        
-        
-        ax.set_extent(extent, crs=maps.identity)
-        
-#         print(gl.xlocator.tick_values(*extent[:2]))
-#         print(gl.ylocator.tick_values(*extent[2:]))
-        for lon, lat, lbl, ngl in [
-                                    (30, -46.2, "30°E", 0),
-                                    (40, -48.5, "40°E", 0),
-                                    (50, -50, "50°E", 0),
-                                    (60, -50.7, "60°E", 0),
-                                    (70, -50.8, "70°E", 0),
-
-                                   (81.4, -42, "42°S", 0),
-                                   (80.1, -36, "36°S", 0),
-                                   (79, -30, "30°S", 0),
-                                   (78, -24, "24°S", 0),
-                                   (77.4, -18, "18°S", 0),
-                                   (77, -12, "12°S", 0),
-
-
-#                                    (-37.0, 15, "15°N", 0),
-                                  ]:
-            ax.text(lon, lat, lbl, transform=maps.identity, rotation=ngl, 
-                   horizontalalignment='center')
-        maps.add_land(ax)
-        maps.add_countries(ax)
-        is_fishing = (ssvid_df.nnet_score.values > 0.5)      
-        
-        maps.add_plot(ssvid_df.lon.values, ssvid_df.lat.values, is_fishing, ax=ax,
-                      props=styles.dark['gfw.map.fishingprops'], break_on_change=True)
-        
-        ax.set_extent(extent, crs=maps.identity)
-#         maps.add_scalebar(ax, extent)
-
-#         ax.set_title(ssvid)
-        maps.add_figure_background(fig)
-
-        plt.savefig('/Users/timothyhochberg/Desktop/test_grid.png', dpi=300)
-
-        plt.show()
-# -
-
-from scipy.signal import medfilt
-
-# +
 reload()
-
+from scipy.signal import medfilt
 ssvids = sorted(set(fishing_df.ssvid))[1:]
 
-# TODO: figure out style for dark panel (use gfw.panel.background as color)
-# See Juan Carlos's example in this post: 
-# https://globalfishingwatch.slack.com/archives/CUW93UNLS/p1585062098015100
-# (Obvious things: background, and line/tick colors)
-with pyseas.context(pyseas.styles.light):
-    with pyseas.context({'gfw.fig.background' : 'white',
-                         'gfw.ocean.color' : 'white',
-                          'gfw.fig.background' : 'white'}):
+with pyseas.context(pyseas.styles.dark):
         for ssvid in ssvids:
 
             dfn = fishing_df[fishing_df.ssvid == ssvid]
@@ -581,8 +514,6 @@ with pyseas.context(pyseas.styles.light):
             info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
                                      dfn.lat, is_fishing,
                                      plots = [
-#                     {'label' : 'lon', 'values' : dfn.lon},
-#                     {'label' : 'lat', 'values' : dfn.lat}, 
                     {'label' : 'speed (knots)', 'values' : medfilt(dfn.speed.values,11), 
                         'min_y' : 0},
                     {'label' : 'depth (km)', 'values' : -dfn.elevation_m / 1000,
@@ -593,36 +524,19 @@ with pyseas.context(pyseas.styles.light):
                                     annotation_y_shift=0.5)
 
             maps.add_scalebar(info.map_ax, info.extent)
-            maps.add_figure_background(fig)
 
             plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
                        facecolor=plt.rcParams['gfw.fig.background'])
 
             plt.show()
-# -
-
-hex(255 - int('9b', 16)) #7b7464
 
 # +
 reload()
 
 ssvids = sorted(set(fishing_df.ssvid))[1:]
 
-# TODO: figure out style for dark panel (use gfw.panel.background as color)
-# See Juan Carlos's example in this post: 
-# https://globalfishingwatch.slack.com/archives/CUW93UNLS/p1585062098015100
-# (Obvious things: background, and line/tick colors)
 
-edge_color = '#EEEEEE'  #'#7b7464'
-
-with pyseas.context(pyseas.styles.dark):
-    with pyseas.context({'gfw.fig.background' : pyseas.colors.dark.ocean,
-#                          'xtick.color' : '#848b9b',
-#                          'ytick.color' : '#848b9b',
-                         'xtick.color' : edge_color,
-                         'ytick.color' : edge_color,                       
-                         'axes.edgecolor' :edge_color,
-                        }):
+with pyseas.context(pyseas.styles.light):
         for ssvid in ssvids:
 
             dfn = fishing_df[fishing_df.ssvid == ssvid]
@@ -643,8 +557,6 @@ with pyseas.context(pyseas.styles.dark):
                                      map_ratio=6)
 
             maps.add_scalebar(info.map_ax, info.extent)
-            maps.add_figure_background(fig)
-            info.map_ax.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])
 
             plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
                        facecolor=plt.rcParams['gfw.fig.background'])
@@ -674,14 +586,7 @@ reload()
 
 ssvids = sorted(set(fishing_df.ssvid))[1:]
 
-# TODO: figure out style for dark panel (use gfw.panel.background as color)
-# See Juan Carlos's example in this post: 
-# https://globalfishingwatch.slack.com/archives/CUW93UNLS/p1585062098015100
-# (Obvious things: background, and line/tick colors)
 with pyseas.context(pyseas.styles.light):
-    with pyseas.context({'gfw.fig.background' : 'white',
-                         'gfw.ocean.color' : 'white',
-                          'gfw.fig.background' : 'white'}):
         for ssvid in ssvids:
 
             dfn = fishing_df[fishing_df.ssvid == ssvid]
@@ -692,8 +597,6 @@ with pyseas.context(pyseas.styles.light):
             plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
                                      dfn.lat, is_fishing,
                                      plots = [
-#                     {'label' : 'lon', 'values' : dfn.lon},
-#                     {'label' : 'lat', 'values' : dfn.lat}, 
                     {'label' : 'speed (knots)', 'values' : medfilt(dfn.speed.values,11), 
                         'min_y' : 0},
                     {'label' : 'depth (km)', 'values' : -dfn.elevation_m / 1000,
@@ -703,10 +606,8 @@ with pyseas.context(pyseas.styles.light):
                                      annotations=7,
                                     annotation_y_shift=0.5)
 
-#             maps.add_scalebar(info.map_ax, info.extent)
             gl = maps.add_gridlines()
             maps.add_gridlabels(gl, lat_side='right')
-            maps.add_figure_background(fig)
 
             plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
                        facecolor=plt.rcParams['gfw.fig.background'])

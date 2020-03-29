@@ -41,118 +41,14 @@ def find_projection(lons, lats, delta_scale=0.2, abs_delta=0.1, percentile=99.9)
     return projection, extent, description
 
 
-def plot_tracks_panel(timestamps, lons, lats, track_ids=None ,
-                 alpha_valid_pts=0.5, alpha_invalid_pts=0.5,
-                 min_track_pts=5, padding_degrees=None, 
-                 extent=None):
-    """
-
-    Example Usage:
-
-    with pyseas.context(pyseas.styles.dark):
-
-        fig = plt.figure(figsize=(12, 8), facecolor=(0.95, 0.95, 0.95))
-        ts = [pd.Timestamp(x).to_pydatetime() for x in df.timestamp]
-        ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(ts, df.lon, df.lat, df.track_id )
-        fig.suptitle(ssvid + ' - tracks ' + new_msgs.iloc[0].which, y=0.93)    
-        plt.show() 
-
-    """
-    
-    assert padding_degrees is None or extent is None
-    if padding_degrees is None:
-        padding_degrees = DEFAULT_PADDING_DEG
-    
-    track_cycler = plt.rcParams['axes.prop_cycle']
-
-
-    assert len(lons) == len(lats) == len(timestamps)
-    timestamps = np.asarray(timestamps)
-    lons = np.asarray(lons)
-    lats = np.asarray(lats)
-    ids = np.array(['1' for x in lons]) if (track_ids is None) else np.asarray(track_ids)
-
-    id_mask = [x not in ('', None) for x in ids]
-    id_list = sorted([k for (k, n) in 
-                      Counter(ids[id_mask]).most_common() 
-                          if n >= min_track_pts])
-    if not(len(id_list)):
-        logging.warning('tracks too short to plot.')
-        return None, None, None
-    # TODO: maybe we can plot and scale using all points here?
-    
-    masks = []
-    valid_mask = np.zeros([len(lons)], dtype=bool)
-    
-    for id_ in id_list:
-        mask = (ids == id_)
-        masks.append(mask)
-        valid_mask |= mask
-
-    valid_lons = lons[valid_mask]
-    valid_lats = lats[valid_mask]
-    
-    # Refactor ~below here
-    projection, default_extent, descr = find_projection(valid_lons, valid_lats)
-
-    if extent is None:
-        extent = default_extent
-    
-    gs = gridspec.GridSpec(3, 1, height_ratios=[3, 1, 1])
-    ax1 = maps.create_map(subplot=gs[0], hide_axes=False, 
-                            projection=projection, proj_descr=descr)
-    ax1.set_extent(extent, crs=maps.identity)
-    maps.add_land(ax1)
-    ax2 = plt.subplot(gs[1])
-    ax3 = plt.subplot(gs[2])
-
-    if alpha_valid_pts > 0:
-        maps.add_plot(valid_lons, valid_lats, ax=ax1, fmt='.', markersize=2, 
-                 alpha=alpha_valid_pts, color='grey')
-
-        valid_times = timestamps[valid_mask]
-        ax2.plot(valid_times, valid_lons, marker='.', markersize=2, 
-                 alpha=alpha_valid_pts, color='grey')
-        ax3.plot(valid_times, valid_lats, marker='.', markersize=3, 
-                 alpha=alpha_valid_pts, color='grey')
-    
-    if alpha_invalid_pts > 0 and (~valid_mask).sum():
-        maps.add_plot(lons[~valid_mask], lats[~valid_mask], ax=ax1, fmt='+', markersize=2,
-                 alpha=alpha_invalid_pts, color='red', transform=maps.identity)
-        invalid_times = timestamps[~valid_mask]
-        ax2.plot(invalid_times, lons[~valid_mask], marker='+', markersize=2, 
-                 alpha=alpha_invalid_pts, color='red')
-        ax3.plot(invalid_times, lats[~valid_mask], marker='+', markersize=2, 
-             alpha=alpha_invalid_pts, color='red')
-        
-    for i, (m, props) in enumerate(zip(masks, track_cycler)):
-        x = lons[m]
-        y = lats[m]
-        maps.add_plot(x, y, ax=ax1, fmt='-', label=id_list[i], linewidth=0.5, **props)
-        ts = timestamps[m]
-        ax2.plot(ts, lons[m], linewidth=0.5, **props)
-        ax3.plot(ts, lats[m], linewidth=0.5, **props)
-    ax1.set_ylabel('lat')
-    ax1.set_xlabel('lon')
-    ax2.set_ylabel('lon')
-    ax3.set_ylabel('lat')
-    
-    (lon0, lon1, lat0, lat1) = extent
-    ax2.set_ylim(lon0, lon1)
-    ax3.set_ylim(lat0, lat1)
-    return ax1, ax2, ax3
-
-def add_subpanel(gs, timestamp, y, kind, label, miny=None, maxy=None, 
+def add_subpanel(gs, timestamp, y, kind, label, prop_map, miny=None, maxy=None, 
                     show_xticks=True, tick_label_width=5):
     ax = plt.subplot(gs)
 
-    props = styles.dark['gfw.plot.fishingprops']
     x = mdates.date2num(timestamp)
 
-    for (k1, k2) in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-            # TODO: refactor
-            if (k1, k2) not in props:
-                continue
+    indices = set(kind)
+    for (k1, k2) in prop_map:
             mask1 = (kind == k1)
             if k2 == k1:
                 mask2 = mask1
@@ -165,7 +61,7 @@ def add_subpanel(gs, timestamp, y, kind, label, miny=None, maxy=None,
 
             ml_coords = maps._build_multiline_string_coords(x, y, mask, True, x_is_lon=False)  
 
-            mls = LineCollection(ml_coords, **props[k1, k2]) # Styleize
+            mls = LineCollection(ml_coords, **prop_map[k1, k2]) # Styleize
             ax.add_collection(mls)
 
     if miny is None and maxy is None:
@@ -187,17 +83,20 @@ def add_subpanel(gs, timestamp, y, kind, label, miny=None, maxy=None,
         ax.xaxis_date()
     return ax
 
-PlotFishingPanelInfo = namedtuple('PlotFishingPanelInfo',
+
+PlotPanelInfo = namedtuple('PlotFishingPanelInfo',
     ['map_ax', 'plot_axes', 'extent'])
 
-def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots,
-                        padding_degrees=None, extent=None, map_ratio=3,
-                        annotations=3, annotation_y_shift=0.3):
+
+def plot_panel(timestamp, lon, lat, kind, plots, 
+                prop_map, break_on_change,
+                padding_degrees=None, extent=None, map_ratio=5,
+                annotations=3, annotation_y_shift=0.3):
     """
 
     """
-    timestamp, lon, lat, is_fishing = [asarray(x) for x in 
-                                    (timestamp, lon, lat, is_fishing)]
+    timestamp, lon, lat, kind = [asarray(x) for x in 
+                                    (timestamp, lon, lat, kind)]
     assert padding_degrees is None or extent is None
     if padding_degrees is None:
         padding_degrees = DEFAULT_PADDING_DEG
@@ -209,17 +108,16 @@ def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots,
 
     maps.add_land(ax1)
     maps.add_countries(ax1)
-
-    props = styles.dark['gfw.map.fishingprops']
     
-    maps.add_plot(lon, lat, is_fishing, ax=ax1, 
-                  props=props, break_on_change=True)
+    maps.add_plot(lon, lat, kind, ax=ax1, 
+                  props=prop_map, break_on_change=True)
     
     ax1.set_extent(extent, crs=maps.identity)
 
     axes = []
     for i, d in enumerate(plots):
-        ax = add_subpanel(gs[i + 1], timestamp, asarray(d['values']), is_fishing, d['label'], 
+        ax = add_subpanel(gs[i + 1], timestamp, asarray(d['values']), kind, d['label'], 
+                          prop_map=prop_map,
                           show_xticks=(i == len(plots) - 1),
                           miny = d.get('min_y'),
                           maxy = d.get('max_y')
@@ -235,23 +133,54 @@ def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots,
         dts = [(x - timestamp[0]) / time_range for x in timestamp]
         indices = np.searchsorted(dts, np.linspace(0, 1, annotations))
         axn = axes[-1]
-        # TODO: make configurable, and clean up auto detect
         ylim = (axn.get_ylim()[0] - annotation_y_shift if plots[-1].get('invert_yaxis') 
            else axn.get_ylim()[1] + annotation_y_shift)
         axn.tick_params(axis='x', direction='inout')
         for i, ndx in enumerate(indices):
+            # TODO: stylize
             ax1.text(lon[ndx], lat[ndx], str(i + 1), transform=maps.identity,
                 fontdict={'color' : 'black', 'weight': 'bold', 'size' : 10},
                 bbox=dict(facecolor='none', edgecolor='black', boxstyle='circle'))
             axes[-1].text(timestamp[ndx], ylim, str(i + 1), horizontalalignment='center',
-                fontdict={#'color' : 'black', 'weight': 'bold',
-                 'size' : 12}
-                )
-
+                fontdict={'size' : 12})
 
     for ax in axes:
         ax.set_facecolor(plt.rcParams['gfw.ocean.color'])
+    maps.add_figure_background(color=plt.rcParams['gfw.ocean.color'])
     plt.sca(ax1)
-    return PlotFishingPanelInfo(ax1, axes, extent)
+    return PlotPanelInfo(ax1, axes, extent)
 
 
+
+
+
+def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots,
+                        padding_degrees=None, extent=None, map_ratio=5,
+                        annotations=3, annotation_y_shift=0.3):
+    """
+
+    """
+    return plot_panel(timestamp, lon, lat, is_fishing, plots,
+                      plt.rcParams['gfw.map.fishingprops'], break_on_change=True,
+                      padding_degrees=padding_degrees, extent=extent, 
+                      map_ratio=map_ratio, annotations=annotations, 
+                      annotation_y_shift=annotation_y_shift)
+
+
+def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None, 
+                        padding_degrees=None, extent=None, map_ratio=5):
+
+    if track_id is None:
+        track_id = np.ones_like(lon)
+
+    if plots is None:
+        plots = [{'label' : 'longitude', 'values' : lon},
+                 {'label' : 'latitude', 'values' : lat}]
+
+    prop_cycle = iter(plt.rcParams['gfw.map.trackprops'])
+    prop_map = {(k, k) : next(prop_cycle) for k in set(track_id)}
+
+    return plot_panel(timestamp, lon, lat, track_id, plots,
+                      prop_map, break_on_change=False,
+                      padding_degrees=padding_degrees, extent=extent, 
+                      map_ratio=map_ratio, annotations=0)

@@ -47,15 +47,6 @@ identity = cartopy.crs.PlateCarree()
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
-# Use this alias because we might want to rework context so we aren't abusing
-# matplotlib's context in the future.
-
-
-# TOOD: export these into projections moduls
-# TODO: and generate class structure to hold them so
-# TOOD: can do projections.global.default
-# TODO: but keep projections.projection_info to query directly
-
 _projections = {
     'EqualEarth' : cartopy.crs.EqualEarth,
     'LambertAzimuthalEqualArea' : cartopy.crs.LambertAzimuthalEqualArea,
@@ -252,7 +243,6 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, *a
     ----------------
     Keyword args are passed on to ax.plot.
 
-    TODO: more detail
 
     This function hides the need to specify the transform in the common
     case. Unless the transform is specified it defaults to PlateCarree,
@@ -465,6 +455,7 @@ def create_map(subplot=(1, 1, 1),
         ax.text(0.0, -0.01, proj_descr, fontsize=9, weight=plt.rcParams['axes.labelweight'],
             color=plt.rcParams['axes.labelcolor'],
             horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
+    ax.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])
     return ax
 
 

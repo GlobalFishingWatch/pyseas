@@ -33,11 +33,6 @@ _linefishing_props = {
 del _nonfishprops, _fishprops
 
 
-# TODO: add gfw.colormap.family : cm.light / cm.dark
-# TODO: then one can pass cmap='fishing' or 'presence' as strings and pick up light or 
-# TODO: dark as appropriate
-
-
 
 dark = {
         'grid.alpha': 0.5,
@@ -55,6 +50,7 @@ dark = {
          'axes.labelweight' : 'medium',
          'axes.titleweight' : 'medium',
          'figure.titleweight' : 'medium',
+         'axes.edgecolor' : '#848b9b',
          'text.color' : _colors.dark.title,
          'gfw.fig.background' : _colors.dark.background,
          'gfw.land.color' : _colors.dark.land,
@@ -66,8 +62,7 @@ dark = {
          'gfw.map.centrallongitude' : 0,
          'gfw.map.cmapsrc' : _cm.dark,
          'gfw.map.trackprops' : _artist_cycler,
-         'gfw.map.fishingprops' : _fishing_props,
-         'gfw.plot.fishingprops' : _linefishing_props}
+         'gfw.map.fishingprops' : _fishing_props}
 
 light = {
          'grid.alpha': 0.5,
@@ -84,6 +79,7 @@ light = {
          'axes.labelcolor' : '#848b9b',
          'axes.labelweight' : 'medium',
          'axes.titleweight' : 'medium',
+         'axes.edgecolor' : '#848b9b',
          'figure.titleweight' : 'medium',
          'text.color' : _colors.light.title,
          'gfw.fig.background' : _colors.light.background,
@@ -96,8 +92,7 @@ light = {
          'gfw.map.centrallongitude' : 0,
          'gfw.map.cmapsrc' : _cm.light,
          'gfw.map.trackprops' : _artist_cycler,
-         'gfw.map.fishingprops' : _fishing_props,
-         'gfw.plot.fishingprops' : _linefishing_props}
+         'gfw.map.fishingprops' : _fishing_props}
 
 
 for k in dark:
