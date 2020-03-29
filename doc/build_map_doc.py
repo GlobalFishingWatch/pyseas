@@ -28,14 +28,18 @@ def format_thumbnail(proj, obj):
 
 def build_doc(obj):
     lines = ['# Projection Info']
-    lines.append('Name | Projection | Center | Extent | Thumbnail')
-    lines.append('------ | ---------- | ------ | ------ | ---------')
+    lines.append('Name | Projection | Extent | Thumbnail')
+    lines.append('------ | -------- | ------ | ---------')
     for k, v in obj.items():
         v['extent'] = format_extent(v)
         v['center'] = format_center(v)
+        name = v['name']
+        if 'proj-string' in v:
+            name += '<br/><em>{}</em>'.format(v['proj-string'])
         v['thumbnail'] = format_thumbnail(k, v)
-        lines.append('{region} | {projection} | {center}  | {extent} | {thumbnail}'.format(
-                            region=k, **v))
+        v['proj'] = v.get('proj-string', '')
+        lines.append('{} | {} | {extent} | {thumbnail}'.format(
+                            k, name, **v))
     return '\n'.join(lines) 
 
 
