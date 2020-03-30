@@ -60,7 +60,8 @@ def df2raster(df, x_label, y_label, v_label, xyscale,
     np.array
     """
 
-    # TODO: xyscale can be tuple
+    # If it turns out to be useful, we could allow xyscale to be a tuple
+    # rather than a scalar.
     assert origin in ['upper', 'lower']
     is_upper = (origin == 'upper')
     (min_x, max_x, min_y, max_y) = [x * xyscale for x in extent]

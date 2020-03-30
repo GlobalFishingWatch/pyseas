@@ -1,23 +1,28 @@
 # PySeas
 
-A library to make GFW style map plots in Python.
+A library to help make GFW style map plots in Python.
 
-*Please note all interfaces are still in flux and not gauranteed to be stable!*
+In the future this will likely be extended to other types of GFW plots.
+
+*Please note all interfaces are still in flux and not guaranteed to be stable!*
 
 ## To Do
 
-* Make lat and lon markers with numbers easy and styleable
-    - See examples for how to do it the hard way.
-    - Also: https://gist.github.com/ajdawson/dd536f786741e987ae4e
 * Bulletproof Scalebar
-* Guides on how to highlight multiple areas
-* Categorical color scheme to tell fleets apart
 
 ## Installation
 
-Current recommendation is `pip install -e .`.
-Install cartopy using `conda install -c conda-forge cartopy`
-Install geopandans using `conda install -c conda-forge geopandas`
+## Pyseas
+
+#### Mac
+
+Some of the dependencies are a headache to install via `pip`, so the recommended approach
+is to install using Conda. The following recipe works currently:
+
+    conda install -c conda-forge cartopy geopandas numpy matplotlib pandas \
+                     jupyter jupytext scikit-image cmocean gdal netcdf4 pandas-gbq
+    pip install -e .
+
 
 ### Installing EEZ data
 

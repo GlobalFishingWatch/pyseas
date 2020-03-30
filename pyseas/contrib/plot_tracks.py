@@ -26,7 +26,7 @@ def find_projection(lons, lats, delta_scale=0.2, abs_delta=0.1, percentile=99.9)
     lons = (lons - lonm0 + 180) % 360 + lonm0 - 180
     lon0, lonm, lon1 = np.percentile(lons, (100 - percentile, 50, percentile))
     (lon0, lon1) = [(x - lonm + 180) % 360 + lonm - 180 for x in (lon0, lon1)]
-    if lon0 > lon1: # TODO: check
+    if lon0 > lon1: 
         lon0, lon1 = lon1, lon0
     lat0, latm, lat1 = np.percentile(lats, (100 - percentile, 50, percentile))
     lon_delta = abs(lon1 - lon0) * delta_scale + abs_delta
@@ -136,13 +136,13 @@ def plot_panel(timestamp, lon, lat, kind, plots,
         ylim = (axn.get_ylim()[0] - annotation_y_shift if plots[-1].get('invert_yaxis') 
            else axn.get_ylim()[1] + annotation_y_shift)
         axn.tick_params(axis='x', direction='inout')
+        mapprops = plt.rcParams.get('gfw.map.annotationmapprops', styles._annotationmapprops)
+        plotprops = plt.rcParams.get('gfw.map.annotationplotprops', styles._annotationmapprops)
         for i, ndx in enumerate(indices):
-            # TODO: stylize
             ax1.text(lon[ndx], lat[ndx], str(i + 1), transform=maps.identity,
-                fontdict={'color' : 'black', 'weight': 'bold', 'size' : 10},
-                bbox=dict(facecolor='none', edgecolor='black', boxstyle='circle'))
+                     **mapprops)
             axes[-1].text(timestamp[ndx], ylim, str(i + 1), horizontalalignment='center',
-                fontdict={'size' : 12})
+                          **plotprops)
 
     for ax in axes:
         ax.set_facecolor(plt.rcParams['gfw.ocean.color'])

@@ -20,7 +20,9 @@ def find_side(ls, side):
               'top': [(minx, maxy), (maxx, maxy)],}
     return sgeom.LineString(points[side])
 
-EPS = 1 # TODO: Added padding, clean up and comment
+# Pad the lines we use to compute intersections with the outside of the
+# map so we don't miss intersections
+EPS = 1 # degrees
 
 def draw_xticks(ax, ticks, side='bottom'):
     """Draw ticks on the bottom x-axis of a cartopy map."""

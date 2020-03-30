@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.4
+#       jupytext_version: 1.4.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -23,7 +23,6 @@ import matplotlib.colors as mpcolors
 import cartopy.crs
 import skimage.io
 import cmocean
-import rendered
 import numpy as np
 from pandas.plotting import register_matplotlib_converters
 import matplotlib.font_manager as fm
@@ -66,12 +65,6 @@ reload()
 #
 #      import pyseas
 #      from pyseas import maps, styles
-#      
-#  Tentative and subject to revision.
-
-# +
-# conda upgrade --channel conda-forge cartopy
-# -
 
 # ## Global Raster Plots
 
@@ -216,8 +209,6 @@ for style, style_name in [(pyseas.styles.light, 'light'),
                 style_name), dpi=300)
         plt.show()
 # -
-
-
 # ## Predefined Regional Styles
 
 reload()
@@ -290,13 +281,6 @@ with pyseas.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
     ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat,
                                                  df.seg_id)
-
-# ## Publish
-
-# +
-# rendered.publish_to_github('./Examples.ipynb', 
-#                            'pyseas/doc', action='push')
-# -
 
 query = """
 with seismic as 
@@ -535,8 +519,16 @@ reload()
 
 ssvids = sorted(set(fishing_df.ssvid))[1:]
 
+props = {'gfw.map.annotationmapprops' : dict(
+           fontdict={'color' : 'blue', 'weight': 'bold', 'size' : 10},
+            bbox=dict(facecolor='none', edgecolor='blue', boxstyle='circle')),
+        'gfw.map.annotationplotprops' : dict(fontdict={'size' : 12, 'color' : 'blue',
+                                                      'weight' : 'bold'})
+
+        }
 
 with pyseas.context(pyseas.styles.light):
+    with pyseas.context(props):
         for ssvid in ssvids:
 
             dfn = fishing_df[fishing_df.ssvid == ssvid]
@@ -614,5 +606,8 @@ with pyseas.context(pyseas.styles.light):
 
             plt.show()
 # -
+# ## Publish
 
-
+import rendered
+rendered.publish_to_github('./Examples.ipynb', 
+                           'pyseas/doc', action='push')

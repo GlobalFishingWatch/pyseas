@@ -33,6 +33,7 @@ import cartopy.mpl.gridliner
 import json
 import os
 from .. import colors
+from .. import styles
 import geopandas as gpd
 import numpy as np
 from cartopy.feature import ShapelyFeature
@@ -451,8 +452,8 @@ def create_map(subplot=(1, 1, 1),
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
     if show_xform and proj_descr:
-        # TODO: stylize fontsize (gfw.maps.projlabelsize?)
-        ax.text(0.0, -0.01, proj_descr, fontsize=9, weight=plt.rcParams['axes.labelweight'],
+        ax.text(0.0, -0.01, proj_descr, fontsize=plt.rcParams.get('gfw.map.projlabelsize'), 
+            weight=plt.rcParams['axes.labelweight'],
             color=plt.rcParams['axes.labelcolor'],
             horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
     ax.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])
@@ -539,7 +540,8 @@ def plot_raster_w_colorbar(raster, label='', loc='top',
     leg_ax = plt.subplot(gs[cb_ind, 1], frame_on=False)
     leg_ax.axes.get_xaxis().set_visible(False)
     leg_ax.axes.get_yaxis().set_visible(False)
-    leg_ax.text(1, 0.5, label, fontdict={'fontsize': 12}, # TODO: stule
+    leg_ax.text(1, 0.5, label, 
+        fontdict=plt.rcParams.get('gfw.map.colorbarlabelfont', styles._colorbarlabelfont),
                     horizontalalignment='right', verticalalignment='center')
     plt.sca(ax)
     return ax, im, cb

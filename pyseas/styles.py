@@ -32,7 +32,12 @@ _linefishing_props = {
 }
 del _nonfishprops, _fishprops
 
+_annotationmapprops = dict(fontdict={'color' : 'black', 'weight': 'bold', 'size' : 10},
+                           bbox=dict(facecolor='none', edgecolor='black', boxstyle='circle'))
 
+_annotationplotprops = dict(fontdict={'size' : 12})
+
+_colorbarlabelfont  = {'fontsize': 12}
 
 dark = {
         'grid.alpha': 0.5,
@@ -62,7 +67,12 @@ dark = {
          'gfw.map.centrallongitude' : 0,
          'gfw.map.cmapsrc' : _cm.dark,
          'gfw.map.trackprops' : _artist_cycler,
-         'gfw.map.fishingprops' : _fishing_props}
+         'gfw.map.fishingprops' : _fishing_props,
+         'gfw.map.annotationmapprops' : _annotationplotprops,
+         'gfw.map.annotationplotprops' : _annotationplotprops,
+         'gfw.map.projlabelsize' : 9,
+         'gfw.map.colorbarlabelfont' : _colorbarlabelfont,
+         }
 
 light = {
          'grid.alpha': 0.5,
@@ -92,12 +102,16 @@ light = {
          'gfw.map.centrallongitude' : 0,
          'gfw.map.cmapsrc' : _cm.light,
          'gfw.map.trackprops' : _artist_cycler,
-         'gfw.map.fishingprops' : _fishing_props}
+         'gfw.map.fishingprops' : _fishing_props,
+         'gfw.map.annotationmapprops' : _annotationplotprops,
+         'gfw.map.annotationplotprops' : _annotationplotprops,
+         'gfw.map.projlabelsize' : 9,
+         'gfw.map.colorbarlabelfont' : _colorbarlabelfont,
+         }
 
 
 for k in dark:
     if k.startswith('gfw.'):
-        # TODO: add validation
         _plt.rcParams.validate[k] = _rcsetup.validate_any # No validation for now
         _plt.rcParams[k] = dark[k]
 del k

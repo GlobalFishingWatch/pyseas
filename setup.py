@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "pyseas",
-    version = "0.0.2",
+    version = "0.0.3",
     author = "Tim Hochberg",
     author_email = "tim@globalfishingwatch.org",
     description = ("Python Utilities for GFW Research and Innovation Group."),
@@ -19,7 +19,7 @@ setup(
     # url = "http://packages.python.org/an_example_pypi_project",
     packages=['pyseas'],
     # long_description=read('README.md'),
-    # install_requires=['jupytext'],
+    install_requires=[],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Utilities",
