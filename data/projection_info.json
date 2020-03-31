@@ -7,6 +7,14 @@
         "extent": null,
         "name": "EqualEarth @ 0\u00b0E"
     },
+    "global.dateline_centered": {
+        "projection": "EqualEarth",
+        "args": {
+            "central_longitude": 180
+        },
+        "extent": null,
+        "name": "EqualEarth @ 180\u00b0E"
+    },
     "global.atlantic_centered": {
         "projection": "EqualEarth",
         "args": {

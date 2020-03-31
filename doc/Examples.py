@@ -72,7 +72,7 @@ reload()
 img = skimage.io.imread("../untracked/named-achorages01-raster.tiff")
 
 reload()
-ax = maps.create_map(projection='country.peru')
+ax = maps.create_map(projection='global.dateline_centered')
 maps.add_land(ax)
 
 # ### Global map centered over the Pacific using Dark Style

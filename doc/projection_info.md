@@ -2,6 +2,7 @@
 Name | Projection | Extent | Thumbnail
 ------ | -------- | ------ | ---------
 global.default | EqualEarth @ 0°E |  | ![thumbnail of global.default](images/global-default.png)
+global.dateline_centered | EqualEarth @ 180°E |  | ![thumbnail of global.dateline_centered](images/global-dateline_centered.png)
 global.atlantic_centered | EqualEarth @ 40°W |  | ![thumbnail of global.atlantic_centered](images/global-atlantic_centered.png)
 global.pacific_centered | EqualEarth @ 150°E |  | ![thumbnail of global.pacific_centered](images/global-pacific_centered.png)
 global.indian_centered | EqualEarth @ 70°E |  | ![thumbnail of global.indian_centered](images/global-indian_centered.png)
