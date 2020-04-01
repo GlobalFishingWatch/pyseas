@@ -155,7 +155,7 @@
             75
         ],
         "name": "Albers equal area conic @ 15\u00b0E,50\u00b0N",
-        "proj-string" : "=proj=aea +lat_1=33.3333333333333 +lat_2=66.6666666666666 +lon_0=15"
+        "proj-string" : "=proj=aea +lat_1=33 +lat_2=67 +lon_0=15"
     },
     "country.indonesia": {
         "projection": "LambertCylindrical",
