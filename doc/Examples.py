@@ -17,29 +17,23 @@
 # # Examples of Plotting with `pyseas`
 
 # +
-import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpcolors
-import cartopy.crs
 import skimage.io
-import cmocean
-import numpy as np
+import pandas as pd
 from pandas.plotting import register_matplotlib_converters
-import matplotlib.font_manager as fm
 register_matplotlib_converters()
 
+
+# We are importing extra stuff here and defining a reload function to
+# make iterative testing of PySeas easier. You should not need to use
+# `reload` during normal use.
 from pyseas import maps, cm, styles, util
 import pyseas.colors
 from pyseas.contrib import plot_tracks
-from pyseas.maps import scalebar, core, rasters
+from pyseas.maps import scalebar, core, rasters, ticks
 import imp
-
-import shapely.geometry as sgeom
-from shapely.prepared import prep
-
-from pyseas.maps._monkey_patch_cartopy import monkey_patch_cartopy
-from pyseas.maps import ticks
-
 
 def reload():
     imp.reload(util)
@@ -70,10 +64,6 @@ reload()
 
 # !gsutil cp -n gs://machine-learning-dev-ttl-120d/named-achorages01-raster.tiff ../untracked/
 img = skimage.io.imread("../untracked/named-achorages01-raster.tiff")
-
-reload()
-ax = maps.create_map(projection='global.dateline_centered')
-maps.add_land(ax)
 
 # ### Global map centered over the Pacific using Dark Style
 
@@ -117,28 +107,21 @@ with pyseas.context(styles.dark):
                                              projection='regional.atlantic', 
                                              cmap='fishing')
 
-reload()
-with pyseas.context(styles.light):
-    fig = plt.figure(figsize=(12, 8))
-    ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], 
-                                             "distance to shore (km)", 
-                                             loc="top",
-                                             projection='regional.atlantic', 
-                                             cmap='presence')
-    ax.gridlines(linewidth=0.4, zorder=0.5)
-
 # ## Adding Gridlines
 
 reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(12, 8))
-    ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], 
+    maps.plot_raster_w_colorbar(img[::40, ::40], 
                                              "distance to shore (km)", 
                                              loc="top",
                                              projection='regional.north_pacific', 
                                              cmap='fishing')
-    ax.gridlines(linewidth=0.4, zorder=0.5)
-    maps.add_countries(ax)
+    # If axes are not passed most recently used axes are used
+    maps.add_gridlines()
+    # If gridlines are not passed, last gridlines added are used
+    maps.add_gridlabels()
+    maps.add_countries()
 
 # ## Plotting Tracks
 
@@ -152,63 +135,19 @@ query = """
     """
 msgs = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
-plt.rcParams['axes.prop_cycle']
-
 ssvids = sorted(set(msgs.ssvid))
 ssvids
 
 reload()
-for style, style_name in [(pyseas.styles.light, 'light'), 
-                          (pyseas.styles.dark, 'dark')]:
-    with pyseas.context(style):
-        fig = plt.figure(figsize=(10, 10))
-        maps.create_map(projection='regional.north_pacific')
-        maps.add_land()
-        maps.add_plot(msgs.lon, msgs.lat, msgs.ssvid)
+with pyseas.context(pyseas.styles.light):
+    fig = plt.figure(figsize=(10, 10))
+    maps.create_map(projection='regional.north_pacific')
+    gl = maps.add_gridlines()
+    maps.add_gridlabels(gl)
+    maps.add_land()
+    maps.add_plot(msgs.lon, msgs.lat, msgs.ssvid)
 
 
-# +
-reload()
-
-def find_ranges(lons):
-    ranges = []
-    i0 = 0
-    for i, lon in enumerate(lons):
-        if abs(lons[i0] - lon) > 180:
-            ranges.append((i0, i))
-            i0 = i + 1
-    ranges.append((i0, len(lons)))
-    return ranges
-    
-for style, style_name in [(pyseas.styles.light, 'light'), 
-                          (pyseas.styles.dark, 'dark')]:
-    with pyseas.context(style):
-        cycle = iter(plt.rcParams['axes.prop_cycle'])
-        fig = plt.figure(figsize=(10, 10))
-        ax = maps.create_map(projection='regional.north_pacific')
-        maps.add_land(ax)
-        for ssvid in ssvids:
-            df = msgs[(msgs.ssvid == ssvid)]
-            props = next(cycle)
-            for i0, i1 in find_ranges(df.lon.values):
-                
-                ax.plot(df.lon.iloc[i0:i1], df.lat.iloc[i0:i1], 
-                              transform=maps.identity, **props, linewidth=1)
-        gl = ax.gridlines(linewidth=0.4, zorder=0.5)
-        extent = ax.get_extent(crs=maps.identity)
-#         print(gl.xlocator.tick_values(*extent[:2]))
-#         print(gl.ylocator.tick_values(*extent[2:]))
-        for lon, lat, lbl, ngl in [(180, -3.8, "180°W", 0),
-                                   (-120, -8.5, "120°W", 0),
-                                   (-50.5, 30, "30°N", 0),
-                                   (-37.0, 15, "15°N", 0),
-                                  ]:
-            ax.text(lon, lat, lbl, transform=maps.identity, rotation=ngl, 
-                   horizontalalignment='center')
-        plt.savefig('/Users/timothyhochberg/Desktop/test_tracks_{}.png'.format(
-                style_name), dpi=300)
-        plt.show()
-# -
 # ## Predefined Regional Styles
 
 reload()
@@ -217,16 +156,6 @@ with pyseas.context(styles.light):
     ax = maps.create_map(projection='country.indonesia')
     maps.add_land(ax)
     maps.add_countries(ax)
-    gl = ax.gridlines(linewidth=0.4, zorder=0.5)
-    extent = ax.get_extent(crs=maps.identity)
-#     print(gl.xlocator.tick_values(*extent[:2]))
-#     print(gl.ylocator.tick_values(*extent[2:]))
-    for lon, lat, lbl, ngl in [(-179, 4, "180°W", 90),
-                               (-155, 12, "15°N", 0)]:
-        ax.text(lon, lat, lbl, transform=maps.identity, rotation=ngl
-#         fontdict={'color' : 'black', 'weight': 'bold', 'size' : 10},
-#         bbox=dict(facecolor='none', edgecolor='black', boxstyle='circle')
-            )
     plt.show()
 
 reload()
@@ -249,16 +178,16 @@ reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(10, 10))
     ax = maps.create_map(projection='regional.south_pacific')
-    maps.add_land(ax, 'regional.south_pacific')
+    maps.add_land(ax)
     maps.add_countries(ax)
     plt.show()
 
 reload()
 with pyseas.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
-    ax = maps.create_map(projection='country.ecuador_with_galapagos')
-    maps.add_land(ax)
-    maps.add_countries(ax)
+    maps.create_map(projection='country.ecuador_with_galapagos')
+    maps.add_land()
+    maps.add_countries()
     plt.show()
 
 reload()
@@ -269,18 +198,7 @@ with pyseas.context(styles.dark):
     maps.add_countries(ax)
     plt.show()
 
-# ## `contrib`
-
-# ### Plot Tracks and Lat/Lon vs Time
-
-set(df.seg_id)
-
-df = msgs[(msgs.ssvid == "413461490")]
-reload()
-with pyseas.context(styles.light):
-    fig = plt.figure(figsize=(10, 10))
-    ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat,
-                                                 df.seg_id)
+# ## `maps.rasters` has utilities for generating raster from BigQuery.
 
 query = """
 with seismic as 
@@ -304,56 +222,20 @@ unnest(registry_info.best_known_vessel_class) v
  and seg_id in (select seg_id from good_segs)
  group by lat_bin, lon_bin
  """
-df_presence = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
+seismic_presence = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
+# +
 reload()
-raster = maps.rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', xyscale=10, per_km2=True)
+raster = maps.rasters.df2raster(seismic_presence, 'lon_bin', 'lat_bin', 'hours', 
+                                 xyscale=10, origin='lower', per_km2=True)
 
-reload()
-fig = plt.figure(figsize=(10, 10))
-norm = mpcolors.LogNorm(vmin=0.01, vmax=100)
-with pyseas.context(styles.dark):
-    projection = cartopy.crs.EqualEarth(central_longitude=-165)
-    ax, im, cb = maps.plot_raster_w_colorbar(raster, 
-                                       "hours of presence per km2",
-                                        projection='regional.pacific',
-                                       cmap='presence', 
-                                      norm=norm,
-                                      loc='bottom')
-    cb.set_ticks([1, 10, 100, 1000, 1000])
-    maps.add_countries(ax)
-    ax.set_title('Seismic Vessels')
-    maps.add_figure_background(fig)
-plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300)
-
-reload()
+plt.rc('text', usetex=False)
 fig = plt.figure(figsize=(14, 10))
-norm = mpcolors.LogNorm(vmin=0.01, vmax=1)
-with pyseas.context(styles.dark):
+norm = mpcolors.LogNorm(vmin=0.01, vmax=0.1)
+with plt.rc_context(styles.dark):
     ax, im, cb = maps.plot_raster_w_colorbar(raster, 
                                        "hours of presence per km2",
                                         projection='country.indonesia',
-                                       cmap='presence',
-                                      norm=norm,
-                                      loc='bottom')
-    maps.add_countries(ax)
-    maps.add_eezs(ax)
-    ax.set_title('Seismic Vessels')
-    maps.add_figure_background(fig)
-plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300)
-
-reload()
-raster2 = maps.rasters.df2raster(df_presence, 'lon_bin', 'lat_bin', 'hours', 
-                                 xyscale=10, origin='lower', per_km2=True)
-
-reload()
-plt.rc('text', usetex=False)
-fig = plt.figure(figsize=(14, 10))
-norm = mpcolors.LogNorm(vmin=0.01, vmax=1)
-with plt.rc_context(styles.light):
-    ax, im, cb = maps.plot_raster_w_colorbar(raster2, 
-                                       "hours of presence per km2",
-                                        projection='regional.european_union',
                                        cmap='presence',
                                       norm=norm,
                                       origin='lower',
@@ -366,83 +248,20 @@ with plt.rc_context(styles.light):
     gl = maps.add_gridlines()
     maps.add_gridlabels(gl)
 plt.savefig('/Users/timothyhochberg/Desktop/test_plot_2.png', dpi=300)
-
-min_lon = 0
-min_lat = -55
-max_lon = 150
-max_lat = 33
-q = '''with fishing_vessels
-as 
-(select ssvid,best.best_vessel_class vessel_class
-from `gfw_research.vi_ssvid_byyear_v20200115` 
-where on_fishing_list_best 
-and activity.overlap_hours < 24
-and not activity.offsetting 
-and activity.fishing_hours > 10
-and year = 2019
-),
-good_segs as (
-select seg_id from `gfw_research.pipe_v20190502_segs` 
-where good_seg and not overlapping_and_short 
-and positions > 20),
-activity_table as (
-select distinct lat, lon, nnet_score2, hours,
-ssvid, seg_id from `gfw_research.pipe_v20190502_fishing` 
-where date between timestamp("2019-01-10") and timestamp("2020-01-01")
-)
-select floor(lat*4) lat_bin,
-floor(lon*4) lon_bin,
-vessel_class,
-sum(if(nnet_score2>.5, hours,0)) fishing_hours,
-sum(hours) hours
-from activity_table
-join fishing_vessels
-using(ssvid)
-where lon between {min_lon} and {max_lon} 
-and lat between {min_lat} and {max_lat}
-and seg_id in (select seg_id from good_segs)
-group by lat_bin, lon_bin, vessel_class'''.format(min_lon=min_lon,
-                                                 min_lat=min_lat,
-                                                 max_lon=max_lon,
-                                                 max_lat=max_lat)
-df_fishing = pd.read_gbq(q, project_id='world-fishing-827')
-
-# +
-reload()
-
-grid_fishing_presence  = maps.rasters.df2raster(df_fishing, 'lon_bin', 'lat_bin', 'hours', xyscale=4,
-                                              extent = [min_lon, max_lon, min_lat, max_lat],
-                                                per_km2=True, scale=60)
-
-with plt.rc_context(styles.dark): 
-    fig_min_value = 1
-    fig_max_value = 100
-    norm = mpcolors.LogNorm(vmin=fig_min_value, vmax=fig_max_value)
-    fig = plt.figure(figsize=(10, 10))
-    ax, im, colorbar = maps.plot_raster_w_colorbar(
-                            grid_fishing_presence,
-                            "seconds per square km",   
-                            cmap='presence',
-                            loc='bottom',  
-                            extent = [min_lon + 0.01, max_lon, min_lat, max_lat],
-                            norm = norm, 
-                            projection='regional.indian')
-    pyseas.maps.add_eezs(ax)
-    pyseas.maps.add_countries(ax)
-    ax.set_extent((15, 145, -30, 15), crs=maps.identity)
-    ax.set_title("Fishing Vessel Presence in the Indian Ocean overlaid with Study Area")
-#     ax.add_geometries([overpasses], crs = ccrs.PlateCarree(),
-#                   alpha=1, facecolor='none', edgecolor='red') # for Lat/Lon data.
-    
 # -
-reload()
-with pyseas.context(pyseas.styles.light):
-    fig = plt.figure(figsize=(12, 8))
-    ts = [pd.Timestamp(x).to_pydatetime() for x in df.timestamp]
-    ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(ts, df.lon, df.lat)
-    fig.suptitle(df['ssvid'].iloc[0] + ' - tracks ' , y=0.92) 
-    plt.show()
 
+# ## `contrib`
+
+# ### Plot Tracks and Lat/Lon vs Time
+
+df = msgs[(msgs.ssvid == "413461490")]
+reload()
+with pyseas.context(styles.light):
+    fig = plt.figure(figsize=(10, 10))
+    ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat,
+                                                 df.seg_id)
+
+# ### Plots for examining fishing
 
 query = """
 WITH 
@@ -513,12 +332,16 @@ with pyseas.context(pyseas.styles.dark):
                        facecolor=plt.rcParams['gfw.fig.background'])
 
             plt.show()
+# -
+
+# ### Basic annotations can be added that match map to time axis
 
 # +
 reload()
 
 ssvids = sorted(set(fishing_df.ssvid))[1:]
 
+# The props for annotations can be tweaked
 props = {'gfw.map.annotationmapprops' : dict(
            fontdict={'color' : 'blue', 'weight': 'bold', 'size' : 10},
             bbox=dict(facecolor='none', edgecolor='blue', boxstyle='circle')),
@@ -556,58 +379,9 @@ with pyseas.context(pyseas.styles.light):
             plt.show()
 # -
 
-reload()
-df = df.sort_values(by='timestamp')
-n =120
-reload()
-with pyseas.context(pyseas.styles.dark):
-    fig = plt.figure(figsize=(9, 9), frameon=True)
-    ax = maps.create_map(projection='regional.european_union')
-    gl = maps.add_gridlines(ax, color='white', alpha=0.7)
-    maps.add_raster(img[::40, ::40])
-    maps.add_gridlabels(gl)
-    maps.add_land()
-    maps.add_countries()
-    plt.savefig('/Users/timothyhochberg/Desktop/test_grids.png', dpi=300,
-               facecolor=plt.rcParams['gfw.fig.background'])
-    plt.show()
-
-
-# +
-reload()
-
-ssvids = sorted(set(fishing_df.ssvid))[1:]
-
-with pyseas.context(pyseas.styles.light):
-        for ssvid in ssvids:
-
-            dfn = fishing_df[fishing_df.ssvid == ssvid]
-            dfn = dfn.sort_values(by='timestamp')
-            is_fishing = (dfn.nnet_score > 0.5)      
-
-            fig = plt.figure(figsize=(12, 12))
-            plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
-                                     dfn.lat, is_fishing,
-                                     plots = [
-                    {'label' : 'speed (knots)', 'values' : medfilt(dfn.speed.values,11), 
-                        'min_y' : 0},
-                    {'label' : 'depth (km)', 'values' : -dfn.elevation_m / 1000,
-                        'min_y' : 0, 'invert_yaxis' : True},                       
-                                     ],
-                                     map_ratio=6,
-                                     annotations=7,
-                                    annotation_y_shift=0.5)
-
-            gl = maps.add_gridlines()
-            maps.add_gridlabels(gl, lat_side='right')
-
-            plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
-                       facecolor=plt.rcParams['gfw.fig.background'])
-
-            plt.show()
-# -
 # ## Publish
 
-import rendered
-rendered.publish_to_github('./Examples.ipynb', 
-                           'pyseas/doc', action='push')
+# +
+# import rendered
+# rendered.publish_to_github('./Examples.ipynb', 
+#                            'pyseas/doc', action='push')

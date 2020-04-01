@@ -10,7 +10,7 @@ _track_colors = ('#00C1E7,#F59E84,#CC3A8E,#99C945,#DAA51B,#24796C,'
                  '#764E9F,#CA7400,#5D69B1,#BE2045,#58E8C6,#A5AA99').split(',')
 
 _track_cycler = cycler(color=_track_colors)
-_artist_cycler = cycler(edgecolor=_track_colors, facecolor=['']*len(_track_colors))
+_artist_cycler = cycler(edgecolor=_track_colors, facecolor=[(0, 0, 0, 0)]*len(_track_colors))
 del cycler, _track_colors
 
 

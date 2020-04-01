@@ -79,14 +79,12 @@ def get_proj_description(region_name):
     return projection_info[region_name]['name']
 
 
-def add_land(ax=None, projection=None, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
+def add_land(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
     """Add land to an existing map
 
     Parameters
     ----------
     ax : matplotlib axes object, optional
-    projection: str
-        If projection is specified, try to remove problematic land polygons
     scale : str, optional
         Resolution of NaturalEarth data to use ('10m’, ‘50m’, or ‘110m').
     edgecolor : str or tuple, optional
@@ -344,6 +342,7 @@ def add_figure_background(fig=None, color=None):
     fig.patch.set_facecolor(color)
 
 
+_current_gridlines = None
 def add_gridlines(ax=None, zorder=0.5, **kwargs):
     """Add latitude and longitude lines to plot
 
@@ -362,14 +361,16 @@ def add_gridlines(ax=None, zorder=0.5, **kwargs):
     -------
     Gridliner
     """
+    global _current_gridlines
     if ax is None:
         ax = plt.gca()
     for name in ['linewidth', 'linestyle', 'color', 'alpha']:
         if name not in kwargs:
             kwargs[name] = plt.rcParams['grid.' + name]
-    return ax.gridlines(zorder=zorder, **kwargs)
+    _current_gridlines = ax.gridlines(zorder=zorder, **kwargs)
+    return _current_gridlines
 
-def add_gridlabels(gl, lons=None, lats=None, ax=None, fig=None, 
+def add_gridlabels(gl=None, lons=None, lats=None, ax=None, fig=None, 
                     lon_side='bottom', lat_side='left'):
     """Add latitude and longitude labels to plot
 
@@ -391,7 +392,8 @@ def add_gridlabels(gl, lons=None, lats=None, ax=None, fig=None,
     Keyword args are passed on to ax.gridlines
 
     """
-    
+    if gl is None:
+        gl = _current_gridlines
     if fig is None:
         fig = plt.gcf()
     if ax is None:
@@ -485,7 +487,7 @@ def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
     extent = kwargs.get('extent')
     ax = create_map(subplot, projection, extent, bg_color, hide_axes)
     im = add_raster(raster, ax=ax, **kwargs)
-    add_land(ax, projection)
+    add_land(ax)
     return  ax, im
 
 

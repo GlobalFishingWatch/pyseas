@@ -61,7 +61,7 @@ def add_subpanel(gs, timestamp, y, kind, label, prop_map, miny=None, maxy=None,
 
             ml_coords = maps._build_multiline_string_coords(x, y, mask, True, x_is_lon=False)  
 
-            mls = LineCollection(ml_coords, **prop_map[k1, k2]) # Styleize
+            mls = LineCollection(ml_coords, **prop_map[k1, k2])
             ax.add_collection(mls)
 
     if miny is None and maxy is None:
