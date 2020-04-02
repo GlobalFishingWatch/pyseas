@@ -39,6 +39,8 @@ _annotationplotprops = dict(fontdict={'size' : 12})
 
 _colorbarlabelfont  = {'fontsize': 12}
 
+# TODO: swap 'pyseas.' for 'gfw.'
+
 dark = {
         'grid.alpha': 0.5,
         'grid.color': '#b0b0b0',
@@ -72,6 +74,9 @@ dark = {
          'gfw.map.annotationplotprops' : _annotationplotprops,
          'gfw.map.projlabelsize' : 9,
          'gfw.map.colorbarlabelfont' : _colorbarlabelfont,
+         'gfw.logo.name' : 'white_logo.png',
+         'gfw.logo.base_scale' : 0.025,
+         'gfw.logo.alpha' : 0.5,
          }
 
 light = {
@@ -107,6 +112,9 @@ light = {
          'gfw.map.annotationplotprops' : _annotationplotprops,
          'gfw.map.projlabelsize' : 9,
          'gfw.map.colorbarlabelfont' : _colorbarlabelfont,
+         'gfw.logo.name' : 'white_logo.png',
+         'gfw.logo.base_scale' : 0.025,
+         'gfw.logo.alpha' : 0.5,
          }
 
 

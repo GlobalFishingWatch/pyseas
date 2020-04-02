@@ -27,6 +27,7 @@ See also `contrib.plot_tracks` for examples of using `add_plot`
 """
 from ._monkey_patch_cartopy import monkey_patch_cartopy
 import matplotlib.pyplot as plt
+import matplotlib.offsetbox as mplobox
 import cartopy
 import cartopy.feature as cfeature
 import cartopy.mpl.gridliner
@@ -39,6 +40,7 @@ import numpy as np
 from cartopy.feature import ShapelyFeature
 import shapely
 from shapely.geometry import MultiLineString
+from skimage import io as skio
 from . import ticks
 
 
@@ -460,6 +462,22 @@ def create_map(subplot=(1, 1, 1),
             horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
     ax.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])
     return ax
+
+
+def add_logo(ax=None, name=None, scale=1, loc='lower left', alpha=None):
+    if name is None:
+        name = plt.rcParams.get('gfw.logo.name', 'logo.png')
+    base_scale = plt.rcParams.get('gfw.logo.base_scale', 1)
+    if alpha is None:
+        alpha = plt.rcParams.get('gfw.logo.alpha', 1)
+    if ax is None:
+        ax = plt.gca()
+
+    logo = skio.imread(os.path.join(root, 'untracked/data/logos', name))
+    imagebox = mplobox.OffsetImage(logo, zoom=scale * base_scale, alpha=alpha)
+    aob = mplobox.AnchoredOffsetbox(child=imagebox, loc=loc, frameon=False)
+    ax.add_artist(aob)
+    return aob
 
 
 def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',

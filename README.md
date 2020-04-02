@@ -37,3 +37,9 @@ is to install using Conda. The following recipe works currently:
 * You may need to update the font-cache, it worked for me without this, but see https://scentellegher.github.io/visualization/2018/05/02/custom-fonts-matplotlib.html
 * Remove the matplotlib cache dir, For me this was `~/.matplotlib`
 * Restart Jupyter
+
+### Installing Logos
+
+* Logos should be copied to `untracked\data\logos\`
+* Styles for `pyseas.logo.*` should be adjusted appropriately.
+   - Note that the default `base_scale` assumes a very large logo that is downscaled.

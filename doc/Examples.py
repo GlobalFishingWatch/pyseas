@@ -385,3 +385,16 @@ with pyseas.context(pyseas.styles.light):
 # import rendered
 # rendered.publish_to_github('./Examples.ipynb', 
 #                            'pyseas/doc', action='push')
+# -
+
+reload()
+with pyseas.context(styles.dark):
+    fig = plt.figure(figsize=(10, 10))
+    maps.create_map(projection='regional.south_pacific')
+    maps.add_raster(img[::10, ::10], cmap='presence')
+    maps.add_land()
+    maps.add_countries()
+    maps.add_logo(loc='upper left')
+    plt.savefig('/Users/timothyhochberg/Desktop/test_logo.png', dpi=300,
+                           facecolor=plt.rcParams['gfw.fig.background'])
+    plt.show()

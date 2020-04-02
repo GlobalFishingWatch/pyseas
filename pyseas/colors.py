@@ -23,3 +23,14 @@ class _Light(object):
     scale = land
 
 light = _Light()
+
+
+class _PrimaryPalette(object):
+    orange = '#e74327'
+    light_blue = '#8abbc7'
+    black90 = '#3c3c3b'
+    black40 = '#b2b2b2'
+    black15 = '#b2b2b2'
+    white = '#ffffff'
+
+primary_palette = _PrimaryPalette()
