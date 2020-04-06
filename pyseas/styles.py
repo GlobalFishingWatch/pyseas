@@ -1,27 +1,35 @@
 from matplotlib import pyplot as _plt
 from matplotlib import rcsetup as _rcsetup
-from . import colors as _colors
+from . import props as _props
 from . import cm as _cm
 from cycler import cycler
 from matplotlib.colors import to_rgba
 
 
-_light_track_cycler = cycler(color=_colors.light.colors)
-_light_artist_cycler = cycler(edgecolor=_colors.light.colors, facecolor=[(0, 0, 0, 0)]*len(_colors.light.colors))
-_dark_track_cycler = cycler(color=_colors.dark.colors)
-_dark_artist_cycler = cycler(edgecolor=_colors.dark.colors, facecolor=[(0, 0, 0, 0)]*len(_colors.dark.colors))
+_light_track_cycler = cycler(color=_props.light.track.colors)
+_light_artist_cycler = cycler(edgecolor=_props.light.track.colors, 
+        facecolor=[(0, 0, 0, 0)]*len(_props.light.track.colors))
+_dark_track_cycler = cycler(color=_props.dark.track.colors)
+_dark_artist_cycler = cycler(edgecolor=_props.dark.track.colors, 
+    facecolor=[(0, 0, 0, 0)]*len(_props.dark.track.colors))
 
 _chart_colors = []
-for clr in _colors.chart.colors:
+for clr in _props.chart.colors:
     _chart_colors.append(clr.p100)
 
 _chart_cycler = cycler(color=_chart_colors, linewidth=[2]*len(_chart_colors))
 del cycler, _chart_colors, clr
 
 
-_undef = dict(edgecolor=_colors.fishing.undefined, facecolor='none', linewidth=0.1, alpha=0.8)
-_nonfishprops = dict(edgecolor=_colors.fishing.non_fishing, facecolor='none', linewidth=0.6, alpha=0.8)
-_fishprops = dict(edgecolor=_colors.fishing.fishing, facecolor='none', linewidth=0.6, alpha=0.8)
+_undef = dict(edgecolor=_props.fishing.undefined.color, facecolor='none', 
+                        linewidth=_props.fishing.undefined.width,
+                        alpha=_props.fishing.undefined.alpha)
+_nonfishprops = dict(edgecolor=_props.fishing.non_fishing.color, facecolor='none', 
+                        linewidth=_props.fishing.non_fishing.width,
+                        alpha=_props.fishing.non_fishing.alpha)
+_fishprops = dict(edgecolor=_props.fishing.fishing.color, facecolor='none', 
+                        linewidth=_props.fishing.fishing.width,
+                        alpha=_props.fishing.fishing.alpha) 
 _fishing_props = {
     (1, 0) : _nonfishprops,
     (0, 1) : _nonfishprops,
@@ -45,32 +53,31 @@ _colorbarlabelfont  = {'fontsize': 12}
 
 dark = {
         'font.weight' : 'medium',
-        'grid.alpha': 0.5,
-        'grid.color': _colors.dark.grid,
+        'grid.alpha': _props.dark.grid.alpha,
+        'grid.color': _props.dark.grid.color,
         'grid.linestyle': '-',
-        'grid.linewidth': 0.4,
+        'grid.linewidth': _props.dark.grid.width,
         'axes.prop_cycle' : _dark_track_cycler,
         'font.family' : 'Roboto', 
         'font.weight' : 'medium',
-         'xtick.color' : _colors.dark.ticks,
-         'ytick.color' : _colors.dark.ticks,
-         'xtick.labelsize' : 11,
-         'ytick.labelsize' : 11,
-         'axes.labelsize' : 11,
-         'axes.labelcolor' : _colors.dark.labels,
+         'xtick.color' : _props.dark.tick.color,
+         'ytick.color' : _props.dark.tick.color,
+         'xtick.labelsize' : _props.dark.tick.label_size,
+         'ytick.labelsize' : _props.dark.tick.label_size,
+         'axes.labelsize' : _props.light.label.size,
+         'axes.labelcolor' : _props.dark.label.color,
          'axes.labelweight' : 'medium',
          'axes.titleweight' : 'medium',
          'figure.titleweight' : 'medium',
-         'axes.edgecolor' : _colors.dark.frame,
-         'text.color' : _colors.dark.title,
-         'pyseas.fig.background' : _colors.dark.background,
-         'pyseas.land.color' : _colors.dark.land,
-         'pyseas.border.color' : _colors.dark.border,
-         'pyseas.border.linewidth' : 0.4,
-         'pyseas.ocean.color' : _colors.dark.ocean,
-         'pyseas.eez.bordercolor' : _colors.dark.eez,
-         'pyseas.eez.linewidth' : 0.4,
-         'pyseas.map.centrallongitude' : 0,
+         'axes.edgecolor' : _props.dark.frame.color,
+         'text.color' : _props.dark.title.color,
+         'pyseas.fig.background' : _props.dark.background.color,
+         'pyseas.land.color' : _props.dark.land.color,
+         'pyseas.border.color' : _props.dark.border.color,
+         'pyseas.border.linewidth' : _props.dark.border.width,
+         'pyseas.ocean.color' : _props.dark.ocean.color,
+         'pyseas.eez.bordercolor' : _props.dark.eez.color,
+         'pyseas.eez.linewidth' : _props.light.eez.color,
          'pyseas.map.cmapsrc' : _cm.dark,
          'pyseas.map.trackprops' : _dark_artist_cycler,
          'pyseas.map.fishingprops' : _fishing_props,
@@ -85,32 +92,31 @@ dark = {
 
 light = {
         'font.weight' : 'medium',
-         'grid.alpha': 0.5,
-         'grid.color': _colors.light.grid,
+         'grid.alpha': _props.dark.grid.alpha,
+         'grid.color': _props.light.grid.color,
          'grid.linestyle': '-',
-         'grid.linewidth': 0.4,
+         'grid.linewidth': _props.dark.grid.width,
          'axes.prop_cycle' : _light_track_cycler,
          'font.family' : 'Roboto', 
          'font.weight' : 'normal',
-         'xtick.color' : _colors.light.ticks,
-         'ytick.color' : _colors.light.ticks,
-         'xtick.labelsize' : 11,
-         'ytick.labelsize' : 11,
-         'axes.labelsize' : 11,
-         'axes.labelcolor' : _colors.light.labels,
+         'xtick.color' : _props.light.tick.color,
+         'ytick.color' : _props.light.tick.color,
+         'xtick.labelsize' : _props.light.tick.label_size,
+         'ytick.labelsize' : _props.light.tick.label_size,
+         'axes.labelsize' : _props.light.label.size,
+         'axes.labelcolor' : _props.light.label.color,
          'axes.labelweight' : 'medium',
          'axes.titleweight' : 'medium',
-         'axes.edgecolor' : _colors.light.frame,
+         'axes.edgecolor' : _props.light.frame.color,
          'figure.titleweight' : 'medium',
-         'text.color' : _colors.light.title,
-         'pyseas.fig.background' : _colors.light.background,
-         'pyseas.land.color' : _colors.light.land,
-         'pyseas.border.color' : _colors.light.border,
-         'pyseas.border.linewidth' : 0.4,
-         'pyseas.ocean.color' : _colors.light.ocean,
-         'pyseas.eez.bordercolor' : _colors.light.eez,
-         'pyseas.eez.linewidth' : 0.4,
-         'pyseas.map.centrallongitude' : 0,
+         'text.color' : _props.light.title.color,
+         'pyseas.fig.background' : _props.light.background.color,
+         'pyseas.land.color' : _props.light.land.color,
+         'pyseas.border.color' : _props.light.border.color,
+         'pyseas.border.linewidth' : _props.dark.border.width,
+         'pyseas.ocean.color' : _props.light.ocean.color,
+         'pyseas.eez.bordercolor' : _props.light.eez.color,
+         'pyseas.eez.linewidth' : _props.light.eez.width,
          'pyseas.map.cmapsrc' : _cm.light,
          'pyseas.map.trackprops' : _light_artist_cycler,
          'pyseas.map.fishingprops' : _fishing_props,
@@ -141,9 +147,9 @@ chart = {
          'axes.titleweight' : 'medium',
          'axes.edgecolor' : '#848b9b',
          'figure.titleweight' : 'medium',
-         'text.color' : _colors.chart.title,
-         'pyseas.fig.background' : _colors.chart.background,
-         'pyseas.border.color' : _colors.chart.axes,
+         'text.color' : _props.chart.title.color,
+         'pyseas.fig.background' : _props.chart.background.color,
+         'pyseas.border.color' : _props.chart.axes.color,
          'pyseas.border.linewidth' : 0.4,
          'pyseas.logo.name' : 'black_logo.png',
          'pyseas.logo.base_scale' : 0.025,

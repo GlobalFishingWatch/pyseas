@@ -1,0 +1,66 @@
+{
+    "dark" : {
+        "land" : {"color" : "#374a6d"},
+        "ocean" : {"color" : "#0a1738"},
+        "border" : {"color" : "#222d4b", "width" : 0.4},
+        "background" : {"color" : "#f7f7f7"},
+        "highlight" : {"color" : "#0a1738"},
+        "title" : {"color" : "#363c4c"},
+        "eez" : {"color" : "#374a6d", "width" : 0.4},
+        "scale" : {"color" : "#374a6d"},
+        "track" : {
+            "colors" : ["#00C1E7", "#F59E84", "#CC3A8E", "#99C945", "#DAA51B", "#24796C",
+                        "#764E9F", "#CA7400", "#5D69B1", "#BE2045", "#58E8C6", "#A5AA99"]},
+        "grid" : {"color" : "#b0b0b0", "width" : 0.4, "alpha" : 0.5},
+        "tick" : {"color" : "#848b9b", "label_size" : 11},
+        "label" : {"color" : "#848b9b", "size" : 11},
+        "frame" : {"color" : "#848b9b"}
+    },
+
+    "light" : {
+        "land" : {"color" : "#C9D2D3"},
+        "ocean" : {"color" : "#FFFFFF"},
+        "border" : {"color" : "#B4B4B4", "width" : 0.4},
+        "background" : {"color" : "#FFFFFF"},
+        "highlight" : {"color" : "#0a1738"},
+        "title" : {"color" : "#363c4c"},
+        "eez" : {"color" : "#C9D2D3", "width" : 0.4},
+        "scale" : {"color" : "#C9D2D3"},
+        "track" : {
+            "colors" : ["#00C1E7", "#F59E84", "#CC3A8E", "#99C945", "#DAA51B", "#24796C",
+                        "#764E9F", "#CA7400", "#5D69B1", "#BE2045", "#58E8C6", "#A5AA99"]},
+        "grid" : {"color" : "#b0b0b0", "width" : 0.4, "alpha" : 0.5},
+        "tick" : {"color" : "#848b9b", "label_size" : 11},
+        "label" : {"color" : "#848b9b", "size" : 11},
+        "frame" : {"color" : "#848b9b"}
+    },
+
+    "fishing" : {
+        "fishing" : {"color" : "#DD2222", "width" : 1.0, "alpha" : 0.8},
+        "non_fishing" : {"color" : "#559999", "width" : 1.0, "alpha" : 0.8},
+        "undefined" : {"color" : "#888888", "width" : 0.1, "alpha" : 0.8}
+    },
+
+    "chart" : {
+        "title" : {"color" : "#363c4c"},
+        "subtitle" : {"color" : "#363c4c"},
+
+        "legend" : {"color" : "#848b9b"},
+        "axis_labels" : {"color" : "#848b9b"},
+
+        "axes" : {"color" : "#e6e7eb"},
+        "other_data" : {"color" : "#e6e7eb"},
+
+        "background" : {"color" : "#f7f7f7"},
+
+        "colors" : [["#204280", "#4b5b91", "#7277a4", "#989abc", "#c5c6d9"],
+                    ["#ee6256", "#f1816f", "#f59e8b", "#f8bdad", "#fcdcd1"],
+                    ["#ad2176", "#b9558a", "#c77ca1", "#d6a2bb", "#e7cdda"],
+                    ["#f8ba47", "#f9c66d", "#fbd38f", "#fde0b1", "#feeed5"],
+                    ["#742980", "#875092", "#9d74a6", "#9d74a6", "#d6c7db"],
+                    ["#f68d4b", "#f8a26b", "#fbb78a", "#fdceac", "#fee4d1"],
+                    ["#d73b68", "#dd677e", "#e48b97", "#e48b97", "#d73568"],
+                    ["#ebe55d", "#eee981", "#f2eda0", "#f5f3bf", "#f9f8dd"]]
+    }
+}
+

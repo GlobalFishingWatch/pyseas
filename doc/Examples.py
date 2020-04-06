@@ -29,8 +29,9 @@ register_matplotlib_converters()
 # We are importing extra stuff here and defining a reload function to
 # make iterative testing of PySeas easier. You should not need to use
 # `reload` during normal use.
+import pyseas
 from pyseas import maps, cm, styles, util
-import pyseas.colors
+import pyseas.props
 from pyseas.contrib import plot_tracks
 from pyseas.maps import scalebar, core, rasters, ticks
 import imp
@@ -39,7 +40,7 @@ def reload():
     imp.reload(util)
     imp.reload(ticks)
     imp.reload(scalebar)
-    imp.reload(pyseas.colors)
+    imp.reload(pyseas.props)
     imp.reload(cm)
     imp.reload(styles)
     imp.reload(rasters)
@@ -105,12 +106,16 @@ with pyseas.context(styles.dark):
 
 reload()
 with pyseas.context(styles.dark):
-    fig = plt.figure(figsize=(12, 8))
+    fig = plt.figure(figsize=(8, 8))
     ax, im, cb = maps.plot_raster_w_colorbar(img[::40, ::40], 
-                                             "distance to shore (km)", 
-                                             loc="top",
+                                             "km", 
+                                             loc="bottom",
                                              projection='regional.atlantic', 
                                              cmap='fishing')
+    ax.set_title('distance from shore')
+    maps.add_logo()
+#     plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
+#                facecolor=plt.rcParams['pyseas.fig.background'])
 
 # ## Adding Gridlines
 
@@ -236,19 +241,18 @@ raster = maps.rasters.df2raster(seismic_presence, 'lon_bin', 'lat_bin', 'hours',
 
 plt.rc('text', usetex=False)
 fig = plt.figure(figsize=(14, 10))
-norm = mpcolors.LogNorm(vmin=0.01, vmax=0.1)
+norm = mpcolors.LogNorm(vmin=1, vmax=1000)
 with plt.rc_context(styles.dark):
-    ax, im, cb = maps.plot_raster_w_colorbar(raster, 
-                                       "hours of presence per km2",
+    ax, im, cb = maps.plot_raster_w_colorbar(raster * (60 * 60), 
+                                       "seconds of presence per km2",
                                         projection='country.indonesia',
                                        cmap='presence',
                                       norm=norm,
                                       origin='lower',
-                                      loc='bottom',
-                                      hspace=0.2)
+                                      loc='top')
     maps.add_countries()
     maps.add_eezs()
-    ax.set_title('Seismic Vessels', pad=.2)
+    fig.suptitle('Seismic Vessels')
     maps.add_figure_background()
     gl = maps.add_gridlines()
     maps.add_gridlabels(gl)
@@ -278,7 +282,7 @@ and positions > 20),
 source as (
 select ssvid, vessel_id, timestamp, lat, lon, course, speed, elevation_m
 FROM
-    `pipe_production_v20190502.position_messages_2018*`
+    `pipe_production_v20190502.position_messages_201801*`
 where seg_id in (select * from good_segs)
 ),
 
@@ -295,7 +299,7 @@ SELECT
 source.*, score.nnet_score as nnet_score
 from source
 LEFT JOIN
-    `machine_learning_dev_ttl_120d.fd_vid_20200320_results_*` score
+    `machine_learning_dev_ttl_120d.fd_vid_20200320_results_201801*` score
   ON
     source.vessel_id = score.vessel_id
     AND source.timestamp BETWEEN score.start_time
@@ -317,7 +321,7 @@ with pyseas.context(pyseas.styles.light):
             dfn = dfn.sort_values(by='timestamp')
             is_fishing = (dfn.nnet_score > 0.5)      
 
-            fig = plt.figure(figsize=(12, 12))
+            fig = plt.figure(figsize=(12, 8))
             info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
                                      dfn.lat, is_fishing,
                                      plots = [
@@ -345,6 +349,7 @@ with pyseas.context(pyseas.styles.light):
 # ### Basic annotations can be added that match map to time axis
 
 # +
+from pyseas import props
 reload()
 
 ssvids = sorted(set(fishing_df.ssvid))[1:]
@@ -405,3 +410,6 @@ with pyseas.context(styles.dark):
 # import rendered
 # rendered.publish_to_github('./Examples.ipynb', 
 #                            'pyseas/doc', action='push')
+# -
+
+reload()
