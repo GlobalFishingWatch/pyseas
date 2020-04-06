@@ -96,7 +96,10 @@ with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(12,7))
     maps.plot_raster_w_colorbar(img[::40, ::40], 
                                 "distance to shore (km)", 
-                                cmap='fishing')
+                                cmap='presence')
+    maps.add_logo(scale=0.8, loc='upper right')
+    plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
+               facecolor=plt.rcParams['pyseas.fig.background'])
 
 reload()
 with pyseas.context(styles.dark):
@@ -247,7 +250,6 @@ with plt.rc_context(styles.dark):
     maps.add_figure_background()
     gl = maps.add_gridlines()
     maps.add_gridlabels(gl)
-plt.savefig('/Users/timothyhochberg/Desktop/test_plot_2.png', dpi=300)
 # -
 
 # ## `contrib`
@@ -330,8 +332,8 @@ with pyseas.context(pyseas.styles.light):
 
             maps.add_scalebar(info.map_ax, info.extent)
 
-            plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
-                       facecolor=plt.rcParams['pyseas.fig.background'])
+#             plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
+#                        facecolor=plt.rcParams['pyseas.fig.background'])
 
             plt.show()
 # 1178337.7318361893 19.86167525141035 0.2
@@ -377,18 +379,10 @@ with pyseas.context(pyseas.styles.light):
 
             maps.add_scalebar(info.map_ax, info.extent)
 
-            plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
-                       facecolor=plt.rcParams['pyseas.fig.background'])
+#             plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
+#                        facecolor=plt.rcParams['pyseas.fig.background'])
 
             plt.show()
-# -
-
-# ## Publish
-
-# +
-# import rendered
-# rendered.publish_to_github('./Examples.ipynb', 
-#                            'pyseas/doc', action='push')
 # -
 
 reload()
@@ -399,22 +393,13 @@ with pyseas.context(styles.dark):
     maps.add_land()
     maps.add_countries()
     maps.add_logo(loc='upper left')
-    plt.savefig('/Users/timothyhochberg/Desktop/test_logo.png', dpi=300,
-                           facecolor=plt.rcParams['pyseas.fig.background'])
+#     plt.savefig('/Users/timothyhochberg/Desktop/test_logo.png', dpi=300,
+#                            facecolor=plt.rcParams['pyseas.fig.background'])
     plt.show()
 
-reload()
-x = np.linspace(0, 10)
-a = np.cos(x)
-b = np.sin(x)
-c = np.cos(x) ** 2
-with pyseas.context(styles.chart):
-    plt.plot(x, np.cos(x), '-', markersize=5)
-    plt.plot(x, np.sin(x), '-', markersize=None)
-    plt.plot(x, np.cos(x) ** 2, '-', markersize=None)
-#     plt.plot(x, np.sin(x) ** 2, '-', markersize=None)
-#     plt.plot(x, 2 * np.sin(x) ** 2, '-', markersize=None)
-#     plt.savefig('/Users/timothyhochberg/Desktop/track_colors_5.png', dpi=300,
-#                            facecolor=plt.rcParams['pyseas.fig.background'])
+# ## Publish
 
-plt.rcParams.keys()
+# +
+# import rendered
+# rendered.publish_to_github('./Examples.ipynb', 
+#                            'pyseas/doc', action='push')

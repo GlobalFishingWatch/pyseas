@@ -19,9 +19,9 @@ _chart_cycler = cycler(color=_chart_colors, linewidth=[2]*len(_chart_colors))
 del cycler, _chart_colors, clr
 
 
-_undef = dict(edgecolor='#888888', facecolor='none', linewidth=0.1, alpha=0.8)
-_nonfishprops = dict(edgecolor='#559999', facecolor='none', linewidth=0.6, alpha=0.8)
-_fishprops = dict(edgecolor='#DD2222', facecolor='none', linewidth=0.6, alpha=0.8)
+_undef = dict(edgecolor=_colors.fishing.undefined, facecolor='none', linewidth=0.1, alpha=0.8)
+_nonfishprops = dict(edgecolor=_colors.fishing.non_fishing, facecolor='none', linewidth=0.6, alpha=0.8)
+_fishprops = dict(edgecolor=_colors.fishing.fishing, facecolor='none', linewidth=0.6, alpha=0.8)
 _fishing_props = {
     (1, 0) : _nonfishprops,
     (0, 1) : _nonfishprops,
@@ -45,24 +45,23 @@ _colorbarlabelfont  = {'fontsize': 12}
 
 dark = {
         'font.weight' : 'medium',
-        'font.color' : '#848b9b',
         'grid.alpha': 0.5,
-        'grid.color': '#b0b0b0',
+        'grid.color': _colors.dark.grid,
         'grid.linestyle': '-',
         'grid.linewidth': 0.4,
         'axes.prop_cycle' : _dark_track_cycler,
         'font.family' : 'Roboto', 
         'font.weight' : 'medium',
-         'xtick.color' : '#848b9b',
-         'ytick.color' : '#848b9b',
+         'xtick.color' : _colors.dark.ticks,
+         'ytick.color' : _colors.dark.ticks,
          'xtick.labelsize' : 11,
          'ytick.labelsize' : 11,
          'axes.labelsize' : 11,
-         'axes.labelcolor' : '#848b9b',
+         'axes.labelcolor' : _colors.dark.labels,
          'axes.labelweight' : 'medium',
          'axes.titleweight' : 'medium',
          'figure.titleweight' : 'medium',
-         'axes.edgecolor' : '#848b9b',
+         'axes.edgecolor' : _colors.dark.frame,
          'text.color' : _colors.dark.title,
          'pyseas.fig.background' : _colors.dark.background,
          'pyseas.land.color' : _colors.dark.land,
@@ -81,28 +80,27 @@ dark = {
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
          'pyseas.logo.name' : 'white_logo.png',
          'pyseas.logo.base_scale' : 0.025,
-         'pyseas.logo.alpha' : 0.5,
+         'pyseas.logo.alpha' : 0.3,
          }
 
 light = {
         'font.weight' : 'medium',
-        'font.color' : '#848b9b',
          'grid.alpha': 0.5,
-         'grid.color': '#b0b0b0',
+         'grid.color': _colors.light.grid,
          'grid.linestyle': '-',
          'grid.linewidth': 0.4,
          'axes.prop_cycle' : _light_track_cycler,
          'font.family' : 'Roboto', 
          'font.weight' : 'normal',
-         'xtick.color' : '#848b9b',
-         'ytick.color' : '#848b9b',
+         'xtick.color' : _colors.light.ticks,
+         'ytick.color' : _colors.light.ticks,
          'xtick.labelsize' : 11,
          'ytick.labelsize' : 11,
          'axes.labelsize' : 11,
-         'axes.labelcolor' : '#848b9b',
+         'axes.labelcolor' : _colors.light.labels,
          'axes.labelweight' : 'medium',
          'axes.titleweight' : 'medium',
-         'axes.edgecolor' : '#848b9b',
+         'axes.edgecolor' : _colors.light.frame,
          'figure.titleweight' : 'medium',
          'text.color' : _colors.light.title,
          'pyseas.fig.background' : _colors.light.background,

@@ -416,6 +416,8 @@ def add_gridlabels(gl=None, lons=None, lats=None, ax=None, fig=None,
     ticks.draw_yticks(ax, lats, side=lat_side)
 
 
+_last_projection = None
+
 def create_map(subplot=(1, 1, 1), 
                 projection='global.default', 
                 extent=None,
@@ -437,12 +439,16 @@ def create_map(subplot=(1, 1, 1),
     -------
     GeoAxes
     """
+    global _last_projection
     if isinstance(projection, str):
         if proj_descr is None:
             proj_descr = get_proj_description(projection)
         if extent is None:
             extent = get_extent(projection)
+        _last_projection = projection
         projection = get_projection(projection)
+    else:
+        _last_projection = None
 
     bg_color = bg_color or plt.rcParams.get('pyseas.ocean.color', colors.dark.ocean)
     if not isinstance(subplot, tuple):
@@ -464,9 +470,29 @@ def create_map(subplot=(1, 1, 1),
     return ax
 
 
-def add_logo(ax=None, name=None, scale=1, loc='lower left', alpha=None):
+def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, box_alignment=None):
     if name is None:
         name = plt.rcParams.get('pyseas.logo.name', 'logo.png')
+    if box_alignment and isinstance(loc, str):
+        raise ValueError("Can't specify box alignment with string based locations")
+    if isinstance(loc, str):
+        is_global = isinstance(_last_projection, str) and _last_projection.startswith('global.')
+        if is_global:
+            if loc == 'center':
+                box_alignment = (0.5, 0.5)
+                loc = (0.5, 0.5)
+            else:
+                v, h = loc.split()
+                a0, l0 = {'upper' : (1, 0.98), 'center' : (0.5, 0.5), 'lower' : (0, 0.02)}[v]
+                delta = 0.02 if (v == 'center') else 0.2
+                a1, l1 = {'right' : (1, 1 - delta), 'center' : (0.5, 0.5), 'left' : (0, delta)}[h]
+                box_alignment = (a1, a0)
+                loc = (l1, l0)
+
+    elif box_alignment is None:
+        box_alignment = (0.5, 0.5)
+
+        loc = (0.32, 0.92) if is_global else 'lower left'
     base_scale = plt.rcParams.get('pyseas.logo.base_scale', 1)
     if alpha is None:
         alpha = plt.rcParams.get('pyseas.logo.alpha', 1)
@@ -475,7 +501,11 @@ def add_logo(ax=None, name=None, scale=1, loc='lower left', alpha=None):
 
     logo = skio.imread(os.path.join(root, 'untracked/data/logos', name))
     imagebox = mplobox.OffsetImage(logo, zoom=scale * base_scale, alpha=alpha)
-    aob = mplobox.AnchoredOffsetbox(child=imagebox, loc=loc, frameon=False)
+    if isinstance(loc, str):
+        aob = mplobox.AnchoredOffsetbox(child=imagebox, loc=loc, frameon=False)
+    else:
+        aob = mplobox.AnnotationBbox(offsetbox=imagebox, xy=loc, frameon=False, xycoords='axes fraction',
+                                     box_alignment=box_alignment)
     ax.add_artist(aob)
     return aob
 
