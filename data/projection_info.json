@@ -198,8 +198,7 @@
             50
         ],
         "name": "Lambert azimuthal equal area @ 137\u00b0E,38\u00b0N",
-        "proj-string" : "+proj=laea +lat_0=38 +lon_0=140",
-        "pyseas.colorbar.hspace": 0.2
+        "proj-string" : "+proj=laea +lat_0=38 +lon_0=140"
     },
     "country.chile": {
         "projection": "LambertAzimuthalEqualArea",
@@ -214,8 +213,7 @@
             -10
         ],
         "name": "Lambert azimuthal equal area @ 80\u00b0W",
-        "proj-string" : "+proj=laea +lat_0=-35 +lon_0=-80",
-        "pyseas.colorbar.hspace": 0.2
+        "proj-string" : "+proj=laea +lat_0=-35 +lon_0=-80"
     },
     "country.peru": {
         "projection": "LambertAzimuthalEqualArea",
@@ -229,8 +227,7 @@
             5
         ],
         "name": "Lambert azimuthal equal area @ 80\u00b0W",
-        "proj-string" : "+proj=laea +lon_0=-80",
-        "pyseas.colorbar.hspace": 0.2
+        "proj-string" : "+proj=laea +lon_0=-80"
     },
     "country.panama": {
         "projection": "LambertAzimuthalEqualArea",
@@ -244,7 +241,6 @@
             15
         ],
         "name": "Lambert azimuthal equal area @ 80\u00b0W",
-        "proj-string" : "+proj=laea +lon_0=-80",
-        "pyseas.colorbar.hspace": 0.2
+        "proj-string" : "+proj=laea +lon_0=-80"
     }
 }

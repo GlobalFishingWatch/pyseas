@@ -80,6 +80,7 @@ with pyseas.context(styles.dark):
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(12,6))
     ax, im = maps.plot_raster(img[::40, ::40], cmap='fishing')
+    maps.add_logo(scale=0.8, loc='upper right')
     cb = fig.colorbar(im, ax=ax, 
                       orientation='horizontal',
                       fraction=0.02,
@@ -96,7 +97,8 @@ with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(12,7))
     maps.plot_raster_w_colorbar(img[::40, ::40], 
                                 "distance to shore (km)", 
-                                cmap='presence')
+                                cmap='presence',
+                               loc='bottom')
     maps.add_logo(scale=0.8, loc='upper right')
     plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
                facecolor=plt.rcParams['pyseas.fig.background'])

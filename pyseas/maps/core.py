@@ -471,6 +471,10 @@ def create_map(subplot=(1, 1, 1),
 
 
 def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, box_alignment=None):
+    """
+    TODO: document
+
+    """
     if name is None:
         name = plt.rcParams.get('pyseas.logo.name', 'logo.png')
     if box_alignment and isinstance(loc, str):
@@ -510,6 +514,7 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, box_alig
     return aob
 
 
+
 def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
                 bg_color=None, hide_axes=True, colorbar=None, 
                 gridlines=False, **kwargs):
@@ -539,8 +544,8 @@ def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
     return  ax, im
 
 
-def plot_raster_w_colorbar(raster, label='', loc='top',
-                projection='global.default', hspace=None, wspace=0.016,
+def plot_raster_w_colorbar(raster, label='', loc='bottom',
+                projection='global.default', hspace=0.05, wspace=0.016,
                 bg_color=None, hide_axes=True, cbformat=None, **kwargs):
     """Draw a GFW themed map over a raster with a colorbar
 
@@ -568,10 +573,11 @@ def plot_raster_w_colorbar(raster, label='', loc='top',
     (GeoAxes, AxesImage)
     """
     assert loc in ('top', 'bottom')
-    if hspace is None:
-        hspace = 0.12
-        if isinstance(projection, str):
-            hspace = projection_info[projection].get('pyseas.colorbar.hspace', hspace)
+    is_global = isinstance(projection, str) and projection.startswith('global.')
+    if is_global:
+        wratios = [1, 1, 1, 0.85]
+    else:
+        wratios = [1, 1, 1, 0.01]
     if loc == 'top':
         hratios = [.015, 1]
         cb_ind, pl_ind = 0, 1
@@ -580,9 +586,8 @@ def plot_raster_w_colorbar(raster, label='', loc='top',
         hratios = [1, 0.015]
         cb_ind, pl_ind = 1, 0
         anchor = 'SE'
-        hspace -= 0.10
 
-    gs = plt.GridSpec(2, 3, height_ratios=hratios, hspace=hspace, wspace=wspace)
+    gs = plt.GridSpec(2, 4, height_ratios=hratios, width_ratios=wratios, hspace=hspace, wspace=wspace)
     ax, im = plot_raster(raster, gs[pl_ind, :], projection=projection, **kwargs)
     ax.set_anchor(anchor)
     cb_ax = plt.subplot(gs[cb_ind, 2])
@@ -593,5 +598,7 @@ def plot_raster_w_colorbar(raster, label='', loc='top',
     leg_ax.text(1, 0.5, label, 
         fontdict=plt.rcParams.get('pyseas.map.colorbarlabelfont', styles._colorbarlabelfont),
                     horizontalalignment='right', verticalalignment='center')
+    if loc == 'top':
+        cb_ax.xaxis.tick_top()
     plt.sca(ax)
     return ax, im, cb
