@@ -306,7 +306,7 @@ reload()
 from scipy.signal import medfilt
 ssvids = sorted(set(fishing_df.ssvid))[1:]
 
-with pyseas.context(pyseas.styles.dark):
+with pyseas.context(pyseas.styles.light):
         for ssvid in ssvids:
 
             dfn = fishing_df[fishing_df.ssvid == ssvid]
@@ -324,14 +324,18 @@ with pyseas.context(pyseas.styles.dark):
                                      ],
                                      map_ratio=6,
                                      annotations=7,
-                                    annotation_y_shift=0.5)
+                                    annotation_y_loc=1,
+                                    annotation_y_align='bottom',
+                                    annotation_axes_ndx=0)
 
             maps.add_scalebar(info.map_ax, info.extent)
 
             plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
-                       facecolor=plt.rcParams['gfw.fig.background'])
+                       facecolor=plt.rcParams['pyseas.fig.background'])
 
             plt.show()
+# 1178337.7318361893 19.86167525141035 0.2
+
 # -
 
 # ### Basic annotations can be added that match map to time axis
@@ -342,16 +346,16 @@ reload()
 ssvids = sorted(set(fishing_df.ssvid))[1:]
 
 # The props for annotations can be tweaked
-props = {'gfw.map.annotationmapprops' : dict(
+props = {'pyseas.map.annotationmapprops' : dict(
            fontdict={'color' : 'blue', 'weight': 'bold', 'size' : 10},
             bbox=dict(facecolor='none', edgecolor='blue', boxstyle='circle')),
-        'gfw.map.annotationplotprops' : dict(fontdict={'size' : 12, 'color' : 'blue',
+        'pyseas.map.annotationplotprops' : dict(fontdict={'size' : 12, 'color' : 'blue',
                                                       'weight' : 'bold'})
 
         }
 
 with pyseas.context(pyseas.styles.light):
-    with pyseas.context(props):
+#     with pyseas.context(props):
         for ssvid in ssvids:
 
             dfn = fishing_df[fishing_df.ssvid == ssvid]
@@ -374,7 +378,7 @@ with pyseas.context(pyseas.styles.light):
             maps.add_scalebar(info.map_ax, info.extent)
 
             plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
-                       facecolor=plt.rcParams['gfw.fig.background'])
+                       facecolor=plt.rcParams['pyseas.fig.background'])
 
             plt.show()
 # -
@@ -396,5 +400,21 @@ with pyseas.context(styles.dark):
     maps.add_countries()
     maps.add_logo(loc='upper left')
     plt.savefig('/Users/timothyhochberg/Desktop/test_logo.png', dpi=300,
-                           facecolor=plt.rcParams['gfw.fig.background'])
+                           facecolor=plt.rcParams['pyseas.fig.background'])
     plt.show()
+
+reload()
+x = np.linspace(0, 10)
+a = np.cos(x)
+b = np.sin(x)
+c = np.cos(x) ** 2
+with pyseas.context(styles.chart):
+    plt.plot(x, np.cos(x), '-', markersize=5)
+    plt.plot(x, np.sin(x), '-', markersize=None)
+    plt.plot(x, np.cos(x) ** 2, '-', markersize=None)
+#     plt.plot(x, np.sin(x) ** 2, '-', markersize=None)
+#     plt.plot(x, 2 * np.sin(x) ** 2, '-', markersize=None)
+#     plt.savefig('/Users/timothyhochberg/Desktop/track_colors_5.png', dpi=300,
+#                            facecolor=plt.rcParams['pyseas.fig.background'])
+
+plt.rcParams.keys()

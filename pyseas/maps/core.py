@@ -106,9 +106,9 @@ def add_land(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidth=Non
     """
     if ax is None:
         ax = plt.gca()
-    edgecolor = edgecolor or plt.rcParams.get('gfw.border.color', colors.dark.border)
-    facecolor = facecolor or plt.rcParams.get('gfw.land.color', colors.dark.land)
-    linewidth = linewidth or plt.rcParams.get('gfw.border.linewidth', 0.4)
+    edgecolor = edgecolor or plt.rcParams.get('pyseas.border.color', colors.dark.border)
+    facecolor = facecolor or plt.rcParams.get('pyseas.land.color', colors.dark.land)
+    linewidth = linewidth or plt.rcParams.get('pyseas.border.linewidth', 0.4)
     land = cfeature.NaturalEarthFeature('physical', 'land', scale,
                                             edgecolor=edgecolor,
                                             facecolor=facecolor,
@@ -141,9 +141,9 @@ def add_countries(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidt
     """
     if ax is None:
         ax = plt.gca()
-    edgecolor = edgecolor or plt.rcParams.get('gfw.border.color', colors.dark.border)
-    facecolor = facecolor or plt.rcParams.get('gfw.land.color', colors.dark.land)
-    linewidth = linewidth or plt.rcParams.get('gfw.border.linewidth', 0.4)
+    edgecolor = edgecolor or plt.rcParams.get('pyseas.border.color', colors.dark.border)
+    facecolor = facecolor or plt.rcParams.get('pyseas.land.color', colors.dark.land)
+    linewidth = linewidth or plt.rcParams.get('pyseas.border.linewidth', 0.4)
     land = cfeature.NaturalEarthFeature('cultural', 'admin_0_boundary_lines_land', scale,
                                             edgecolor=edgecolor,
                                             facecolor=facecolor,
@@ -175,7 +175,7 @@ def add_raster(raster, ax=None, extent=(-180, 180, -90, 90), origin='upper', **k
     if ax is None:
         ax = plt.gca()
     if 'cmap' in kwargs and isinstance(kwargs['cmap'], str):
-        src = plt.rcParams['gfw.map.cmapsrc']
+        src = plt.rcParams['pyseas.map.cmapsrc']
         try:
             kwargs['cmap'] = getattr(src, kwargs['cmap'])
         except AttributeError:
@@ -266,7 +266,7 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, *a
 
     if props is None:
         raw_kinds = sorted(set(kind))
-        props = {(k, k) : v for (k, v) in zip(raw_kinds, plt.rcParams['gfw.map.trackprops'])}
+        props = {(k, k) : v for (k, v) in zip(raw_kinds, plt.rcParams['pyseas.map.trackprops'])}
     kinds = list(props.keys())
 
     for k1, k2 in kinds:
@@ -300,9 +300,9 @@ def add_eezs(ax=None, use_boundaries=True, facecolor='none', edgecolor=None, lin
         use the boundaries version of EEZs which is smaller and faster, but not as detailed.
     facecolor : str, optional
     edgecolor: str or tuple, optional
-        Can be styled with 'gfw.eez.bordercolor'
+        Can be styled with 'pyseas.eez.bordercolor'
     linewidth: float, optional
-        Can be styled with 'gfw.eez.linewidth'
+        Can be styled with 'pyseas.eez.linewidth'
     alpha: float, optional
 
 
@@ -323,8 +323,8 @@ def add_eezs(ax=None, use_boundaries=True, facecolor='none', edgecolor=None, lin
             raise FileNotFoundError('Eezs must be installed into the `untracked/data/` directory')
 
     eezs = _eezs[path]
-    edgecolor = edgecolor or plt.rcParams.get('gfw.eez.bordercolor', colors.dark.eez)
-    linewidth = linewidth or plt.rcParams.get('gfw.eez.linewidth', 0.4)
+    edgecolor = edgecolor or plt.rcParams.get('pyseas.eez.bordercolor', colors.dark.eez)
+    linewidth = linewidth or plt.rcParams.get('pyseas.eez.linewidth', 0.4)
 
     return ax.add_geometries(eezs.geometry, crs=identity,
                   alpha=alpha, facecolor=facecolor, edgecolor=edgecolor, linewidth=linewidth)
@@ -340,7 +340,7 @@ def add_figure_background(fig=None, color=None):
     """
     if fig is None:
         fig = plt.gcf()
-    color = color or plt.rcParams.get('gfw.fig.background', colors.dark.background)
+    color = color or plt.rcParams.get('pyseas.fig.background', colors.dark.background)
     fig.patch.set_facecolor(color)
 
 
@@ -444,7 +444,7 @@ def create_map(subplot=(1, 1, 1),
             extent = get_extent(projection)
         projection = get_projection(projection)
 
-    bg_color = bg_color or plt.rcParams.get('gfw.ocean.color', colors.dark.ocean)
+    bg_color = bg_color or plt.rcParams.get('pyseas.ocean.color', colors.dark.ocean)
     if not isinstance(subplot, tuple):
         # Allow grridspec to be passed through
         subplot = (subplot,)
@@ -456,7 +456,7 @@ def create_map(subplot=(1, 1, 1),
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
     if show_xform and proj_descr:
-        ax.text(0.0, -0.01, proj_descr, fontsize=plt.rcParams.get('gfw.map.projlabelsize'), 
+        ax.text(0.0, -0.01, proj_descr, fontsize=plt.rcParams.get('pyseas.map.projlabelsize'), 
             weight=plt.rcParams['axes.labelweight'],
             color=plt.rcParams['axes.labelcolor'],
             horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
@@ -466,10 +466,10 @@ def create_map(subplot=(1, 1, 1),
 
 def add_logo(ax=None, name=None, scale=1, loc='lower left', alpha=None):
     if name is None:
-        name = plt.rcParams.get('gfw.logo.name', 'logo.png')
-    base_scale = plt.rcParams.get('gfw.logo.base_scale', 1)
+        name = plt.rcParams.get('pyseas.logo.name', 'logo.png')
+    base_scale = plt.rcParams.get('pyseas.logo.base_scale', 1)
     if alpha is None:
-        alpha = plt.rcParams.get('gfw.logo.alpha', 1)
+        alpha = plt.rcParams.get('pyseas.logo.alpha', 1)
     if ax is None:
         ax = plt.gca()
 
@@ -561,7 +561,7 @@ def plot_raster_w_colorbar(raster, label='', loc='top',
     leg_ax.axes.get_xaxis().set_visible(False)
     leg_ax.axes.get_yaxis().set_visible(False)
     leg_ax.text(1, 0.5, label, 
-        fontdict=plt.rcParams.get('gfw.map.colorbarlabelfont', styles._colorbarlabelfont),
+        fontdict=plt.rcParams.get('pyseas.map.colorbarlabelfont', styles._colorbarlabelfont),
                     horizontalalignment='right', verticalalignment='center')
     plt.sca(ax)
     return ax, im, cb

@@ -91,7 +91,8 @@ PlotPanelInfo = namedtuple('PlotFishingPanelInfo',
 def plot_panel(timestamp, lon, lat, kind, plots, 
                 prop_map, break_on_change,
                 padding_degrees=None, extent=None, map_ratio=5,
-                annotations=3, annotation_y_shift=0.3):
+                annotations=3, annotation_y_loc=1.0, annotation_y_align='bottom',
+                annotation_axes_ndx=0):
     """
 
     """
@@ -126,27 +127,29 @@ def plot_panel(timestamp, lon, lat, kind, plots,
             ax.invert_yaxis()
         axes.append(ax)
 
-    if annotations:
+    if annotations and len(axes):
         assert annotations > 1
         time_range = (timestamp[-1] - timestamp[0])
         # assert time_range > 0
         dts = [(x - timestamp[0]) / time_range for x in timestamp]
         indices = np.searchsorted(dts, np.linspace(0, 1, annotations))
         axn = axes[-1]
-        ylim = (axn.get_ylim()[0] - annotation_y_shift if plots[-1].get('invert_yaxis') 
-           else axn.get_ylim()[1] + annotation_y_shift)
-        axn.tick_params(axis='x', direction='inout')
-        mapprops = plt.rcParams.get('gfw.map.annotationmapprops', styles._annotationmapprops)
-        plotprops = plt.rcParams.get('gfw.map.annotationplotprops', styles._annotationmapprops)
+        time_as_num = mdates.date2num(timestamp[indices[0]])
+        display_coords = axes[annotation_axes_ndx].transAxes.transform([time_as_num, annotation_y_loc])
+        _, y_coord = axes[annotation_axes_ndx].transData.inverted().transform(display_coords)
+        # axn.tick_params(axis='x', direction='inout')
+        mapprops = plt.rcParams.get('pyseas.map.annotationmapprops', styles._annotationmapprops)
+        plotprops = plt.rcParams.get('pyseas.map.annotationplotprops', styles._annotationmapprops)
         for i, ndx in enumerate(indices):
             ax1.text(lon[ndx], lat[ndx], str(i + 1), transform=maps.identity,
                      **mapprops)
-            axes[-1].text(timestamp[ndx], ylim, str(i + 1), horizontalalignment='center',
+            axes[annotation_axes_ndx].text(timestamp[ndx], y_coord, str(i + 1), horizontalalignment='center',
+                            verticalalignment=annotation_y_align,
                           **plotprops)
 
     for ax in axes:
-        ax.set_facecolor(plt.rcParams['gfw.ocean.color'])
-    maps.add_figure_background(color=plt.rcParams['gfw.ocean.color'])
+        ax.set_facecolor(plt.rcParams['pyseas.ocean.color'])
+    maps.add_figure_background(color=plt.rcParams['pyseas.ocean.color'])
     plt.sca(ax1)
     return PlotPanelInfo(ax1, axes, extent)
 
@@ -154,17 +157,19 @@ def plot_panel(timestamp, lon, lat, kind, plots,
 
 
 
-def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots,
+def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots=(),
                         padding_degrees=None, extent=None, map_ratio=5,
-                        annotations=3, annotation_y_shift=0.3):
+                        annotations=3, annotation_y_loc=1.0, 
+                        annotation_y_align='bottom', annotation_axes_ndx=0):
     """
 
     """
     return plot_panel(timestamp, lon, lat, is_fishing, plots,
-                      plt.rcParams['gfw.map.fishingprops'], break_on_change=True,
+                      plt.rcParams['pyseas.map.fishingprops'], break_on_change=True,
                       padding_degrees=padding_degrees, extent=extent, 
                       map_ratio=map_ratio, annotations=annotations, 
-                      annotation_y_shift=annotation_y_shift)
+                      annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
+                      annotation_axes_ndx=annotation_axes_ndx)
 
 
 def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None, 
@@ -177,7 +182,7 @@ def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None,
         plots = [{'label' : 'longitude', 'values' : lon},
                  {'label' : 'latitude', 'values' : lat}]
 
-    prop_cycle = iter(plt.rcParams['gfw.map.trackprops'])
+    prop_cycle = iter(plt.rcParams['pyseas.map.trackprops'])
     prop_map = {(k, k) : next(prop_cycle) for k in set(track_id)}
 
     return plot_panel(timestamp, lon, lat, track_id, plots,
