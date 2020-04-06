@@ -77,7 +77,7 @@ dark = {
          'pyseas.border.linewidth' : _props.dark.border.width,
          'pyseas.ocean.color' : _props.dark.ocean.color,
          'pyseas.eez.bordercolor' : _props.dark.eez.color,
-         'pyseas.eez.linewidth' : _props.light.eez.color,
+         'pyseas.eez.linewidth' : _props.light.eez.width,
          'pyseas.map.cmapsrc' : _cm.dark,
          'pyseas.map.trackprops' : _dark_artist_cycler,
          'pyseas.map.fishingprops' : _fishing_props,

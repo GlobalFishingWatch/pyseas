@@ -252,7 +252,7 @@ with plt.rc_context(styles.dark):
                                       loc='top')
     maps.add_countries()
     maps.add_eezs()
-    fig.suptitle('Seismic Vessels')
+    ax.set_title('Seismic Vessels', pad=40)
     maps.add_figure_background()
     gl = maps.add_gridlines()
     maps.add_gridlabels(gl)
@@ -410,6 +410,3 @@ with pyseas.context(styles.dark):
 # import rendered
 # rendered.publish_to_github('./Examples.ipynb', 
 #                            'pyseas/doc', action='push')
-# -
-
-reload()
