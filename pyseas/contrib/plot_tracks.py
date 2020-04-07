@@ -106,6 +106,7 @@ def plot_panel(timestamp, lon, lat, kind, plots,
     gs = gridspec.GridSpec(1 + len(plots), 1, height_ratios=[map_ratio] + [1] * len(plots))
 
     ax1 = maps.create_map(gs[0], projection=proj, proj_descr=descr)
+    ax1.set_anchor("S")
 
     maps.add_land(ax1)
     maps.add_countries(ax1)

@@ -33,7 +33,7 @@ import cartopy.feature as cfeature
 import cartopy.mpl.gridliner
 import json
 import os
-from .. import colors
+from .. import props
 from .. import styles
 import geopandas as gpd
 import numpy as np
@@ -106,8 +106,8 @@ def add_land(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidth=Non
     """
     if ax is None:
         ax = plt.gca()
-    edgecolor = edgecolor or plt.rcParams.get('pyseas.border.color', colors.dark.border)
-    facecolor = facecolor or plt.rcParams.get('pyseas.land.color', colors.dark.land)
+    edgecolor = edgecolor or plt.rcParams.get('pyseas.border.color', props.dark.border.color)
+    facecolor = facecolor or plt.rcParams.get('pyseas.land.color', props.dark.land.color)
     linewidth = linewidth or plt.rcParams.get('pyseas.border.linewidth', 0.4)
     land = cfeature.NaturalEarthFeature('physical', 'land', scale,
                                             edgecolor=edgecolor,
@@ -141,8 +141,8 @@ def add_countries(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidt
     """
     if ax is None:
         ax = plt.gca()
-    edgecolor = edgecolor or plt.rcParams.get('pyseas.border.color', colors.dark.border)
-    facecolor = facecolor or plt.rcParams.get('pyseas.land.color', colors.dark.land)
+    edgecolor = edgecolor or plt.rcParams.get('pyseas.border.color', props.dark.border.color)
+    facecolor = facecolor or plt.rcParams.get('pyseas.land.color', props.dark.land.color)
     linewidth = linewidth or plt.rcParams.get('pyseas.border.linewidth', 0.4)
     land = cfeature.NaturalEarthFeature('cultural', 'admin_0_boundary_lines_land', scale,
                                             edgecolor=edgecolor,
@@ -323,7 +323,7 @@ def add_eezs(ax=None, use_boundaries=True, facecolor='none', edgecolor=None, lin
             raise FileNotFoundError('Eezs must be installed into the `untracked/data/` directory')
 
     eezs = _eezs[path]
-    edgecolor = edgecolor or plt.rcParams.get('pyseas.eez.bordercolor', colors.dark.eez)
+    edgecolor = edgecolor or plt.rcParams.get('pyseas.eez.bordercolor', props.dark.eez.color)
     linewidth = linewidth or plt.rcParams.get('pyseas.eez.linewidth', 0.4)
 
     return ax.add_geometries(eezs.geometry, crs=identity,
@@ -340,7 +340,7 @@ def add_figure_background(fig=None, color=None):
     """
     if fig is None:
         fig = plt.gcf()
-    color = color or plt.rcParams.get('pyseas.fig.background', colors.dark.background)
+    color = color or plt.rcParams.get('pyseas.fig.background', props.dark.background.color)
     fig.patch.set_facecolor(color)
 
 
@@ -450,7 +450,7 @@ def create_map(subplot=(1, 1, 1),
     else:
         _last_projection = None
 
-    bg_color = bg_color or plt.rcParams.get('pyseas.ocean.color', colors.dark.ocean)
+    bg_color = bg_color or plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
     if not isinstance(subplot, tuple):
         # Allow grridspec to be passed through
         subplot = (subplot,)

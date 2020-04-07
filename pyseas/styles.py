@@ -14,8 +14,8 @@ _dark_artist_cycler = cycler(edgecolor=_props.dark.track.colors,
     facecolor=[(0, 0, 0, 0)]*len(_props.dark.track.colors))
 
 _chart_colors = []
-for clr in _props.chart.colors:
-    _chart_colors.append(clr.p100)
+for clr in _props.chart.colors._100_percent:
+    _chart_colors.append(clr)
 
 _chart_cycler = cycler(color=_chart_colors, linewidth=[2]*len(_chart_colors))
 del cycler, _chart_colors, clr
@@ -98,7 +98,7 @@ light = {
          'grid.linewidth': _props.dark.grid.width,
          'axes.prop_cycle' : _light_track_cycler,
          'font.family' : 'Roboto', 
-         'font.weight' : 'normal',
+         'font.weight' : 'medium',
          'xtick.color' : _props.light.tick.color,
          'ytick.color' : _props.light.tick.color,
          'xtick.labelsize' : _props.light.tick.label_size,
@@ -124,9 +124,9 @@ light = {
          'pyseas.map.annotationplotprops' : _annotationplotprops,
          'pyseas.map.projlabelsize' : 9,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
-         'pyseas.logo.name' : 'black_logo.png',
-         'pyseas.logo.base_scale' : 0.025,
-         'pyseas.logo.alpha' : 0.5,
+         'pyseas.logo.name' : _props.light.logo.name,
+         'pyseas.logo.base_scale' : _props.light.logo.base_scale,
+         'pyseas.logo.alpha' : _props.light.logo.alpha,
          }
 
 
@@ -137,7 +137,7 @@ chart = {
          'grid.linewidth': 0.4,
          'axes.prop_cycle' : _chart_cycler,
          'font.family' : 'Roboto', 
-         'font.weight' : 'normal',
+         'font.weight' : 'medium',
          'xtick.color' : '#848b9b',
          'ytick.color' : '#848b9b',
          'xtick.labelsize' : 11,
@@ -151,9 +151,9 @@ chart = {
          'pyseas.fig.background' : _props.chart.background.color,
          'pyseas.border.color' : _props.chart.axes.color,
          'pyseas.border.linewidth' : 0.4,
-         'pyseas.logo.name' : 'black_logo.png',
-         'pyseas.logo.base_scale' : 0.025,
-         'pyseas.logo.alpha' : 0.5,
+         'pyseas.logo.name' : _props.dark.logo.name,
+         'pyseas.logo.base_scale' : _props.dark.logo.base_scale,
+         'pyseas.logo.alpha' : _props.dark.logo.alpha,
          }
 
 

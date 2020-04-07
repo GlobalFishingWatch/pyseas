@@ -240,7 +240,7 @@ raster = maps.rasters.df2raster(seismic_presence, 'lon_bin', 'lat_bin', 'hours',
                                  xyscale=10, origin='lower', per_km2=True)
 
 plt.rc('text', usetex=False)
-fig = plt.figure(figsize=(14, 10))
+fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=1, vmax=1000)
 with plt.rc_context(styles.dark):
     ax, im, cb = maps.plot_raster_w_colorbar(raster * (60 * 60), 
@@ -248,14 +248,18 @@ with plt.rc_context(styles.dark):
                                         projection='country.indonesia',
                                        cmap='presence',
                                       norm=norm,
+                                      cbformat='%.0f',
                                       origin='lower',
                                       loc='top')
     maps.add_countries()
     maps.add_eezs()
-    ax.set_title('Seismic Vessels', pad=40)
+    ax.set_title('Seismic Vessels Near Indonesia', pad=40)
     maps.add_figure_background()
     gl = maps.add_gridlines()
     maps.add_gridlabels(gl)
+    maps.add_logo(loc='lower left')
+    plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
+               facecolor=plt.rcParams['pyseas.fig.background'])
 # -
 
 # ## `contrib`
@@ -268,6 +272,7 @@ with pyseas.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
     ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat,
                                                  df.seg_id)
+    maps.add_logo(loc='upper left')
 
 # ### Plots for examining fishing
 
