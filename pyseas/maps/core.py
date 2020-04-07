@@ -418,16 +418,11 @@ def add_gridlabels(gl=None, lons=None, lats=None, ax=None, fig=None,
 
 _last_projection = None
 
-# TODO: export show_xform to add_projection_lable
-# and make it similar to logo, but allow both
-# inside and outside of frame
 def create_map(subplot=(1, 1, 1), 
                 projection='global.default', 
                 extent=None,
                 bg_color=None, 
-                hide_axes=True,
-                show_xform=False,
-                proj_descr=None):
+                hide_axes=True):
     """Draw a GFW themed map
 
     Parameters
@@ -444,8 +439,6 @@ def create_map(subplot=(1, 1, 1),
     """
     global _last_projection
     if isinstance(projection, str):
-        if proj_descr is None:
-            proj_descr = get_proj_description(projection)
         if extent is None:
             extent = get_extent(projection)
         _last_projection = projection
@@ -464,42 +457,46 @@ def create_map(subplot=(1, 1, 1),
     if hide_axes:
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
-    if show_xform and proj_descr:
-        ax.text(0.0, -0.01, proj_descr, fontsize=plt.rcParams.get('pyseas.map.projlabelsize'), 
-            weight=plt.rcParams['axes.labelweight'],
-            color=plt.rcParams['axes.labelcolor'],
-            horizontalalignment='left', verticalalignment='top', transform=ax.transAxes)
     ax.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])
     return ax
 
 
-def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, box_alignment=None):
-    """
-    TODO: document
+def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None):
+    """Add a logo to a plot
 
+    Parameters
+    ----------
+    ax : Axes, optional
+    name : str, optional
+        Name of logo file located in `untracked/data/logos` default to value of 'pyseas.logo.name'
+    scale : float, optional
+        Additional scaling to apply to image in addition to value of 'pyseas.logo.base_scale'
+    loc : str, optional
+        Location to place logo. 'upper left', 'center right' etc. Similar to matplotlib Legend.
+    alpha : float, optional
+        Opacity to use when plotting legend. Default to value of `pyseas.logo.alpha`
+
+    Keyword args are passed on to add_raster.
+
+    Returns
+    -------
+    OffsetBox
     """
     if name is None:
         name = plt.rcParams.get('pyseas.logo.name', 'logo.png')
-    if box_alignment and isinstance(loc, str):
-        raise ValueError("Can't specify box alignment with string based locations")
-    if isinstance(loc, str):
-        is_global = isinstance(_last_projection, str) and _last_projection.startswith('global.')
-        if is_global:
-            if loc == 'center':
-                box_alignment = (0.5, 0.5)
-                loc = (0.5, 0.5)
-            else:
-                v, h = loc.split()
-                a0, l0 = {'upper' : (1, 0.98), 'center' : (0.5, 0.5), 'lower' : (0, 0.02)}[v]
-                delta = 0.02 if (v == 'center') else 0.2
-                a1, l1 = {'right' : (1, 1 - delta), 'center' : (0.5, 0.5), 'left' : (0, delta)}[h]
-                box_alignment = (a1, a0)
-                loc = (l1, l0)
+    is_global = isinstance(_last_projection, str) and _last_projection.startswith('global.')
+    if is_global:
+        if loc == 'center':
+            box_alignment = (0.5, 0.5)
+            loc = (0.5, 0.5)
+        else:
+            v, h = loc.split()
+            a0, l0 = {'upper' : (1, 0.98), 'center' : (0.5, 0.5), 'lower' : (0, 0.02)}[v]
+            delta = 0.02 if (v == 'center') else 0.2
+            a1, l1 = {'right' : (1, 1 - delta), 'center' : (0.5, 0.5), 'left' : (0, delta)}[h]
+            box_alignment = (a1, a0)
+            loc = (l1, l0)
 
-    elif box_alignment is None:
-        box_alignment = (0.5, 0.5)
-
-        loc = (0.32, 0.92) if is_global else 'lower left'
     base_scale = plt.rcParams.get('pyseas.logo.base_scale', 1)
     if alpha is None:
         alpha = plt.rcParams.get('pyseas.logo.alpha', 1)
@@ -515,7 +512,6 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, box_alig
                                      box_alignment=box_alignment)
     ax.add_artist(aob)
     return aob
-
 
 
 def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',

@@ -78,6 +78,7 @@ with pyseas.context(styles.dark):
 
 # ## Simple, Manual Colorbar
 
+reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(12,6))
     ax, im = maps.plot_raster(img[::40, ::40], cmap='fishing')
@@ -88,7 +89,6 @@ with pyseas.context(styles.dark):
                       aspect=40,
                       pad=0.04,
                      )
-
     _ = ax.set_title("distance to shore (km)", fontdict={'fontsize': 12})
 
 # ## Auto Colorbar
@@ -151,11 +151,12 @@ ssvids
 reload()
 with pyseas.context(pyseas.styles.light):
     fig = plt.figure(figsize=(10, 10))
-    maps.create_map(projection='regional.north_pacific', show_xform=True)
+    maps.create_map(projection='regional.north_pacific')
     gl = maps.add_gridlines()
     maps.add_gridlabels(gl)
     maps.add_land()
-    maps.add_plot(msgs.lon, msgs.lat, msgs.ssvid)
+    maps.add_plot(msgs.lon, msgs.lat, msgs.ssvid) 
+
 
 
 # ## Predefined Regional Styles
@@ -266,6 +267,7 @@ with plt.rc_context(styles.dark):
 
 # ### Plot Tracks and Lat/Lon vs Time
 
+reload()
 df = msgs[(msgs.ssvid == "413461490")]
 reload()
 with pyseas.context(styles.light):
