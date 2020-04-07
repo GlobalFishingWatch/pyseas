@@ -418,6 +418,9 @@ def add_gridlabels(gl=None, lons=None, lats=None, ax=None, fig=None,
 
 _last_projection = None
 
+# TODO: export show_xform to add_projection_lable
+# and make it similar to logo, but allow both
+# inside and outside of frame
 def create_map(subplot=(1, 1, 1), 
                 projection='global.default', 
                 extent=None,

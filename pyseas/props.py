@@ -4,7 +4,7 @@ import json as _json
 
 _MapPalette = _namedtuple('MapPalette', ['land', 'ocean', 'border',
     'background', 'highlight', 'title', 'eez', 'scale', 'track',
-    'grid', 'tick', 'label', 'frame', 'logo'])
+    'grid', 'tick', 'label', 'frame', 'logo', 'font', 'projection_label'])
 
 _ChartPalette = _namedtuple('ChartPalette', ['title', 'subtitle',
     'legend', 'axis_labels', 'axes', 'other_data', 'background', 'colors'])

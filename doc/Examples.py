@@ -151,7 +151,7 @@ ssvids
 reload()
 with pyseas.context(pyseas.styles.light):
     fig = plt.figure(figsize=(10, 10))
-    maps.create_map(projection='regional.north_pacific')
+    maps.create_map(projection='regional.north_pacific', show_xform=True)
     gl = maps.add_gridlines()
     maps.add_gridlabels(gl)
     maps.add_land()

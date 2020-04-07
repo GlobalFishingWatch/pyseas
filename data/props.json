@@ -11,11 +11,13 @@
         "track" : {
             "colors" : ["#00C1E7", "#F59E84", "#CC3A8E", "#99C945", "#DAA51B", "#24796C",
                         "#764E9F", "#CA7400", "#5D69B1", "#BE2045", "#58E8C6", "#A5AA99"]},
-        "grid" : {"color" : "#b0b0b0", "width" : 0.4, "alpha" : 0.5},
+        "grid" : {"color" : "#b0b0b0", "width" : 0.4, "alpha" : 0.5, "style" : "solid"},
         "tick" : {"color" : "#848b9b", "label_size" : 11},
-        "label" : {"color" : "#848b9b", "size" : 11},
+        "label" : {"color" : "#848b9b", "size" : 11, "weight" : "medium"},
         "frame" : {"color" : "#848b9b"},
-        "logo" :  {"name" : "white_logo.png", "base_scale" : 0.025, "alpha" : 0.3}
+        "logo" :  {"name" : "white_logo.png", "base_scale" : 0.025, "alpha" : 0.3},
+        "font" : {"family" : "Roboto", "weight" : "medium"},
+        "projection_label" : {"size" : 9}
     },
 
     "light" : {
@@ -30,11 +32,13 @@
         "track" : {
             "colors" : ["#00C1E7", "#F59E84", "#CC3A8E", "#99C945", "#DAA51B", "#24796C",
                         "#764E9F", "#CA7400", "#5D69B1", "#BE2045", "#58E8C6", "#A5AA99"]},
-        "grid" : {"color" : "#b0b0b0", "width" : 0.4, "alpha" : 0.5},
+        "grid" : {"color" : "#b0b0b0", "width" : 0.4, "alpha" : 0.5, "style" : "solid"},
         "tick" : {"color" : "#848b9b", "label_size" : 11},
-        "label" : {"color" : "#848b9b", "size" : 11},
+        "label" : {"color" : "#848b9b", "size" : 11, "weight" : "medium"},
         "frame" : {"color" : "#848b9b"},
-        "logo" :  {"name" : "black_logo.png", "base_scale" : 0.025, "alpha" : 0.3}
+        "logo" :  {"name" : "black_logo.png", "base_scale" : 0.025, "alpha" : 0.3},
+        "font" : {"family" : "Roboto", "weight" : "medium"},
+        "projection_label" : {"size" : 9}
     },
 
     "fishing" : {
