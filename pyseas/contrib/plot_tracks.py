@@ -183,7 +183,7 @@ def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None,
         plots = [{'label' : 'longitude', 'values' : lon},
                  {'label' : 'latitude', 'values' : lat}]
 
-    prop_cycle = iter(plt.rcParams['pyseas.map.trackprops'])
+    prop_cycle = iter(plt.rcParams['pyseas.map.trackprops']())
     prop_map = {(k, k) : next(prop_cycle) for k in set(track_id)}
 
     return plot_panel(timestamp, lon, lat, track_id, plots,

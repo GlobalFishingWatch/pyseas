@@ -85,9 +85,9 @@ dark = {
          'pyseas.map.annotationplotprops' : _annotationplotprops,
          'pyseas.map.projlabelsize' : 9,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
-         'pyseas.logo.name' : 'white_logo.png',
-         'pyseas.logo.base_scale' : 0.025,
-         'pyseas.logo.alpha' : 0.3,
+         'pyseas.logo.name' : _props.dark.logo.name,
+         'pyseas.logo.base_scale' : _props.dark.logo.base_scale,
+         'pyseas.logo.alpha' : _props.dark.logo.alpha,
          }
 
 light = {
