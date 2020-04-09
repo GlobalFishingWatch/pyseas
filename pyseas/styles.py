@@ -21,26 +21,53 @@ _chart_cycler = cycler(color=_chart_colors, linewidth=[2]*len(_chart_colors))
 del cycler, _chart_colors, clr
 
 
-_undef = dict(edgecolor=_props.fishing.undefined.color, facecolor='none', 
-                        linewidth=_props.fishing.undefined.width,
-                        alpha=_props.fishing.undefined.alpha)
-_nonfishprops = dict(edgecolor=_props.fishing.non_fishing.color, facecolor='none', 
-                        linewidth=_props.fishing.non_fishing.width,
-                        alpha=_props.fishing.non_fishing.alpha)
-_fishprops = dict(edgecolor=_props.fishing.fishing.color, facecolor='none', 
-                        linewidth=_props.fishing.fishing.width,
-                        alpha=_props.fishing.fishing.alpha) 
-_fishing_props = {
-    (1, 0) : _nonfishprops,
-    (0, 1) : _nonfishprops,
-    (0, 0) : _nonfishprops,
-    (1, 1) : _fishprops,
-    (-1, -1) : _undef,
-    (-1, 0) : _undef,
-    (-1, 1) : _undef,
-    (0, -1) : _undef,
-    (1, -1) : _undef,
-}
+def create_plot_panel_props(prop_map):
+    """Create props suitable for plot panel
+
+    Parameters
+    ----------
+    prop_map: dict or OrderedDict (Python 2)
+        background colors should typically come first
+
+
+    TODO: describe ordering
+    """
+    props = {}
+    for k1, v in prop_map.items():
+        v = {'edgecolor' : v.get('color', None),
+             'facecolor' : 'none',
+             'linewidth' : v.get('width', None),
+             'alpha' : v.get('alpha', None)}
+        for k2, _ in prop_map.items():
+            if (k1, k2) not in props:
+                props[k1, k2] = v
+            if (k2, k1) not in props:
+                props[k2, k1] = v
+    return props
+
+# _undef = dict(edgecolor=_props.fishing.undefined.color, facecolor='none', 
+#                         linewidth=_props.fishing.undefined.width,
+#                         alpha=_props.fishing.undefined.alpha)
+
+
+_fishing_props = create_plot_panel_props({
+    -1 : {'color' : _props.fishing.undefined.color, 'width' : _props.fishing.undefined.width, 'alpha' : _props.fishing.undefined.alpha},
+     0 : {'color' : _props.fishing.non_fishing.color, 'width' : _props.fishing.non_fishing.width, 'alpha' : _props.fishing.non_fishing.alpha},
+     1 : {'color' : _props.fishing.fishing.color, 'width' : _props.fishing.fishing.width, 'alpha' : _props.fishing.fishing.alpha}
+     })
+
+
+# _fishing_props = {
+#     (1, 0) : _nonfishprops,
+#     (0, 1) : _nonfishprops,
+#     (0, 0) : _nonfishprops,
+#     (1, 1) : _fishprops,
+#     (-1, -1) : _undef,
+#     (-1, 0) : _undef,
+#     (-1, 1) : _undef,
+#     (0, -1) : _undef,
+#     (1, -1) : _undef,
+# }
 
 _annotationmapprops = dict(fontdict={'color' : 'black', 'weight': 'bold', 'size' : 10},
                            bbox=dict(facecolor='none', edgecolor='black', boxstyle='circle'))

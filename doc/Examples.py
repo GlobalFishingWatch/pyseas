@@ -159,6 +159,7 @@ with pyseas.context(pyseas.styles.light):
 
 
 
+
 # ## Predefined Regional Styles
 
 reload()
@@ -321,7 +322,13 @@ reload()
 from scipy.signal import medfilt
 ssvids = sorted(set(fishing_df.ssvid))[1:]
 
+fishing_props = styles.create_plot_panel_props({
+     0 : {'color' : 'purple', 'width' : 1, 'alpha' : 0.8},
+     1 : {'color' : 'green', 'width' :1, 'alpha' : 0.8}
+     })
+
 with pyseas.context(pyseas.styles.light):
+    with pyseas.context({'pyseas.map.fishingprops' : fishing_props}):
         for ssvid in ssvids:
 
             dfn = fishing_df[fishing_df.ssvid == ssvid]
@@ -345,8 +352,8 @@ with pyseas.context(pyseas.styles.light):
 
             maps.add_scalebar(info.map_ax, info.extent)
 
-#             plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
-#                        facecolor=plt.rcParams['pyseas.fig.background'])
+            plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
+                       facecolor=plt.rcParams['pyseas.fig.background'])
 
             plt.show()
 # 1178337.7318361893 19.86167525141035 0.2
