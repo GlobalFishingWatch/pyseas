@@ -41,6 +41,7 @@ from cartopy.feature import ShapelyFeature
 import shapely
 from shapely.geometry import MultiLineString
 from skimage import io as skio
+import warnings
 from . import ticks
 
 
@@ -412,8 +413,11 @@ def add_gridlabels(gl=None, lons=None, lats=None, ax=None, fig=None,
     fig.canvas.draw()
     ax.xaxis.set_major_formatter(ticks.LONGITUDE_FORMATTER) 
     ax.yaxis.set_major_formatter(ticks.LATITUDE_FORMATTER)
-    ticks.draw_xticks(ax, lons, side=lon_side)
-    ticks.draw_yticks(ax, lats, side=lat_side)
+    with warnings.catch_warnings():
+        # Suppress a Deprecation warning from matplotlib till cartopy gets updated.
+        warnings.simplefilter("ignore")
+        ticks.draw_xticks(ax, lons, side=lon_side)
+        ticks.draw_yticks(ax, lats, side=lat_side)
 
 
 _last_projection = None

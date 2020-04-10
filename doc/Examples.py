@@ -382,8 +382,6 @@ with pyseas.context(pyseas.styles.light):
                        facecolor=plt.rcParams['pyseas.fig.background'])
 
             plt.show()
-# 1178337.7318361893 19.86167525141035 0.2
-
 # -
 
 # ### Basic annotations can be added that match map to time axis
