@@ -268,14 +268,39 @@ with plt.rc_context(styles.dark):
 
 # ### Plot Tracks and Lat/Lon vs Time
 
+# +
 reload()
+import matplotlib.dates as mdates
+import datetime as DT
+
 df = msgs[(msgs.ssvid == "413461490")]
 reload()
 with pyseas.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
-    ax1, ax2, ax3 = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat,
+    info = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat,
                                                  df.seg_id)
     maps.add_logo(loc='upper left')
+    
+#     print()
+    min_dt, max_dt = [mdates.num2date(x) for x in info.plot_axes[0].get_xlim()]
+    
+    for ax in info.plot_axes:
+        if min_dt.hour < 6:
+            start = DT.datetime(min_dt.year, min_dt.month, min_dt.day, tzinfo=min_dt.tzinfo) - DT.timedelta(hours=6)
+        else:
+            start = DT.datetime(min_dt.year, min_dt.month, min_dt.day, tzinfo=min_dt.tzinfo) + DT.timedelta(hours=30)
+        while start < max_dt:
+            stop = start + DT.timedelta(hours=12)
+            if stop > max_dt:
+                stop = max_dt
+            ax.axvspan(mdates.date2num(start), mdates.date2num(stop), alpha=0.1, color='#888888')
+            start += DT.timedelta(hours=24)
+            
+        ax.set_xlim(min_dt, max_dt)
+            
+
+
+# -
 
 # ### Plots for examining fishing
 
@@ -323,6 +348,7 @@ from scipy.signal import medfilt
 ssvids = sorted(set(fishing_df.ssvid))[1:]
 
 fishing_props = styles.create_plot_panel_props({
+     # Background objects should typically be first
      0 : {'color' : 'purple', 'width' : 1, 'alpha' : 0.8},
      1 : {'color' : 'green', 'width' :1, 'alpha' : 0.8}
      })
@@ -365,8 +391,9 @@ with pyseas.context(pyseas.styles.light):
 # +
 from pyseas import props
 reload()
+from pyseas.util import lon_avg, asarray
 
-ssvids = sorted(set(fishing_df.ssvid))[1:]
+ssvids = sorted(set(fishing_df.ssvid))[1:2]
 
 # The props for annotations can be tweaked
 props = {'pyseas.map.annotationmapprops' : dict(
@@ -376,6 +403,11 @@ props = {'pyseas.map.annotationmapprops' : dict(
                                                       'weight' : 'bold'})
 
         }
+
+
+def hour_offset(lons):
+    lon0 = lon_avg(lons)
+    return (lon0 / 180) * 12
 
 with pyseas.context(pyseas.styles.light):
 #     with pyseas.context(props):
@@ -389,19 +421,22 @@ with pyseas.context(pyseas.styles.light):
             info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
                                      dfn.lat, is_fishing,
                                      plots = [
-                    {'label' : 'lon', 'values' : dfn.lon},
-                    {'label' : 'lat', 'values' : dfn.lat}, 
                     {'label' : 'speed (knots)', 'values' : medfilt(dfn.speed.values,11), 
                         'min_y' : 0},
                     {'label' : 'depth (km)', 'values' : -dfn.elevation_m / 1000,
                         'min_y' : 0, 'invert_yaxis' : True}, 
                                      ],
-                                     map_ratio=6)
+                                     map_ratio=6,
+                                                 annotations=7,
+                                                 add_night_shades=True)
 
             maps.add_scalebar(info.map_ax, info.extent)
+                
+            maps.add_gridlines()
+            maps.add_gridlabels()
 
-#             plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
-#                        facecolor=plt.rcParams['pyseas.fig.background'])
+            plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
+                       facecolor=plt.rcParams['pyseas.fig.background'])
 
             plt.show()
 # -

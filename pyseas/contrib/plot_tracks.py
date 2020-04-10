@@ -3,6 +3,8 @@ from matplotlib import gridspec
 import cartopy
 import cartopy.feature as cfeature
 import numpy as np
+import pandas as pd
+import datetime as DT
 from collections import Counter
 from collections import namedtuple
 from cycler import cycler
@@ -13,16 +15,14 @@ import matplotlib.dates as mdates
 
 from ..maps import core as maps
 from .. import styles
-from ..util import asarray
+from ..util import asarray, lon_avg
 
 DEFAULT_PADDING_DEG = 0.1
 
 
 def find_projection(lons, lats, delta_scale=0.2, abs_delta=0.1, percentile=99.9):
     assert len(lons) == len(lats), (len(lons), len(lats))
-    coslon = np.mean(np.cos(np.radians(lons)))
-    sinlon = np.mean(np.sin(np.radians(lons)))
-    lonm0 = np.degrees(np.arctan2(sinlon, coslon))
+    lonm0 = lon_avg(lons)
     lons = (lons - lonm0 + 180) % 360 + lonm0 - 180
     lon0, lonm, lon1 = np.percentile(lons, (100 - percentile, 50, percentile))
     (lon0, lon1) = [(x - lonm + 180) % 360 + lonm - 180 for x in (lon0, lon1)]
@@ -92,7 +92,7 @@ def plot_panel(timestamp, lon, lat, kind, plots,
                 prop_map, break_on_change,
                 padding_degrees=None, extent=None, map_ratio=5,
                 annotations=3, annotation_y_loc=1.0, annotation_y_align='bottom',
-                annotation_axes_ndx=0):
+                annotation_axes_ndx=0, add_night_shades=False):
     """
 
     """
@@ -150,18 +150,62 @@ def plot_panel(timestamp, lon, lat, kind, plots,
 
     for ax in axes:
         ax.set_facecolor(plt.rcParams['pyseas.ocean.color'])
+        if add_night_shades:
+            add_shades(ax, timestamp, lon)
+
     maps.add_figure_background(color=plt.rcParams['pyseas.ocean.color'])
     plt.sca(ax1)
     return PlotPanelInfo(ax1, axes, extent)
 
 
 
+def hour_offset(lons):
+    lon0 = lon_avg(lons)
+    return (lon0 / 180) * 12
+
+
+def add_shades(ax, timestamp, lon):
+    min_dt, max_dt = [mdates.num2date(x).replace(tzinfo=None) for x in ax.get_xlim()]
+
+    timestamp = pd.to_datetime(asarray(timestamp)).to_pydatetime()
+    lon = asarray(lon)
+
+    mask = [(timestamp[0] <= x <= 
+            (timestamp[0] + DT.timedelta(hours=1))) for x in timestamp]
+    
+    (min_dt <= timestamp) & (timestamp <= min_dt + DT.timedelta(hours=1))
+    osh = hour_offset(lon[mask])
+    os_min_dt = min_dt + DT.timedelta(hours=osh)
+    # TODO: check this logic
+    if os_min_dt.hour < 6:
+        start = (DT.datetime(os_min_dt.year, os_min_dt.month, os_min_dt.day, tzinfo=os_min_dt.tzinfo)
+                     - DT.timedelta(hours=6 - osh))
+    else:
+        start = (DT.datetime(os_min_dt.year, os_min_dt.month, os_min_dt.day, tzinfo=os_min_dt.tzinfo) 
+                     + DT.timedelta(hours=18 - osh))
+    while start < max_dt:
+        stop = start + DT.timedelta(hours=12)
+        
+        adj_start = min_dt if (start < min_dt) else start
+        if stop > max_dt:
+            stop = max_dt
+        ax.axvspan(mdates.date2num(adj_start), mdates.date2num(stop), alpha=0.1, color='#888888')
+        start += DT.timedelta(hours=24)
+        mask = (start <= timestamp) & (timestamp <= start + DT.timedelta(hours=1))
+        if mask.sum():
+            new_osh = hour_offset(lon[mask])
+            start -= DT.timedelta(hours=new_osh - osh)
+            osh = new_osh
+
+            
+        ax.set_xlim(min_dt, max_dt)
+
 
 
 def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots=(),
                         padding_degrees=None, extent=None, map_ratio=5,
                         annotations=3, annotation_y_loc=1.0, 
-                        annotation_y_align='bottom', annotation_axes_ndx=0):
+                        annotation_y_align='bottom', annotation_axes_ndx=0, add_night_shades=False):
     """
 
     """
@@ -170,11 +214,11 @@ def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots=(),
                       padding_degrees=padding_degrees, extent=extent, 
                       map_ratio=map_ratio, annotations=annotations, 
                       annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
-                      annotation_axes_ndx=annotation_axes_ndx)
+                      annotation_axes_ndx=annotation_axes_ndx, add_night_shades=add_night_shades)
 
 
 def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None, 
-                        padding_degrees=None, extent=None, map_ratio=5):
+                        padding_degrees=None, extent=None, map_ratio=5, add_night_shades=False):
 
     if track_id is None:
         track_id = np.ones_like(lon)
@@ -189,4 +233,4 @@ def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None,
     return plot_panel(timestamp, lon, lat, track_id, plots,
                       prop_map, break_on_change=False,
                       padding_degrees=padding_degrees, extent=extent, 
-                      map_ratio=map_ratio, annotations=0)
+                      map_ratio=map_ratio, annotations=0, add_night_shades=add_night_shades)
