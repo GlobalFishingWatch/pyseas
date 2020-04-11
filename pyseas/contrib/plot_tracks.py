@@ -164,6 +164,8 @@ def hour_offset(lons):
     return (lon0 / 180) * 12
 
 
+# TODO: Clean up and document
+# TODO: stylize and add options to pass in color and alpha
 def add_shades(ax, timestamp, lon):
     min_dt, max_dt = [mdates.num2date(x).replace(tzinfo=None) for x in ax.get_xlim()]
 

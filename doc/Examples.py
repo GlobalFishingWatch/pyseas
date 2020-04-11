@@ -354,10 +354,14 @@ fishing_props = styles.create_plot_panel_props({
      })
 
 with pyseas.context(pyseas.styles.light):
-    with pyseas.context({'pyseas.map.fishingprops' : fishing_props}):
+#     with pyseas.context({'pyseas.map.fishingprops' : fishing_props}):
         for ssvid in ssvids:
 
-            dfn = fishing_df[fishing_df.ssvid == ssvid]
+            dfn = fishing_df[(fishing_df.ssvid == ssvid) &
+                             (fishing_df.timestamp > DT.datetime(2018, 1, 4, 
+                                            tzinfo=fishing_df.timestamp[0].tzinfo)) &
+                             (fishing_df.timestamp < DT.datetime(2018, 1, 17, 
+                                            tzinfo=fishing_df.timestamp[0].tzinfo))]
             dfn = dfn.sort_values(by='timestamp')
             is_fishing = (dfn.nnet_score > 0.5)      
 
@@ -374,7 +378,8 @@ with pyseas.context(pyseas.styles.light):
                                      annotations=7,
                                     annotation_y_loc=1,
                                     annotation_y_align='bottom',
-                                    annotation_axes_ndx=0)
+                                    annotation_axes_ndx=0,
+                                    add_night_shades=True)
 
             maps.add_scalebar(info.map_ax, info.extent)
 
@@ -383,6 +388,8 @@ with pyseas.context(pyseas.styles.light):
 
             plt.show()
 # -
+
+88 / 85
 
 # ### Basic annotations can be added that match map to time axis
 
@@ -457,3 +464,85 @@ with pyseas.context(styles.dark):
 # import rendered
 # rendered.publish_to_github('./Examples.ipynb', 
 #                            'pyseas/doc', action='push')
+
+# +
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+# %matplotlib inline
+
+from pyseas.contrib import plot_tracks
+from pyseas import maps
+import pyseas.styles
+
+#
+# Function to plot tracks
+#
+def plot_example_tracks(tracks, num_examples=5, window_size=5):
+    with pyseas.context(pyseas.styles.light):
+        
+        ssvids = tracks.groupby(['ssvid'])['nnet_score'].sum().sort_values(ascending=False)
+        ssvids = ssvids.index[0 : num_examples]
+        for ssvid in ssvids:
+            print("MMSI - " + ssvid)
+            dfn = tracks[tracks.ssvid == ssvid]
+            if len(dfn) < 10:
+                print("Track too short.\n")
+
+            else:    
+                dfn = dfn.sort_values(by='timestamp').set_index('timestamp')
+                dfn['nnet_score'] = dfn['nnet_score'].fillna(0)
+                max_idx = dfn['nnet_score'].rolling(f'{window_size}d').sum().idxmax()
+                dfn = dfn[(dfn.index > max_idx + pd.DateOffset(-window_size)) &
+                          (dfn.index <= max_idx)].reset_index()
+
+                if len(dfn) <= 1:
+                    print("Track too short.\n")
+                else:
+                    is_fishing = (dfn.nnet_score > 0.5) 
+                    fig = plt.figure(figsize=(12, 12), dpi=300)
+                    info = plot_tracks.plot_fishing_panel(
+                                dfn.timestamp, dfn.lon, dfn.lat, is_fishing,
+                         plots=[
+                            {'label' : 'speed (knots)', 
+                             'values' : dfn.set_index('timestamp')\
+                                         .speed_knots.rolling('1h').mean(),
+                             'min_y' : 0, 'max_y' : 15},
+                            {'label' : 'course (sinus)', 
+                             'values' :  dfn.set_index('timestamp')\
+                                         .course.apply(lambda x: x if (x>0)&(x<360) else np.nan)\
+                                         .apply(lambda x: np.sin(x * np.pi / 180.))\
+                                         .rolling('2h').mean(),
+                             'min_y' : -1.2, 'max_y': 1.2},
+                            {'label' : 'depth (km)', 
+                             'values' : -dfn.elevation_m / 1000,
+                             'min_y' : 0, 'invert_yaxis' : True},
+                            {'label' : 'from shore (km)', 
+                             'values' : dfn.distance_from_shore_m / 1000.,
+                             'min_y' : 0}
+                         ],
+                         map_ratio=5, annotations=0, add_night_shades=True) 
+
+                    maps.add_scalebar(info.map_ax, info.extent)
+                    maps.add_figure_background(fig)
+                    gl = maps.add_gridlines()
+                    maps.add_gridlabels(gl)
+
+                    plt.show()
+                plt.close()
+                
+#
+# This query pulls the result positions of the selected vessels.
+# See the bottom of the notebook for the query used to prepare this table. 
+#
+q = f"""
+SELECT *
+FROM `vessel_database_staging.example_tracks_fishing_classes_v20200301`
+WHERE ssvid = "273890100"
+"""
+# tracks = pd.read_gbq(q, project_id='world-fishing-827', dialect='standard')
+reload()
+plot_example_tracks(tracks)
+# -
+
+

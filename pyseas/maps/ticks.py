@@ -66,6 +66,8 @@ def _ticks(ax, ticks, tick_location, line_constructor, tick_extractor):
         if not locs:
             tick = [None]
         else:
+            if isinstance(locs, sgeom.MultiPoint):
+                locs = locs.geoms[0]
             tick = tick_extractor(locs.xy)
         _ticks.append(tick[0])
     # Remove ticks that aren't visible:    
