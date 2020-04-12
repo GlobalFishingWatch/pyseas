@@ -154,37 +154,17 @@ light = {
          'pyseas.logo.alpha' : _props.light.logo.alpha,
          }
 
-
-chart = {
-         'grid.alpha': 0.5,
-         'grid.color': '#b0b0b0',
-         'grid.linestyle': '-',
-         'grid.linewidth': 0.4,
-         'axes.prop_cycle' : _chart_cycler,
-         'font.family' : 'Roboto', 
-         'font.weight' : 'medium',
-         'xtick.color' : '#848b9b',
-         'ytick.color' : '#848b9b',
-         'xtick.labelsize' : 11,
-         'axes.labelsize' : 11,
-         'axes.labelcolor' : '#848b9b',
-         'axes.labelweight' : 'medium',
-         'axes.titleweight' : 'medium',
-         'axes.edgecolor' : '#848b9b',
-         'figure.titleweight' : 'medium',
-         'text.color' : _props.chart.title.color,
-         'pyseas.fig.background' : _props.chart.background.color,
-         'pyseas.border.color' : _props.chart.axes.color,
-         'pyseas.border.linewidth' : 0.4,
-         'pyseas.logo.name' : _props.light.logo.name,
-         'pyseas.logo.base_scale' : _props.light.logo.base_scale,
-         'pyseas.logo.alpha' : _props.light.logo.alpha,
-         }
+panel = light.copy()
+panel.update({
+    'pyseas.nightshade.color' : _props.chart.nightshade.color,
+    'pyseas.nightshade.alpha' : _props.chart.nightshade.alpha,
+})
 
 
-for k in dark:
+
+for k in panel:
     if k.startswith('pyseas.'):
         _plt.rcParams.validate[k] = _rcsetup.validate_any # No validation for now
-        _plt.rcParams[k] = dark[k]
+        _plt.rcParams[k] = panel[k]
 del k
 

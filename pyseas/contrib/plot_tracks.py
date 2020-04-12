@@ -15,6 +15,7 @@ import matplotlib.dates as mdates
 
 from ..maps import core as maps
 from .. import styles
+from .. import props
 from ..util import asarray, lon_avg
 
 DEFAULT_PADDING_DEG = 0.1
@@ -165,8 +166,11 @@ def hour_offset(lons):
 
 
 # TODO: Clean up and document
-# TODO: stylize and add options to pass in color and alpha
-def add_shades(ax, timestamp, lon):
+def add_shades(ax, timestamp, lon, color=None, alpha=None):
+    if color is None:
+        color = plt.rcParams.get('pyseas.nightshade.color', props.chart.nightshade.color)
+    if alpha is None:
+        alpha = alpha=plt.rcParams.get('pyseas.nightshade.alpha', props.chart.nightshade.alpha)
     min_dt, max_dt = [mdates.num2date(x).replace(tzinfo=None) for x in ax.get_xlim()]
 
     timestamp = pd.to_datetime(asarray(timestamp)).to_pydatetime()
@@ -191,12 +195,16 @@ def add_shades(ax, timestamp, lon):
         adj_start = min_dt if (start < min_dt) else start
         if stop > max_dt:
             stop = max_dt
-        ax.axvspan(mdates.date2num(adj_start), mdates.date2num(stop), alpha=0.1, color='#888888')
+        ax.axvspan(mdates.date2num(adj_start), mdates.date2num(stop), 
+                        alpha=alpha, facecolor=color, edgecolor='none')
         start += DT.timedelta(hours=24)
         mask = (start <= timestamp) & (timestamp <= start + DT.timedelta(hours=1))
         if mask.sum():
             new_osh = hour_offset(lon[mask])
-            start -= DT.timedelta(hours=new_osh - osh)
+            delta = new_osh - osh
+            # Chose shorter delta if possible
+            delta = (delta + 12) % 24 - 12
+            start -= DT.timedelta(hours=delta)
             osh = new_osh
 
             

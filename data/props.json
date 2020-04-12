@@ -41,30 +41,24 @@
         "projection_label" : {"size" : 9}
     },
 
+
     "fishing" : {
         "fishing" : {"color" : "#DD2222", "width" : 1.0, "alpha" : 0.8},
         "non_fishing" : {"color" : "#559999", "width" : 1.0, "alpha" : 0.8},
         "undefined" : {"color" : "#888888", "width" : 0.1, "alpha" : 0.8}
     },
 
-    "chart" : {
-        "title" : {"color" : "#363c4c"},
-        "subtitle" : {"color" : "#363c4c"},
+   "chart" : {
 
-        "legend" : {"color" : "#848b9b"},
-        "axis_labels" : {"color" : "#848b9b"},
-
-        "axes" : {"color" : "#e6e7eb"},
-        "other_data" : {"color" : "#e6e7eb"},
-
-        "background" : {"color" : "#f7f7f7"},
+        "nightshade" : {"color" : "#888888", "alpha" : 0.1},
 
         "colors" :  
-            {"100_percent": ["#204280", "#ee6256", "#ad2176", "#f8ba47", "#742980", "#f68d4b", "#d73b68", "#ebe55d"], 
-              "80_percent": ["#4b5b91", "#f1816f", "#b9558a", "#f9c66d", "#875092", "#f8a26b", "#dd677e", "#eee981"], 
-              "60_percent": ["#7277a4", "#f59e8b", "#c77ca1", "#fbd38f", "#9d74a6", "#fbb78a", "#e48b97", "#f2eda0"], 
-              "40_percent": ["#989abc", "#f8bdad", "#d6a2bb", "#fde0b1", "#9d74a6", "#fdceac", "#e48b97", "#f5f3bf"], 
-              "20_percent": ["#c5c6d9", "#fcdcd1", "#e7cdda", "#feeed5", "#d6c7db", "#fee4d1", "#d73568", "#f9f8dd"]}
-    }
+           {"100_percent": ["#204280", "#ee6256", "#ad2176", "#f8ba47", "#742980", "#f68d4b", "#d73b68", "#ebe55d"], 
+             "80_percent": ["#4b5b91", "#f1816f", "#b9558a", "#f9c66d", "#875092", "#f8a26b", "#dd677e", "#eee981"], 
+             "60_percent": ["#7277a4", "#f59e8b", "#c77ca1", "#fbd38f", "#9d74a6", "#fbb78a", "#e48b97", "#f2eda0"], 
+             "40_percent": ["#989abc", "#f8bdad", "#d6a2bb", "#fde0b1", "#9d74a6", "#fdceac", "#e48b97", "#f5f3bf"], 
+             "20_percent": ["#c5c6d9", "#fcdcd1", "#e7cdda", "#feeed5", "#d6c7db", "#fee4d1", "#d73568", "#f9f8dd"]}
+     }
+
 }
 

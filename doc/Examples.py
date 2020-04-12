@@ -474,13 +474,18 @@ import matplotlib.pyplot as plt
 from pyseas.contrib import plot_tracks
 from pyseas import maps
 import pyseas.styles
-
+reload()
 #
 # Function to plot tracks
 #
+context = pyseas.styles.panel.copy()
+context.update({
+    'pyseas.nightshade.color' : '#000088'
+}
+)
+
 def plot_example_tracks(tracks, num_examples=5, window_size=5):
-    with pyseas.context(pyseas.styles.light):
-        
+    with pyseas.context(context):
         ssvids = tracks.groupby(['ssvid'])['nnet_score'].sum().sort_values(ascending=False)
         ssvids = ssvids.index[0 : num_examples]
         for ssvid in ssvids:
