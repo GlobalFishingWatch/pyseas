@@ -160,6 +160,7 @@ with pyseas.context(pyseas.styles.light):
 
 
 
+
 # ## Predefined Regional Styles
 
 reload()
@@ -246,7 +247,7 @@ fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=1, vmax=1000)
 with plt.rc_context(styles.dark):
     ax, im, cb = maps.plot_raster_w_colorbar(raster * (60 * 60), 
-                                       "seconds of presence per km2",
+                                       r"seconds per $\mathregular{km^2}$ ",
                                         projection='country.indonesia',
                                        cmap='presence',
                                       norm=norm,
@@ -255,7 +256,7 @@ with plt.rc_context(styles.dark):
                                       loc='top')
     maps.add_countries()
     maps.add_eezs()
-    ax.set_title('Seismic Vessels Near Indonesia', pad=40)
+    ax.set_title('Seismic Vessel Presence Near Indonesia', pad=40)
     maps.add_figure_background()
     gl = maps.add_gridlines()
     maps.add_gridlabels(gl)
@@ -275,7 +276,7 @@ import datetime as DT
 
 df = msgs[(msgs.ssvid == "413461490")]
 reload()
-with pyseas.context(styles.light):
+with pyseas.context(styles.panel):
     fig = plt.figure(figsize=(10, 10))
     info = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat,
                                                  df.seg_id)
@@ -353,7 +354,7 @@ fishing_props = styles.create_plot_panel_props({
      1 : {'color' : 'green', 'width' :1, 'alpha' : 0.8}
      })
 
-with pyseas.context(pyseas.styles.light):
+with pyseas.context(pyseas.styles.panel):
 #     with pyseas.context({'pyseas.map.fishingprops' : fishing_props}):
         for ssvid in ssvids:
 
@@ -381,7 +382,7 @@ with pyseas.context(pyseas.styles.light):
                                     annotation_axes_ndx=0,
                                     add_night_shades=True)
 
-            maps.add_scalebar(info.map_ax, info.extent)
+            maps.add_scalebar()
 
             plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
                        facecolor=plt.rcParams['pyseas.fig.background'])
@@ -414,7 +415,7 @@ def hour_offset(lons):
     lon0 = lon_avg(lons)
     return (lon0 / 180) * 12
 
-with pyseas.context(pyseas.styles.light):
+with pyseas.context(pyseas.styles.panel):
 #     with pyseas.context(props):
         for ssvid in ssvids:
 
@@ -435,7 +436,7 @@ with pyseas.context(pyseas.styles.light):
                                                  annotations=7,
                                                  add_night_shades=True)
 
-            maps.add_scalebar(info.map_ax, info.extent)
+            maps.add_scalebar()
                 
             maps.add_gridlines()
             maps.add_gridlabels()
@@ -481,8 +482,10 @@ reload()
 context = pyseas.styles.panel.copy()
 context.update({
     'pyseas.nightshade.color' : '#000088'
-}
-)
+})
+# with pyseas.context(context):
+#     ...
+
 
 def plot_example_tracks(tracks, num_examples=5, window_size=5):
     with pyseas.context(context):
@@ -528,7 +531,7 @@ def plot_example_tracks(tracks, num_examples=5, window_size=5):
                          ],
                          map_ratio=5, annotations=0, add_night_shades=True) 
 
-                    maps.add_scalebar(info.map_ax, info.extent)
+                    maps.add_scalebar()
                     maps.add_figure_background(fig)
                     gl = maps.add_gridlines()
                     maps.add_gridlabels(gl)
@@ -545,9 +548,67 @@ SELECT *
 FROM `vessel_database_staging.example_tracks_fishing_classes_v20200301`
 WHERE ssvid = "273890100"
 """
-# tracks = pd.read_gbq(q, project_id='world-fishing-827', dialect='standard')
+tracks = pd.read_gbq(q, project_id='world-fishing-827', dialect='standard')
 reload()
 plot_example_tracks(tracks)
+# +
+reload()
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from pyseas.contrib import plot_tracks
+from pyseas import maps
+import pyseas.styles
+
+
+#
+# Function to plot tracks
+#
+def plot_review_tracks(df, window_size=7):
+    with pyseas.context(pyseas.styles.light):
+
+        ###########################
+        # Vessel track for the year
+        ###########################
+        print("\nVESSEL TRACK FOR ONE YEAR")
+        dfn = df[:]
+    
+        if len(dfn) < 10:
+            print("Track too short.\n")
+
+        else:    
+            dfn = dfn.sort_values(by='timestamp')
+            dfn['nnet_score'] = dfn['nnet_score'].fillna(-1)
+
+            if len(dfn) <= 1:
+                print("Track too short.\n")
+            else:
+                is_fishing = (dfn.nnet_score > 0.5) 
+                fig = plt.figure(figsize=(12, 12), dpi=300)
+                info = plot_tracks.plot_fishing_panel(
+                    dfn.timestamp, dfn.lon, dfn.lat, dfn.nnet_score, map_ratio=5)
+
+                maps.add_scalebar(info.map_ax, info.extent, skip_when_extent_large=True)
+                maps.add_figure_background(fig)
+                gl = maps.add_gridlines()
+
+                plt.show()
+            plt.close()
+
+q = """
+SELECT *
+FROM `scratch_jaeyoon.positions_of_review_vessels_v20200401`
+WHERE vessel_class_reg = "drifting_longlines"
+  AND ssvid = "412331053"
+"""
+test = pd.read_gbq(q, project_id='world-fishing-827', dialect = 'standard')
+
+#
+# Display tracks for vessels to review
+#
+plot_review_tracks(test.sort_values('timestamp')[:13665])
 # -
+
 
 
