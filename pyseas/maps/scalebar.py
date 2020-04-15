@@ -2,6 +2,8 @@ import numpy as np
 import cartopy.crs as ccrs
 import cartopy.geodesic as cgeo
 import matplotlib.pyplot as plt
+import warnings
+from . import core
 
 
 def _axes_to_lonlat(ax, coords):
@@ -70,9 +72,11 @@ def _distance_along_line(start, end, distance, dist_func, tol):
 
     while not np.isclose(dist_func(start, right), distance, rtol=tol):
         midpoint = (left + right) / 2
-
         # If midpoint is too close, search in second half.
-        if dist_func(start, midpoint) < distance:
+        current_distance = dist_func(start, midpoint) 
+        if np.isnan(current_distance):
+            raise ValueError('NaN encountered when calculating scalebar length. `extent` may be too large')
+        if current_distance < distance:
             left = midpoint
         # Otherwise the midpoint is too far, so search in first half.
         else:
@@ -181,10 +185,22 @@ def scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
 # and is based on the power of 10 (in kilometers) e.g. 0.1km, 1km, 10km...
 KM_PER_DEG_LAT = 110.574
 KM_PER_DEG_LON0 = 111.320
+# Above about this, making a scalebar stops making sense and may fail
+MAX_SENSIBLE_EXTENT = 25.0
 
-def add_scalebar(ax, extent, location=(0.05, 0.05), color=None):
+def add_scalebar(ax=None, extent=None, location=(0.05, 0.05), color=None, skip_when_extent_large=False):
+    if ax is None:
+        ax = plt.gca()
+    if extent is None:
+        extent = core._last_extent
     lat_extent = (extent[3] - extent[2]) / 2.0
     lon_extent = (extent[1] - extent[0]) / 2.0
+
+    if lat_extent > MAX_SENSIBLE_EXTENT or lon_extent > MAX_SENSIBLE_EXTENT:
+        if skip_when_extent_large:
+            return ax
+        else:
+            warnings.warn('extent is large enough that scalebar may be inaccurate')
     
     if (lat_extent > 0) & (lon_extent > 0):
         #
