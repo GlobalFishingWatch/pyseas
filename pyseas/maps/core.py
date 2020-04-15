@@ -421,6 +421,7 @@ def add_gridlabels(gl=None, lons=None, lats=None, ax=None, fig=None,
 
 
 _last_projection = None
+_last_extent = None
 
 def create_map(subplot=(1, 1, 1), 
                 projection='global.default', 
@@ -441,7 +442,7 @@ def create_map(subplot=(1, 1, 1),
     -------
     GeoAxes
     """
-    global _last_projection
+    global _last_projection, _last_extent
     if isinstance(projection, str):
         if extent is None:
             extent = get_extent(projection)
@@ -457,6 +458,7 @@ def create_map(subplot=(1, 1, 1),
     ax = plt.subplot(*subplot, projection=projection)
     ax.background_patch.set_facecolor(bg_color)
     if extent is not None:
+        _last_extent = extent
         ax.set_extent(extent, crs=identity)
     if hide_axes:
         ax.axes.get_xaxis().set_visible(False)

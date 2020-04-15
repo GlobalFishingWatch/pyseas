@@ -20,7 +20,7 @@ from ..util import asarray, lon_avg
 
 DEFAULT_PADDING_DEG = 0.1
 
-
+# TODO: when lat is large return EqualEarth and full_extent
 def find_projection(lons, lats, delta_scale=0.2, abs_delta=0.1, percentile=99.9):
     assert len(lons) == len(lats), (len(lons), len(lats))
     lonm0 = lon_avg(lons)
@@ -106,7 +106,7 @@ def plot_panel(timestamp, lon, lat, kind, plots,
     proj, extent, descr = find_projection(lon, lat)
     gs = gridspec.GridSpec(1 + len(plots), 1, height_ratios=[map_ratio] + [1] * len(plots))
 
-    ax1 = maps.create_map(gs[0], projection=proj)
+    ax1 = maps.create_map(gs[0], projection=proj, extent=extent)
     ax1.set_anchor("S")
 
     maps.add_land(ax1)
@@ -115,8 +115,6 @@ def plot_panel(timestamp, lon, lat, kind, plots,
     maps.add_plot(lon, lat, kind, ax=ax1, 
                   props=prop_map, break_on_change=True)
     
-    ax1.set_extent(extent, crs=maps.identity)
-
     axes = []
     for i, d in enumerate(plots):
         ax = add_subpanel(gs[i + 1], timestamp, asarray(d['values']), kind, d['label'], 
@@ -139,7 +137,6 @@ def plot_panel(timestamp, lon, lat, kind, plots,
         time_as_num = mdates.date2num(timestamp[indices[0]])
         display_coords = axes[annotation_axes_ndx].transAxes.transform([time_as_num, annotation_y_loc])
         _, y_coord = axes[annotation_axes_ndx].transData.inverted().transform(display_coords)
-        # axn.tick_params(axis='x', direction='inout')
         mapprops = plt.rcParams.get('pyseas.map.annotationmapprops', styles._annotationmapprops)
         plotprops = plt.rcParams.get('pyseas.map.annotationplotprops', styles._annotationmapprops)
         for i, ndx in enumerate(indices):
