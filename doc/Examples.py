@@ -589,20 +589,20 @@ def plot_review_tracks(df, window_size=7):
                 info = plot_tracks.plot_fishing_panel(
                     dfn.timestamp, dfn.lon, dfn.lat, dfn.nnet_score, map_ratio=5)
 
-                maps.add_scalebar(info.map_ax, info.extent, skip_when_extent_large=True)
+                maps.add_scalebar(skip_when_extent_large=True)
                 maps.add_figure_background(fig)
                 gl = maps.add_gridlines()
 
                 plt.show()
             plt.close()
 
-q = """
-SELECT *
-FROM `scratch_jaeyoon.positions_of_review_vessels_v20200401`
-WHERE vessel_class_reg = "drifting_longlines"
-  AND ssvid = "412331053"
-"""
-test = pd.read_gbq(q, project_id='world-fishing-827', dialect = 'standard')
+# q = """
+# SELECT *
+# FROM `scratch_jaeyoon.positions_of_review_vessels_v20200401`
+# WHERE vessel_class_reg = "drifting_longlines"
+#   AND ssvid = "412331053"
+# """
+# test = pd.read_gbq(q, project_id='world-fishing-827', dialect = 'standard')
 
 #
 # Display tracks for vessels to review

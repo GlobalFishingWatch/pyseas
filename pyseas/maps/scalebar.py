@@ -187,12 +187,18 @@ KM_PER_DEG_LAT = 110.574
 KM_PER_DEG_LON0 = 111.320
 # Above about this, making a scalebar stops making sense and may fail
 MAX_SENSIBLE_EXTENT = 25.0
+NoValue = object()
 
-def add_scalebar(ax=None, extent=None, location=(0.05, 0.05), color=None, skip_when_extent_large=False):
+def add_scalebar(ax=None, extent=NoValue, location=(0.05, 0.05), color=None, skip_when_extent_large=False):
     if ax is None:
         ax = plt.gca()
-    if extent is None:
+    if extent is NoValue:
         extent = core._last_extent
+    if extent is None:
+        if skip_when_extent_large:
+            return ax
+        else:
+            raise ValueError('cannot create scalebar for `None` extent')
     lat_extent = (extent[3] - extent[2]) / 2.0
     lon_extent = (extent[1] - extent[0]) / 2.0
 
