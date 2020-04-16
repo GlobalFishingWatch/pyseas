@@ -124,7 +124,7 @@ def plot_panel(timestamp, lon, lat, kind, plots,
     maps.add_countries(ax1)
     
     maps.add_plot(lon, lat, kind, ax=ax1, 
-                  props=prop_map, break_on_change=True)
+                  props=prop_map, break_on_change=break_on_change)
     
     axes = []
     for i, d in enumerate(plots):

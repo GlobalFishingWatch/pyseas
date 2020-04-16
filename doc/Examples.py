@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mpcolors
 import skimage.io
 import pandas as pd
+import cartopy
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
@@ -410,10 +411,47 @@ props = {'pyseas.map.annotationmapprops' : dict(
 
         }
 
+with pyseas.context(pyseas.styles.panel):
+#     with pyseas.context(props):
+        for ssvid in ssvids:
 
-def hour_offset(lons):
-    lon0 = lon_avg(lons)
-    return (lon0 / 180) * 12
+            dfn = fishing_df[fishing_df.ssvid == ssvid]
+            dfn = dfn.sort_values(by='timestamp')
+            is_fishing = (dfn.nnet_score > 0.5)      
+
+            fig = plt.figure(figsize=(12, 12))
+            info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
+                                     dfn.lat, is_fishing,
+                                     plots = [
+                    {'label' : 'speed (knots)', 'values' : medfilt(dfn.speed.values,11), 
+                        'min_y' : 0},
+                    {'label' : 'depth (km)', 'values' : -dfn.elevation_m / 1000,
+                        'min_y' : 0, 'invert_yaxis' : True}, 
+                                     ],
+                                     map_ratio=6,
+                                     annotations=7,
+                                     add_night_shades=True)
+
+            maps.add_scalebar()
+                
+            maps.add_gridlines()
+            maps.add_gridlabels()
+
+            plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
+                       facecolor=plt.rcParams['pyseas.fig.background'])
+
+            plt.show()
+# -
+
+# A ProjectionInfo instance can be passed in rather than having plot_tracks compute
+# a suitable projection
+
+# +
+
+projinfo = plot_tracks.ProjectionInfo(
+    projection=cartopy.crs.EqualEarth(central_longitude=160),
+    extent=None, # For EqualEarth or other full globe projection use None, otherwise set appropriately
+    description='EqualEarth * 160°E')
 
 with pyseas.context(pyseas.styles.panel):
 #     with pyseas.context(props):
@@ -433,10 +471,11 @@ with pyseas.context(pyseas.styles.panel):
                         'min_y' : 0, 'invert_yaxis' : True}, 
                                      ],
                                      map_ratio=6,
-                                                 annotations=7,
-                                                 add_night_shades=True)
+                                     annotations=0,
+                                     add_night_shades=True,
+                                     projection_info=projinfo)
 
-            maps.add_scalebar()
+            maps.add_scalebar(skip_when_extent_large=True)
                 
             maps.add_gridlines()
             maps.add_gridlabels()
@@ -447,168 +486,9 @@ with pyseas.context(pyseas.styles.panel):
             plt.show()
 # -
 
-reload()
-with pyseas.context(styles.dark):
-    fig = plt.figure(figsize=(10, 10))
-    maps.create_map(projection='regional.south_pacific')
-    maps.add_raster(img[::10, ::10], cmap='presence')
-    maps.add_land()
-    maps.add_countries()
-    maps.add_logo(loc='upper left')
-#     plt.savefig('/Users/timothyhochberg/Desktop/test_logo.png', dpi=300,
-#                            facecolor=plt.rcParams['pyseas.fig.background'])
-    plt.show()
-
 # ## Publish
 
 # +
 # import rendered
 # rendered.publish_to_github('./Examples.ipynb', 
 #                            'pyseas/doc', action='push')
-
-# +
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-# %matplotlib inline
-
-from pyseas.contrib import plot_tracks
-from pyseas import maps
-import pyseas.styles
-reload()
-#
-# Function to plot tracks
-#
-context = pyseas.styles.panel.copy()
-context.update({
-    'pyseas.nightshade.color' : '#000088'
-})
-# with pyseas.context(context):
-#     ...
-
-
-def plot_example_tracks(tracks, num_examples=5, window_size=5):
-    with pyseas.context(context):
-        ssvids = tracks.groupby(['ssvid'])['nnet_score'].sum().sort_values(ascending=False)
-        ssvids = ssvids.index[0 : num_examples]
-        for ssvid in ssvids:
-            print("MMSI - " + ssvid)
-            dfn = tracks[tracks.ssvid == ssvid]
-            if len(dfn) < 10:
-                print("Track too short.\n")
-
-            else:    
-                dfn = dfn.sort_values(by='timestamp').set_index('timestamp')
-                dfn['nnet_score'] = dfn['nnet_score'].fillna(0)
-                max_idx = dfn['nnet_score'].rolling(f'{window_size}d').sum().idxmax()
-                dfn = dfn[(dfn.index > max_idx + pd.DateOffset(-window_size)) &
-                          (dfn.index <= max_idx)].reset_index()
-
-                if len(dfn) <= 1:
-                    print("Track too short.\n")
-                else:
-                    is_fishing = (dfn.nnet_score > 0.5) 
-                    fig = plt.figure(figsize=(12, 12), dpi=300)
-                    info = plot_tracks.plot_fishing_panel(
-                                dfn.timestamp, dfn.lon, dfn.lat, is_fishing,
-                         plots=[
-                            {'label' : 'speed (knots)', 
-                             'values' : dfn.set_index('timestamp')\
-                                         .speed_knots.rolling('1h').mean(),
-                             'min_y' : 0, 'max_y' : 15},
-                            {'label' : 'course (sinus)', 
-                             'values' :  dfn.set_index('timestamp')\
-                                         .course.apply(lambda x: x if (x>0)&(x<360) else np.nan)\
-                                         .apply(lambda x: np.sin(x * np.pi / 180.))\
-                                         .rolling('2h').mean(),
-                             'min_y' : -1.2, 'max_y': 1.2},
-                            {'label' : 'depth (km)', 
-                             'values' : -dfn.elevation_m / 1000,
-                             'min_y' : 0, 'invert_yaxis' : True},
-                            {'label' : 'from shore (km)', 
-                             'values' : dfn.distance_from_shore_m / 1000.,
-                             'min_y' : 0}
-                         ],
-                         map_ratio=5, annotations=0, add_night_shades=True) 
-
-                    maps.add_scalebar()
-                    maps.add_figure_background(fig)
-                    gl = maps.add_gridlines()
-                    maps.add_gridlabels(gl)
-
-                    plt.show()
-                plt.close()
-                
-#
-# This query pulls the result positions of the selected vessels.
-# See the bottom of the notebook for the query used to prepare this table. 
-#
-q = f"""
-SELECT *
-FROM `vessel_database_staging.example_tracks_fishing_classes_v20200301`
-WHERE ssvid = "273890100"
-"""
-tracks = pd.read_gbq(q, project_id='world-fishing-827', dialect='standard')
-reload()
-plot_example_tracks(tracks)
-# +
-reload()
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-
-from pyseas.contrib import plot_tracks
-from pyseas import maps
-import pyseas.styles
-
-
-#
-# Function to plot tracks
-#
-def plot_review_tracks(df, window_size=7):
-    with pyseas.context(pyseas.styles.light):
-
-        ###########################
-        # Vessel track for the year
-        ###########################
-        print("\nVESSEL TRACK FOR ONE YEAR")
-        dfn = df[:]
-    
-        if len(dfn) < 10:
-            print("Track too short.\n")
-
-        else:    
-            dfn = dfn.sort_values(by='timestamp')
-            dfn['nnet_score'] = dfn['nnet_score'].fillna(-1)
-
-            if len(dfn) <= 1:
-                print("Track too short.\n")
-            else:
-                is_fishing = (dfn.nnet_score > 0.5) 
-                fig = plt.figure(figsize=(12, 12), dpi=300)
-                info = plot_tracks.plot_fishing_panel(
-                    dfn.timestamp, dfn.lon, dfn.lat, dfn.nnet_score, map_ratio=5)
-
-                maps.add_scalebar(skip_when_extent_large=True)
-                maps.add_figure_background(fig)
-                gl = maps.add_gridlines()
-
-                plt.show()
-            plt.close()
-
-# q = """
-# SELECT *
-# FROM `scratch_jaeyoon.positions_of_review_vessels_v20200401`
-# WHERE vessel_class_reg = "drifting_longlines"
-#   AND ssvid = "412331053"
-# """
-# test = pd.read_gbq(q, project_id='world-fishing-827', dialect = 'standard')
-
-#
-# Display tracks for vessels to review
-#
-plot_review_tracks(test.sort_values('timestamp')[:13665])
-# -
-
-
-
