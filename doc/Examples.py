@@ -162,6 +162,12 @@ with pyseas.context(pyseas.styles.light):
 
 
 
+
+
+
+
+
+
 # ## Predefined Regional Styles
 
 reload()
@@ -451,7 +457,9 @@ with pyseas.context(pyseas.styles.panel):
 projinfo = plot_tracks.ProjectionInfo(
     projection=cartopy.crs.EqualEarth(central_longitude=160),
     extent=None, # For EqualEarth or other full globe projection use None, otherwise set appropriately
-    description='EqualEarth * 160°E')
+    description='EqualEarth * 160°E',
+    central_longitude=160,
+    central_latitude=None)
 
 with pyseas.context(pyseas.styles.panel):
 #     with pyseas.context(props):

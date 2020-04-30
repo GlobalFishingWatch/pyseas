@@ -202,7 +202,7 @@ def add_scalebar(ax=None, extent=NoValue, location=(0.05, 0.05), color=None, ski
     lat_extent = (extent[3] - extent[2]) / 2.0
     lon_extent = (extent[1] - extent[0]) / 2.0
 
-    if lat_extent > MAX_SENSIBLE_EXTENT or lon_extent > MAX_SENSIBLE_EXTENT:
+    if abs(lat_extent) > MAX_SENSIBLE_EXTENT or abs(lon_extent) > MAX_SENSIBLE_EXTENT:
         if skip_when_extent_large:
             return ax
         else:

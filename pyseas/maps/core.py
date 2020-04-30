@@ -448,8 +448,8 @@ def create_map(subplot=(1, 1, 1),
             extent = get_extent(projection)
         _last_projection = projection
         projection = get_projection(projection)
-    else:
-        _last_projection = None
+    _last_projection = projection
+    _last_extent = extent
 
     bg_color = bg_color or plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
     if not isinstance(subplot, tuple):
@@ -458,7 +458,6 @@ def create_map(subplot=(1, 1, 1),
     ax = plt.subplot(*subplot, projection=projection)
     ax.background_patch.set_facecolor(bg_color)
     if extent is not None:
-        _last_extent = extent
         ax.set_extent(extent, crs=identity)
     if hide_axes:
         ax.axes.get_xaxis().set_visible(False)

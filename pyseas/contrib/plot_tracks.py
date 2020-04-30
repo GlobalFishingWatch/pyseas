@@ -21,7 +21,8 @@ from ..util import asarray, lon_avg
 DEFAULT_PADDING_DEG = 0.1
 MAX_LAMBERT_EXTENT = 90
 
-ProjectionInfo = namedtuple('ProjectionInfo', ['projection', 'extent', 'description'])
+ProjectionInfo = namedtuple('ProjectionInfo', ['projection', 'extent', 'description',
+                            'central_longitude', 'central_latitude'])
 
 
 def find_projection(lons, lats, delta_scale=0.2, abs_delta=0.1, percentile=99.9):
@@ -45,10 +46,12 @@ def find_projection(lons, lats, delta_scale=0.2, abs_delta=0.1, percentile=99.9)
         description = "Lambert azimuthal equal area @{},{}".format(lonstr, latstr)
     else:
         extent = None
+        latm = None
         projection = cartopy.crs.EqualEarth(central_longitude=lonm)
         lonstr = ("{}°E" if (lonm >= 0) else "{}°W").format(int(round(abs(lonm))))
         description = "EqualEarth @{}".format(lonstr,)
-    return ProjectionInfo(projection, extent, description)
+    return ProjectionInfo(projection, extent, description, 
+            central_longitude=lonm, central_latitude=latm)
 
 
 def add_subpanel(gs, timestamp, y, kind, label, prop_map, break_on_change, miny=None, maxy=None, 
@@ -100,24 +103,22 @@ PlotPanelInfo = namedtuple('PlotFishingPanelInfo',
 
 def plot_panel(timestamp, lon, lat, kind, plots, 
                 prop_map, break_on_change,
-                padding_degrees=None, extent=None, map_ratio=5,
+                map_ratio=5,
                 annotations=3, annotation_y_loc=1.0, annotation_y_align='bottom',
-                annotation_axes_ndx=0, add_night_shades=False, projection_info=None):
+                annotation_axes_ndx=0, add_night_shades=False, projection_info=None,
+                shift_by_cent_lon={'longitude'}):
     """
 
     """
     timestamp, lon, lat, kind = [asarray(x) for x in 
                                     (timestamp, lon, lat, kind)]
-    assert padding_degrees is None or extent is None
-    if padding_degrees is None:
-        padding_degrees = DEFAULT_PADDING_DEG
         
     if projection_info is None:
         projection_info = find_projection(lon, lat)
-    proj, extent, descr = projection_info
     gs = gridspec.GridSpec(1 + len(plots), 1, height_ratios=[map_ratio] + [1] * len(plots))
 
-    ax1 = maps.create_map(gs[0], projection=proj, extent=extent)
+    ax1 = maps.create_map(gs[0], projection=projection_info.projection, 
+                                 extent=projection_info.extent)
     ax1.set_anchor("S")
 
     maps.add_land(ax1)
@@ -128,7 +129,11 @@ def plot_panel(timestamp, lon, lat, kind, plots,
     
     axes = []
     for i, d in enumerate(plots):
-        ax = add_subpanel(gs[i + 1], timestamp, asarray(d['values']), kind, d['label'],
+        values = np.array(d['values'])
+        if d['label'] in shift_by_cent_lon:
+            offset = 180 - projection_info.central_longitude
+            values = (values + offset) % 360 - offset
+        ax = add_subpanel(gs[i + 1], timestamp, values, kind, d['label'],
                           prop_map=prop_map, break_on_change=break_on_change,
                           show_xticks=(i == len(plots) - 1),
                           miny = d.get('min_y'),
@@ -220,25 +225,23 @@ def add_shades(ax, timestamp, lon, color=None, alpha=None):
 
 
 def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots=(),
-                        padding_degrees=None, extent=None, map_ratio=5,
-                        annotations=3, annotation_y_loc=1.0, 
+                        map_ratio=5, annotations=3, annotation_y_loc=1.0, 
                         annotation_y_align='bottom', annotation_axes_ndx=0, add_night_shades=False,
-                        projection_info=None):
+                        projection_info=None, shift_by_cent_lon={'longitude'}):
     """
 
     """
     return plot_panel(timestamp, lon, lat, is_fishing, plots,
                       plt.rcParams['pyseas.map.fishingprops'], break_on_change=True,
-                      padding_degrees=padding_degrees, extent=extent, 
                       map_ratio=map_ratio, annotations=annotations, 
                       annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
                       annotation_axes_ndx=annotation_axes_ndx, add_night_shades=add_night_shades,
-                      projection_info=projection_info)
+                      projection_info=projection_info, shift_by_cent_lon=shift_by_cent_lon)
 
 
 def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None, 
-                        padding_degrees=None, extent=None, map_ratio=5, add_night_shades=False,
-                        projection_info=None):
+                        map_ratio=5, add_night_shades=False,
+                        projection_info=None, shift_by_cent_lon={'longitude'}):
 
     if track_id is None:
         track_id = np.ones_like(lon)
@@ -252,6 +255,5 @@ def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None,
 
     return plot_panel(timestamp, lon, lat, track_id, plots,
                       prop_map, break_on_change=False,
-                      padding_degrees=padding_degrees, extent=extent, 
                       map_ratio=map_ratio, annotations=0, add_night_shades=add_night_shades,
-                      projection_info=projection_info)
+                      projection_info=projection_info, shift_by_cent_lon=shift_by_cent_lon)
