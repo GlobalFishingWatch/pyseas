@@ -579,7 +579,6 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2):
                             size * dx / min(dy, dx)])
     inset.set_axes_locator(ip)
 
-
     # Determine the outline of the primary map in proj coordinates.
     #   First build a rectangle in primary coordinates that corresponds
     #   to the borders of the map.
@@ -602,7 +601,7 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2):
                           shapely.geometry.Polygon(outside_data_proj)).exterior.coords
 
 
-    # Build a polygon that in the shape of the ortho plot, with a whole in it in 
+    # Build a polygon that in the shape of the ortho plot, with a hole in it in 
     # the shape of the primary plot. Layer it over the ortho plot, to dim out 
     # everything but the primary plot area. `overlaycolor` is expected to have
     # alpha near 0.1, so the rest of the map shows through.
