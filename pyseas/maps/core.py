@@ -28,6 +28,8 @@ See also `contrib.plot_tracks` for examples of using `add_plot`
 from ._monkey_patch_cartopy import monkey_patch_cartopy
 import matplotlib.pyplot as plt
 import matplotlib.offsetbox as mplobox
+import matplotlib.colors as mplcolors
+from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 import cartopy
 import cartopy.feature as cfeature
 import cartopy.mpl.gridliner
@@ -465,7 +467,6 @@ def create_map(subplot=(1, 1, 1),
     ax.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])
     return ax
 
-
 def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None):
     """Add a logo to a plot
 
@@ -518,6 +519,88 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None):
     ax.add_artist(aob)
     return aob
 
+
+def add_miniglobe(ax=None, loc='upper right', size=0.2, pts_per_side=100, commands=
+    (lambda ax: add_land(ax, edgecolor='none'),)):
+    """
+
+    See: https://stackoverflow.com/questions/45527584/how-to-easily-add-a-sub-axes-with-proper-position-and-size-in-matplotlib-and-car/45538400#45538400
+        """
+    is_global = isinstance(_last_projection, str) and _last_projection.startswith('global.')
+    if is_global:
+        raise ValueError('global map not allowed for miniglobe')
+
+    if ax is None:
+        ax = plt.gca()
+
+    try:
+        # TODO: switch x and y
+        v, h = loc.split()
+        loc_y, sgn_ya, sgn_yb = {'upper' : (1, 1, 1),  'lower' : (0, 0, -1)}[v]
+        delta = 0.02 if (v == 'center') else 0.2
+        loc_x, sgn_xa, sgn_xb = {'right' : (1, 1, 1),  'left' : (0, 0, -1)}[h]
+    except:
+        raise ValueError("illegal location '{}'".format(loc))
+
+    lon0, lon1, lat0, lat1 = ax.get_extent(crs=identity)
+
+    lon = 0.5 * (lon0 + lon1)
+    lat = 0.5 * (lat0 + lat1) 
+
+    proj = projection=cartopy.crs.Orthographic(central_latitude=lat, central_longitude=lon)
+    inset = plt.axes([0, 0, 1, 1], projection=proj)
+    inset.set_global()
+    bg_color = plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
+    inset.background_patch.set_facecolor(bg_color)
+
+    x0, x1, y0, y1 = ax.get_extent()
+
+    dx = x1 - x0
+    dy = y1 - y0
+    size_scale = max(dy, dx) / min(dy, dx)
+    size *= size_scale  # TODO: rework all these calcs and simplify
+    ip_size = max(dy, dx) * size
+    x_os = 0.5 * ip_size / dx * (1 - 1 / np.sqrt(2)) / size_scale
+    y_os = 0.5 * ip_size / dy * (1 - 1 / np.sqrt(2)) / size_scale
+    ip = InsetPosition(ax, [loc_x - sgn_xa * ip_size / dx / size_scale + sgn_xb * x_os,
+                            loc_y - sgn_ya * ip_size / dy / size_scale + sgn_yb * y_os,
+                            size * dy / max(dy, dx),
+                            size * dx / max(dy, dx)])
+    inset.set_axes_locator(ip)
+
+    # Get extent in proj coordinates
+    x0, x1, y0, y1 = ax.get_extent()
+
+    for cmd in commands:
+        cmd(ax=inset)
+
+
+    # Create 
+    xs = np.r_[np.linspace(x0, x0, pts_per_side),
+                 np.linspace(x0, x1, pts_per_side),
+                 np.linspace(x1, x1, pts_per_side),
+                 np.linspace(x1, x0, pts_per_side)]
+    ys = np.r_[np.linspace(y0, y1, pts_per_side),
+                 np.linspace(y1, y1, pts_per_side),
+                 np.linspace(y1, y0, pts_per_side),
+                 np.linspace(y0, y0, pts_per_side)]
+
+    nxy = proj.transform_points(_last_projection, xs, ys)[:, :2]
+
+    outside_pixel = inset.outline_patch.get_verts()
+    inv = inset.transData.inverted()
+    outside_data = [inv.transform(xy) for xy in outside_pixel]
+    ring = shapely.geometry.Polygon(outside_data, [nxy[::-1].tolist()])
+
+
+    hlc = plt.rcParams.get('pyseas.miniglobe.overlaycolor', props.dark.miniglobe.overlaycolor)
+
+    inset.add_geometries([ring], proj,
+                       facecolor=hlc, edgecolor=plt.rcParams['axes.edgecolor'])
+    inset.outline_patch.set_linewidth(0.5)    
+    inset.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])               
+
+    return inset
 
 def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
                 bg_color=None, hide_axes=True, colorbar=None, 

@@ -102,6 +102,7 @@ dark = {
          'pyseas.border.color' : _props.dark.border.color,
          'pyseas.border.linewidth' : _props.dark.border.width,
          'pyseas.ocean.color' : _props.dark.ocean.color,
+         'pyseas.highlight.color' : _props.dark.highlight.color,
          'pyseas.eez.bordercolor' : _props.dark.eez.color,
          'pyseas.eez.linewidth' : _props.dark.eez.width,
          'pyseas.map.cmapsrc' : _cm.dark,
@@ -114,6 +115,7 @@ dark = {
          'pyseas.logo.name' : _props.dark.logo.name,
          'pyseas.logo.base_scale' : _props.dark.logo.base_scale,
          'pyseas.logo.alpha' : _props.dark.logo.alpha,
+         'pyseas.miniglobe.overlaycolor' : _props.dark.miniglobe.overlaycolor,
          }
 
 light = {
@@ -140,6 +142,7 @@ light = {
          'pyseas.border.color' : _props.light.border.color,
          'pyseas.border.linewidth' : _props.light.border.width,
          'pyseas.ocean.color' : _props.light.ocean.color,
+         'pyseas.highlight.color' : _props.light.highlight.color,
          'pyseas.eez.bordercolor' : _props.light.eez.color,
          'pyseas.eez.linewidth' : _props.light.eez.width,
          'pyseas.map.cmapsrc' : _cm.light,
@@ -152,6 +155,7 @@ light = {
          'pyseas.logo.name' : _props.light.logo.name,
          'pyseas.logo.base_scale' : _props.light.logo.base_scale,
          'pyseas.logo.alpha' : _props.light.logo.alpha,
+         'pyseas.miniglobe.overlaycolor' : _props.light.miniglobe.overlaycolor,
          }
 
 panel = light.copy()
