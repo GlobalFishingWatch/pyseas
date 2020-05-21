@@ -520,85 +520,105 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None):
     return aob
 
 
-def add_miniglobe(ax=None, loc='upper right', size=0.2, pts_per_side=100, commands=
-    (lambda ax: add_land(ax, edgecolor='none'),)):
-    """
+def add_miniglobe(ax=None, loc='upper right', size=0.2):
+    """Add a mini globe to a corner of the maps showing where the primary map is located.
+
+    Parameters
+    ----------
+    ax : Axes, optional
+    loc : str, optional
+        One of 'upper right', 'upper left', 'lower left', or 'lower right'
+    size : float, optional
+        Size of the mini globe relative to the primary map.s
+
+    Returns
+    -------
+    Axes
 
     See: https://stackoverflow.com/questions/45527584/how-to-easily-add-a-sub-axes-with-proper-position-and-size-in-matplotlib-and-car/45538400#45538400
-        """
-    is_global = isinstance(_last_projection, str) and _last_projection.startswith('global.')
-    if is_global:
-        raise ValueError('global map not allowed for miniglobe')
-
+    for the basis of this, although that implementation is slightly buggy.
+    """
     if ax is None:
         ax = plt.gca()
 
-    try:
-        # TODO: switch x and y
-        v, h = loc.split()
-        loc_y, sgn_ya, sgn_yb = {'upper' : (1, 1, 1),  'lower' : (0, 0, -1)}[v]
-        delta = 0.02 if (v == 'center') else 0.2
-        loc_x, sgn_xa, sgn_xb = {'right' : (1, 1, 1),  'left' : (0, 0, -1)}[h]
-    except:
-        raise ValueError("illegal location '{}'".format(loc))
+    # proj -> projection of primary map
+    # ortho -> projection of mini globe
+    proj = ax.projection
 
-    lon0, lon1, lat0, lat1 = ax.get_extent(crs=identity)
+    # Get extent in proj coordinates.
+    x0, x1, y0, y1 = ax.get_extent()
 
-    lon = 0.5 * (lon0 + lon1)
-    lat = 0.5 * (lat0 + lat1) 
+    # Determine the center in proj coordinates, then reproject to lat, lon;
+    # This is more robust than trying to average longitude.
+    xcen = 0.5 * (x0 + x1)
+    ycen = 0.5 * (y0 + y1) 
+    [(lon, lat, _)] = identity.transform_points(proj, np.array([xcen]), np.array([ycen]))
 
-    proj = projection=cartopy.crs.Orthographic(central_latitude=lat, central_longitude=lon)
-    inset = plt.axes([0, 0, 1, 1], projection=proj)
+    # Create the mini globe, with continents 
+    ortho = cartopy.crs.Orthographic(central_latitude=lat, central_longitude=lon)
+    inset = plt.axes([0, 0, 1, 1], projection=ortho)
     inset.set_global()
     bg_color = plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
     inset.background_patch.set_facecolor(bg_color)
+    add_land(ax=inset, edgecolor='none'),
 
-    x0, x1, y0, y1 = ax.get_extent()
-
+    # Determine appropriate offsets to put mini globe on a corner of the primary
+    # plot, then use Inset position to place it there.
+    try:
+        v, h = loc.split()
+        loc_y, sgn_ya, sgn_yb = {'upper' : (1, 1, 1),  'lower' : (0, 0, -1)}[v]
+        loc_x, sgn_xa, sgn_xb = {'right' : (1, 1, 1),  'left' : (0, 0, -1)}[h]
+    except:
+        raise ValueError('illegal `loc`: "{}"'.format(loc))
     dx = x1 - x0
     dy = y1 - y0
-    size_scale = max(dy, dx) / min(dy, dx)
-    size *= size_scale  # TODO: rework all these calcs and simplify
-    ip_size = max(dy, dx) * size
-    x_os = 0.5 * ip_size / dx * (1 - 1 / np.sqrt(2)) / size_scale
-    y_os = 0.5 * ip_size / dy * (1 - 1 / np.sqrt(2)) / size_scale
-    ip = InsetPosition(ax, [loc_x - sgn_xa * ip_size / dx / size_scale + sgn_xb * x_os,
-                            loc_y - sgn_ya * ip_size / dy / size_scale + sgn_yb * y_os,
-                            size * dy / max(dy, dx),
-                            size * dx / max(dy, dx)])
+    offset_scale = 0.5 * (1 - 1 / np.sqrt(2))
+    ip = InsetPosition(ax, [loc_x - (sgn_xa - sgn_xb * offset_scale) * size * max(dy, dx) / dx,
+                            loc_y - (sgn_ya - sgn_yb * offset_scale) * size * max(dy, dx) / dy,
+                            size * dy / min(dy, dx),
+                            size * dx / min(dy, dx)])
     inset.set_axes_locator(ip)
 
-    # Get extent in proj coordinates
-    x0, x1, y0, y1 = ax.get_extent()
 
-    for cmd in commands:
-        cmd(ax=inset)
+    # Determine the outline of the primary map in proj coordinates.
+    #   First build a rectangle in primary coordinates that corresponds
+    #   to the borders of the map.
+    n = plt.rcParams.get('pyseas.miniglobe.ptsperside', props.dark.miniglobe.pts_per_side)
+    xs = np.r_[np.linspace(x0, x0, n), np.linspace(x0, x1, n),
+               np.linspace(x1, x1, n), np.linspace(x1, x0, n)]
+    ys = np.r_[np.linspace(y0, y1, n), np.linspace(y1, y1, n),
+               np.linspace(y1, y0, n), np.linspace(y0, y0, n)]
 
-
-    # Create 
-    xs = np.r_[np.linspace(x0, x0, pts_per_side),
-                 np.linspace(x0, x1, pts_per_side),
-                 np.linspace(x1, x1, pts_per_side),
-                 np.linspace(x1, x0, pts_per_side)]
-    ys = np.r_[np.linspace(y0, y1, pts_per_side),
-                 np.linspace(y1, y1, pts_per_side),
-                 np.linspace(y1, y0, pts_per_side),
-                 np.linspace(y0, y0, pts_per_side)]
-
-    nxy = proj.transform_points(_last_projection, xs, ys)[:, :2]
-
+    #   Then find the border of the ortho map and transform that to proj coordinates
     outside_pixel = inset.outline_patch.get_verts()
     inv = inset.transData.inverted()
-    outside_data = [inv.transform(xy) for xy in outside_pixel]
-    ring = shapely.geometry.Polygon(outside_data, [nxy[::-1].tolist()])
+    outside_data = np.array([inv.transform(xy) for xy in outside_pixel])
+    outside_data_proj = proj.transform_points(ortho, 
+                                outside_data[:, 0], outside_data[:, 1])[:, :2]
+
+    #    Clip the primary map outline to the ortho boundary. This prevents points
+    #    being projected to infinity, which is non-recoverable
+    inside_data_primary = shapely.geometry.Polygon(np.c_[xs, ys]).intersection(
+                          shapely.geometry.Polygon(outside_data_proj)).exterior.coords
 
 
+    # Build a polygon that in the shape of the ortho plot, with a whole in it in 
+    # the shape of the primary plot. Layer it over the ortho plot, to dim out 
+    # everything but the primary plot area. `overlaycolor` is expected to have
+    # alpha near 0.1, so the rest of the map shows through.
+    inside_data = ortho.transform_points(proj, 
+            np.array([x for (x, y) in inside_data_primary]), 
+            np.array([y for (x, y) in inside_data_primary]))[:, :2]
+    poly = shapely.geometry.Polygon(outside_data, [inside_data[::-1]])
     hlc = plt.rcParams.get('pyseas.miniglobe.overlaycolor', props.dark.miniglobe.overlaycolor)
-
-    inset.add_geometries([ring], proj,
+    inset.add_geometries([poly], ortho,
                        facecolor=hlc, edgecolor=plt.rcParams['axes.edgecolor'])
-    inset.outline_patch.set_linewidth(0.5)    
-    inset.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])               
+    lwidth = plt.rcParams.get('pyseas.miniglobe.outlinewidth', props.dark.miniglobe.outlinewidth)
+    inset.outline_patch.set_linewidth(lwidth)    
+    inset.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])       
+
+    # Restore primary map as current axes
+    plt.sca(ax)        
 
     return inset
 

@@ -7,6 +7,7 @@ from .core import add_eezs
 from .core import add_gridlines
 from .core import add_gridlabels
 from .core import add_logo
+from .core import add_miniglobe
 from .core import add_figure_background
 from .core import plot_raster
 from .core import plot_raster_w_colorbar

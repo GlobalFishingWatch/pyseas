@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.4.1
+#       jupytext_version: 1.3.4
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -157,6 +157,8 @@ with pyseas.context(pyseas.styles.light):
     maps.add_gridlabels(gl)
     maps.add_land()
     maps.add_plot(msgs.lon, msgs.lat, msgs.ssvid) 
+
+
 
 
 
@@ -492,6 +494,36 @@ with pyseas.context(pyseas.styles.panel):
                        facecolor=plt.rcParams['pyseas.fig.background'])
 
             plt.show()
+# -
+
+# ## A mini globe can be used to help locate the main map.
+
+# +
+reload()
+raster = maps.rasters.df2raster(seismic_presence, 'lon_bin', 'lat_bin', 'hours', 
+                                 xyscale=10, origin='lower', per_km2=True)
+
+plt.rc('text', usetex=False)
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(vmin=1, vmax=1000)
+with plt.rc_context(styles.dark):
+    ax, im, cb = maps.plot_raster_w_colorbar(raster * (60 * 60), 
+                                       r"seconds per $\mathregular{km^2}$ ",
+                                        projection='country.indonesia',
+                                       cmap='presence',
+                                      norm=norm,
+                                      cbformat='%.0f',
+                                      origin='lower',
+                                      loc='top')
+    maps.add_countries()
+    maps.add_eezs()
+    ax.set_title('Seismic Vessel Presence Near Indonesia', pad=40)
+    maps.add_figure_background()
+    gl = maps.add_gridlines()
+    maps.add_miniglobe(loc='lower left')
+    maps.add_logo(loc='lower right')
+    plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
+               facecolor=plt.rcParams['pyseas.fig.background'])
 # -
 
 # ## Publish

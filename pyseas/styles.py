@@ -116,6 +116,8 @@ dark = {
          'pyseas.logo.base_scale' : _props.dark.logo.base_scale,
          'pyseas.logo.alpha' : _props.dark.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.dark.miniglobe.overlaycolor,
+         'pyseas.miniglobe.outlinewidth' : _props.dark.miniglobe.outlinewidth,
+         'pyseas.miniglobe.ptsperside' : _props.dark.miniglobe.pts_per_side,
          }
 
 light = {
@@ -156,6 +158,8 @@ light = {
          'pyseas.logo.base_scale' : _props.light.logo.base_scale,
          'pyseas.logo.alpha' : _props.light.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.light.miniglobe.overlaycolor,
+         'pyseas.miniglobe.outlinewidth' : _props.light.miniglobe.outlinewidth,
+         'pyseas.miniglobe.ptsperside' : _props.light.miniglobe.pts_per_side,
          }
 
 panel = light.copy()
