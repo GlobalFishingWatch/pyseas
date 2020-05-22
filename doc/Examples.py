@@ -159,17 +159,6 @@ with pyseas.context(pyseas.styles.light):
     maps.add_plot(msgs.lon, msgs.lat, msgs.ssvid) 
 
 
-
-
-
-
-
-
-
-
-
-
-
 # ## Predefined Regional Styles
 
 reload()
@@ -525,7 +514,6 @@ with plt.rc_context(styles.dark):
     plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
                facecolor=plt.rcParams['pyseas.fig.background'])
 # -
-
 # ## Publish
 
 # +

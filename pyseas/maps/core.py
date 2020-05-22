@@ -520,16 +520,22 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None):
     return aob
 
 
-def add_miniglobe(ax=None, loc='upper right', size=0.2):
+def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np.sqrt(2))):
     """Add a mini globe to a corner of the maps showing where the primary map is located.
 
     Parameters
     ----------
     ax : Axes, optional
     loc : str, optional
-        One of 'upper right', 'upper left', 'lower left', or 'lower right'
+        One of 'upper right', 'upper center', 'upper left', 'lower left', 'lower center',
+        'lower right', 'center left' or 'center right'.
     size : float, optional
-        Size of the mini globe relative to the primary map.s
+        Size of the mini globe relative to the primary map.
+    offset: float, optional
+        How much to offset the mini globe relative to the edge of the map. By default,
+        just covers the corner. `0` positions the globe just inside, `0.5` centers it on
+        the edge, `0.5 + 0.25 * np.sqrt(2)` puts it just outside a corner, and `1` puts
+        it just outside an edge.
 
     Returns
     -------
@@ -563,18 +569,17 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2):
     add_land(ax=inset, edgecolor='none'),
 
     # Determine appropriate offsets to put mini globe on a corner of the primary
-    # plot, then use Inset position to place it there.
+    # plot, then use InsetPosition to place it there.
     try:
         v, h = loc.split()
-        loc_y, sgn_ya, sgn_yb = {'upper' : (1, 1, 1),  'lower' : (0, 0, -1)}[v]
-        loc_x, sgn_xa, sgn_xb = {'right' : (1, 1, 1),  'left' : (0, 0, -1)}[h]
+        loc_y, sgn_y = {'upper' : (1, 1),  'center' : (0.5, 0), 'lower' : (0, -1)}[v]
+        loc_x, sgn_x = {'right' : (1, 1),  'center' : (0.5, 0), 'left' : (0, -1)}[h]
     except:
         raise ValueError('illegal `loc`: "{}"'.format(loc))
     dx = x1 - x0
     dy = y1 - y0
-    offset_scale = 0.5 * (1 - 1 / np.sqrt(2))
-    ip = InsetPosition(ax, [loc_x - (sgn_xa - sgn_xb * offset_scale) * size * max(dy, dx) / dx,
-                            loc_y - (sgn_ya - sgn_yb * offset_scale) * size * max(dy, dx) / dy,
+    ip = InsetPosition(ax, [loc_x - (loc_x - sgn_x * offset) * size * max(dy, dx) / dx,
+                            loc_y - (loc_y - sgn_y * offset) * size * max(dy, dx) / dy,
                             size * dy / min(dy, dx),
                             size * dx / min(dy, dx)])
     inset.set_axes_locator(ip)
@@ -620,6 +625,7 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2):
     plt.sca(ax)        
 
     return inset
+
 
 def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
                 bg_color=None, hide_axes=True, colorbar=None, 
