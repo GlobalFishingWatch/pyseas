@@ -492,6 +492,8 @@ reload()
 raster = maps.rasters.df2raster(seismic_presence, 'lon_bin', 'lat_bin', 'hours', 
                                  xyscale=10, origin='lower', per_km2=True)
 
+mask = {'pyseas.miniglobe.overlaycolor' : pyseas.props.dark.ocean.color}
+
 plt.rc('text', usetex=False)
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=1, vmax=1000)
@@ -509,8 +511,17 @@ with plt.rc_context(styles.dark):
     ax.set_title('Seismic Vessel Presence Near Indonesia', pad=40)
     maps.add_figure_background()
     gl = maps.add_gridlines()
-    maps.add_miniglobe(loc='lower left')
     maps.add_logo(loc='lower right')
+    h, w = raster.shape
+    n = 10
+    small_raster = raster[:h - h % n, :w - w % n].reshape(h // n, n, w // n, n).mean(axis=(1, 3))
+    inset = maps.add_miniglobe(loc='lower left')
+#     maps.add_raster(small_raster * (60 * 60), ax=inset, norm=norm, origin='lower', cmap='presence')
+#     with pyseas.context(mask):
+#         maps.core.add_minimap_aoi(ax, inset)
+#     maps.add_land(ax=inset)
+#     maps.core.add_minimap_aoi(ax, inset)
+
     plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
                facecolor=plt.rcParams['pyseas.fig.background'])
 # -

@@ -520,7 +520,9 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None):
     return aob
 
 
-def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np.sqrt(2))):
+
+
+def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np.sqrt(2)), add_aoi=True):
     """Add a mini globe to a corner of the maps showing where the primary map is located.
 
     Parameters
@@ -584,6 +586,24 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
                             size * dx / min(dy, dx)])
     inset.set_axes_locator(ip)
 
+    if add_minimap_aoi:
+        add_minimap_aoi(ax, inset)     
+
+    # Restore primary map as current axes
+    plt.sca(ax)        
+
+    return inset
+
+
+def add_minimap_aoi(from_ax, to_ax):
+    ax = from_ax
+    proj = from_ax.projection
+    inset = to_ax
+    ortho = to_ax.projection
+
+    # Get extent in proj coordinates.
+    x0, x1, y0, y1 = ax.get_extent()
+
     # Determine the outline of the primary map in proj coordinates.
     #   First build a rectangle in primary coordinates that corresponds
     #   to the borders of the map.
@@ -622,9 +642,7 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
     inset.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])       
 
     # Restore primary map as current axes
-    plt.sca(ax)        
-
-    return inset
+    plt.sca(ax)     
 
 
 def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
