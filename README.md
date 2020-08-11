@@ -22,7 +22,7 @@ is to install using Conda. The following recipe works currently:
     conda install -c conda-forge cartopy geopandas numpy matplotlib pandas \
                      jupyter jupytext scikit-image cmocean gdal netcdf4 pandas-gbq
 
-Then `cd` to the directory that PySeas was cloned into, typically `pyseas` and run:
+Then `cd` to the directory that PySeas was cloned into, typically `pyseas`, and run:
 
     pip install -e .
 
