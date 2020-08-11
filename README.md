@@ -21,8 +21,14 @@ is to install using Conda. The following recipe works currently:
 
     conda install -c conda-forge cartopy geopandas numpy matplotlib pandas \
                      jupyter jupytext scikit-image cmocean gdal netcdf4 pandas-gbq
+
+Then `cd` to the directory that PySeas was cloned into, typically `pyseas` and run:
+
     pip install -e .
 
+This install PySeas into whatever Conda environment is active at the time it is run.
+We use the `-e` option so that EEZ data and logo data can be easily installed afterwards
+as described below.
 
 ### Installing EEZ data
 
