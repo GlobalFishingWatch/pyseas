@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.4
+#       jupytext_version: 1.4.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -312,32 +312,22 @@ where good_seg and not overlapping_and_short
 and positions > 20),
 
 source as (
-select ssvid, vessel_id, timestamp, lat, lon, course, speed, elevation_m
+select ssvid, vessel_id, timestamp, lat, lon, nnet_score, course, speed, elevation_m
 FROM
-    `pipe_production_v20190502.position_messages_201801*`
+    `pipe_production_v20190502.messages_scored_201801*`
 where seg_id in (select * from good_segs)
 ),
 
-ssvid_list as (
-select distinct ssvid from 
-source
-where ssvid in (SELECT cast(id as string) FROM machine_learning_dev_ttl_120d.det_info_mmsi_v20200124
-                where split=0)
-order by farm_fingerprint(ssvid)
+ssvid_list AS (
+SELECT DISTINCT ssvid FROM source
+ORDER BY farm_fingerprint(ssvid)
 limit 2
 )
 
-SELECT
-source.*, score.nnet_score as nnet_score
-from source
-LEFT JOIN
-    `machine_learning_dev_ttl_120d.fd_vid_20200320_results_201801*` score
-  ON
-    source.vessel_id = score.vessel_id
-    AND source.timestamp BETWEEN score.start_time
-    AND score.end_time
-where ssvid in (select * from ssvid_list)
-order by timestamp
+SELECT source.*
+FROM source
+WHERE ssvid IN (SELECT * FROM ssvid_list)
+ORDER BY timestamp
 """
 fishing_df = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
@@ -387,8 +377,6 @@ with pyseas.context(pyseas.styles.panel):
 
             plt.show()
 # -
-
-88 / 85
 
 # ### Basic annotations can be added that match map to time axis
 
