@@ -47,5 +47,9 @@ as described below.
 ### Installing Logos
 
 * Logos should be copied to `untracked\data\logos\`
-* Styles for `pyseas.logo.*` should be adjusted appropriately.
-   - Note that the default `base_scale` assumes a very large logo that is downscaled.
+* The default logo names in styles are `black_logo.png` and `white_logo.png` for
+  the light and dark styles respectively. You should either rename your logos to match
+  or adjust the logo names in `data/props.json`.
+* Logo style information defined in `data/props.json` should be adjusted appropriately.
+   - Note that the default value for `base_scale` assumes a very large logo that 
+     is downscaled.
