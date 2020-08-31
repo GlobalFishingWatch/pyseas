@@ -613,10 +613,11 @@ def add_minimap_aoi(from_ax, to_ax):
     ys = np.r_[np.linspace(y0, y1, n), np.linspace(y1, y1, n),
                np.linspace(y1, y0, n), np.linspace(y0, y0, n)]
 
-    #   Then find the border of the ortho map and transform that to proj coordinates
-    outside_pixel = inset.outline_patch.get_verts()
-    inv = inset.transData.inverted()
-    outside_data = np.array([inv.transform(xy) for xy in outside_pixel])
+    # Then find the border of the ortho map and transform that to proj coordinates
+    # Force drawing to happen -- before drawing we no longer have any vertices to
+    # use. I'm not crazy about this solution but it seems to work.
+    plt.gcf().canvas.draw()
+    outside_data = inset.spines['geo'].get_path().vertices
     outside_data_proj = proj.transform_points(ortho, 
                                 outside_data[:, 0], outside_data[:, 1])[:, :2]
 
@@ -638,8 +639,8 @@ def add_minimap_aoi(from_ax, to_ax):
     inset.add_geometries([poly], ortho,
                        facecolor=hlc, edgecolor=plt.rcParams['axes.edgecolor'])
     lwidth = plt.rcParams.get('pyseas.miniglobe.outlinewidth', props.dark.miniglobe.outlinewidth)
-    inset.outline_patch.set_linewidth(lwidth)    
-    inset.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])       
+    inset.spines['geo'].set_linewidth(lwidth)    
+    inset.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])       
 
     # Restore primary map as current axes
     plt.sca(ax)     
