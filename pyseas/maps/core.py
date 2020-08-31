@@ -464,7 +464,7 @@ def create_map(subplot=(1, 1, 1),
     if hide_axes:
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
-    ax.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])
+    ax.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])
     return ax
 
 def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None):
@@ -619,7 +619,7 @@ def add_minimap_aoi(from_ax, to_ax):
     plt.gcf().canvas.draw()
 
     #   Then find the border of the ortho map and transform that to proj coordinates
-    outside_pixel = inset.outline_patch.get_verts()
+    outside_pixel = inset.spines['geo'].get_verts()
     inv = inset.transData.inverted()
     outside_data = np.array([inv.transform(xy) for xy in outside_pixel])
     outside_data_proj = proj.transform_points(ortho, 
@@ -642,8 +642,8 @@ def add_minimap_aoi(from_ax, to_ax):
     inset.add_geometries([poly], ortho,
                        facecolor=hlc, edgecolor=plt.rcParams['axes.edgecolor'])
     lwidth = plt.rcParams.get('pyseas.miniglobe.outlinewidth', props.dark.miniglobe.outlinewidth)
-    inset.outline_patch.set_linewidth(lwidth)    
-    inset.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])       
+    inset.spines['geo'].set_linewidth(lwidth)    
+    inset.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])       
 
     # Restore primary map as current axes
     plt.sca(ax)     
