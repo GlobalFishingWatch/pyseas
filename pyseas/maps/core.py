@@ -602,7 +602,7 @@ def add_minimap_aoi(from_ax, to_ax):
     ortho = to_ax.projection
 
     # Get extent in proj coordinates.
-    x0, x1, y0, y1 = ax.get_extent()
+    x0, x1, y0, y1 = ax.get_extent(crs=proj)
 
     # Determine the outline of the primary map in proj coordinates.
     #   First build a rectangle in primary coordinates that corresponds
@@ -613,11 +613,15 @@ def add_minimap_aoi(from_ax, to_ax):
     ys = np.r_[np.linspace(y0, y1, n), np.linspace(y1, y1, n),
                np.linspace(y1, y0, n), np.linspace(y0, y0, n)]
 
-    # Then find the border of the ortho map and transform that to proj coordinates
-    # Force drawing to happen -- before drawing we no longer have any vertices to
-    # use. I'm not crazy about this solution but it seems to work.
+    # As of Cartpy 0.18.0, get_verts returns an empty array unless we force
+    # a draw here. I'm a bit worried that this may have side effects, but I 
+    # haven't encountered them yet.
     plt.gcf().canvas.draw()
-    outside_data = inset.spines['geo'].get_path().vertices
+
+    #   Then find the border of the ortho map and transform that to proj coordinates
+    outside_pixel = inset.outline_patch.get_verts()
+    inv = inset.transData.inverted()
+    outside_data = np.array([inv.transform(xy) for xy in outside_pixel])
     outside_data_proj = proj.transform_points(ortho, 
                                 outside_data[:, 0], outside_data[:, 1])[:, :2]
 
@@ -625,7 +629,6 @@ def add_minimap_aoi(from_ax, to_ax):
     #    being projected to infinity, which is non-recoverable
     inside_data_primary = shapely.geometry.Polygon(np.c_[xs, ys]).intersection(
                           shapely.geometry.Polygon(outside_data_proj)).exterior.coords
-
 
     # Build a polygon that in the shape of the ortho plot, with a hole in it in 
     # the shape of the primary plot. Layer it over the ortho plot, to dim out 
@@ -639,8 +642,8 @@ def add_minimap_aoi(from_ax, to_ax):
     inset.add_geometries([poly], ortho,
                        facecolor=hlc, edgecolor=plt.rcParams['axes.edgecolor'])
     lwidth = plt.rcParams.get('pyseas.miniglobe.outlinewidth', props.dark.miniglobe.outlinewidth)
-    inset.spines['geo'].set_linewidth(lwidth)    
-    inset.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])       
+    inset.outline_patch.set_linewidth(lwidth)    
+    inset.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])       
 
     # Restore primary map as current axes
     plt.sca(ax)     
