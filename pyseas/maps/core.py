@@ -613,13 +613,12 @@ def add_minimap_aoi(from_ax, to_ax):
     ys = np.r_[np.linspace(y0, y1, n), np.linspace(y1, y1, n),
                np.linspace(y1, y0, n), np.linspace(y0, y0, n)]
 
-    # As of Cartpy 0.18.0, get_verts returns an empty array unless we force
-    # a draw here. I'm a bit worried that this may have side effects, but I 
-    # haven't encountered them yet.
-    plt.gcf().canvas.draw()
-
     #   Then find the border of the ortho map and transform that to proj coordinates
-    outside_pixel = inset.spines['geo'].get_verts()
+    rads = np.linspace(0, 2 * np.pi, endpoint=True)
+    osxs = 0.5 + 0.5 * np.cos(rads)
+    osys = 0.5 + 0.5 * np.sin(rads)
+    outside_axes = np.transpose([osxs, osys])
+    outside_pixel = np.array([inset.transAxes.transform(xy) for xy in outside_axes])
     inv = inset.transData.inverted()
     outside_data = np.array([inv.transform(xy) for xy in outside_pixel])
     outside_data_proj = proj.transform_points(ortho, 
