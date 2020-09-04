@@ -643,6 +643,10 @@ def add_minimap_aoi(from_ax, to_ax):
     if outside_poly.is_valid:
         inside_data_primary = shapely.geometry.Polygon(raw_inside_coords).intersection(
                                                     outside_poly).exterior.coords
+        if len(inside_data_primary) == 0:
+            # This typically indicates a problem with the transformed geometry as 
+            # discussed below. Apply the same fix.
+            inside_data_primary = raw_inside_coords
     else:
         # If the geometry is too small, projecting the inset boundary into that space
         # becomes a problem. In this case just punt and use the inside data as is.
