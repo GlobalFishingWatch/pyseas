@@ -42,6 +42,7 @@ import numpy as np
 from cartopy.feature import ShapelyFeature
 import shapely
 from shapely.geometry import MultiLineString
+from shapely.errors import TopologicalError
 from skimage import io as skio
 import warnings
 from . import ticks
@@ -637,8 +638,16 @@ def add_minimap_aoi(from_ax, to_ax):
 
     # Step 3: Clip the primary map outline to the ortho boundary. This prevents points
     # being projected to infinity when we project back to ortho coordinates.
-    inside_data_primary = shapely.geometry.Polygon(np.c_[xs, ys]).intersection(
-                          shapely.geometry.Polygon(outside_data_proj)).exterior.coords
+    outside_poly = shapely.geometry.Polygon(outside_data_proj)
+    if outside_poly.is_valid:
+        inside_data_primary = shapely.geometry.Polygon(np.c_[xs, ys]).intersection(
+                                                    outside_poly).exterior.coords
+    else:
+        # If the geometry is too small, projecting the inset boundary into that space
+        # becomes a problem. In this case just punt and use the inside data as is.
+        # There's a small chance this could fail for very long thin geometries, will
+        # worry about that when we run into it.
+        inside_data_primary = np.c_[xs, ys]
 
     # Step 4: Build a polygon that in the shape of the ortho plot, with a hole in it in 
     # the shape of the primary plot. Layer it over the ortho plot, to dim out 
