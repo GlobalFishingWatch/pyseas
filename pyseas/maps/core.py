@@ -534,11 +534,12 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
         'lower right', 'center left' or 'center right'.
     size : float, optional
         Size of the mini globe relative to the primary map.
-    offset: float, optional
+    offset: float or str, optional
         How much to offset the mini globe relative to the edge of the map. By default,
         just covers the corner. `0` positions the globe just inside, `0.5` centers it on
         the edge, `0.5 + 0.25 * np.sqrt(2)` puts it just outside a corner, and `1` puts
-        it just outside an edge.
+        it just outside an edge. Alternatively, the names 'inside', 'inside corner',
+        'edge centered', or 'outside' can be used.
 
     Returns
     -------
@@ -549,6 +550,13 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
     """
     if ax is None:
         ax = plt.gca()
+    if isinstance(offset, str):
+        offset = {
+            'inside' : 0,
+            'inside corner' : 0.5 * (1 - 1 / np.sqrt(2)),
+            'edge centered' : 0.5,
+            'outside' : 1.0
+        }[offset]
 
     # proj -> projection of primary map
     # ortho -> projection of mini globe
