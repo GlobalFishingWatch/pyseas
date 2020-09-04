@@ -601,22 +601,33 @@ def add_minimap_aoi(from_ax, to_ax):
     inset = to_ax
     ortho = to_ax.projection
 
-    # Get extent in proj coordinates.
-    x0, x1, y0, y1 = ax.get_extent(crs=proj)
+    # To add the AOI we need project the boundary of the primary
+    # map onto the minimap. The primary map is assumed to be rectangular
+    # So no global Orthographic, EqualEarth, etc projections. The 
+    # inset is assumed to be in an Orthographic projection. Both of
+    # these could be relaxed with some work if necessary.
 
-    # Determine the outline of the primary map in proj coordinates.
-    #   First build a rectangle in primary coordinates that corresponds
-    #   to the borders of the map.
+    # Projecting directly from the primary map to the minimap can result in 
+    # projecting points to infinity which is nonrecoverable. So instead we
+    # first project the boundaries of the minimap to the primary map (`proj`)
+    # projection, clip the primary map boundary there, then project back.
+
+    # Step 1: Build the primary map boundary in `proj` coordinates. It is 
+    # a rectangle there, so this is straightforward. 
+    x0, x1, y0, y1 = ax.get_extent(crs=proj)
     n = plt.rcParams.get('pyseas.miniglobe.ptsperside', props.dark.miniglobe.pts_per_side)
     xs = np.r_[np.linspace(x0, x0, n), np.linspace(x0, x1, n),
                np.linspace(x1, x1, n), np.linspace(x1, x0, n)]
     ys = np.r_[np.linspace(y0, y1, n), np.linspace(y1, y1, n),
                np.linspace(y1, y0, n), np.linspace(y0, y0, n)]
 
-    #   Then find the border of the ortho map and transform that to proj coordinates
+    # Step 2: Find the border of the ortho map and transform that to `proj` coordinates.
+    # We know that this is a circle of diameter 1 centered at 0.5, 0.5 in *axes* 
+    # coordinates (for Orthographic), so start there and use matplotlib transforms to
+    # get that to `proj` coordinates.
     rads = np.linspace(0, 2 * np.pi, endpoint=True)
-    osxs = 0.5 + 0.5 * np.cos(rads)
-    osys = 0.5 + 0.5 * np.sin(rads)
+    osxs = 0.5 + 0.5 * np.sin(rads)
+    osys = 0.5 + 0.5 * np.cos(rads)
     outside_axes = np.transpose([osxs, osys])
     outside_pixel = np.array([inset.transAxes.transform(xy) for xy in outside_axes])
     inv = inset.transData.inverted()
@@ -624,12 +635,12 @@ def add_minimap_aoi(from_ax, to_ax):
     outside_data_proj = proj.transform_points(ortho, 
                                 outside_data[:, 0], outside_data[:, 1])[:, :2]
 
-    #    Clip the primary map outline to the ortho boundary. This prevents points
-    #    being projected to infinity, which is non-recoverable
+    # Step 3: Clip the primary map outline to the ortho boundary. This prevents points
+    # being projected to infinity when we project back to ortho coordinates.
     inside_data_primary = shapely.geometry.Polygon(np.c_[xs, ys]).intersection(
                           shapely.geometry.Polygon(outside_data_proj)).exterior.coords
 
-    # Build a polygon that in the shape of the ortho plot, with a hole in it in 
+    # Step 4: Build a polygon that in the shape of the ortho plot, with a hole in it in 
     # the shape of the primary plot. Layer it over the ortho plot, to dim out 
     # everything but the primary plot area. `overlaycolor` is expected to have
     # alpha near 0.1, so the rest of the map shows through.
