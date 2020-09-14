@@ -200,6 +200,21 @@
         "name": "Lambert azimuthal equal area @ 137\u00b0E,38\u00b0N",
         "proj-string" : "+proj=laea +lat_0=38 +lon_0=140"
     },
+    "country.china": {
+        "projection": "AlbersEqualArea",
+        "args": {
+            "central_longitude": 130,
+            "central_latitude": 20
+        },
+        "extent": [
+            100,
+            140,
+            15,
+            45
+        ],
+        "name": "Albers equal area conic @ 20\u00b0E,130\u00b0N",
+        "proj-string" : "+proj=aea +lon_0=120 +lat_1=20 +lat_2=40"
+    },
     "country.chile": {
         "projection": "LambertAzimuthalEqualArea",
         "args": {
