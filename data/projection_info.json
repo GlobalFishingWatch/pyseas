@@ -228,7 +228,8 @@
             45
         ],
         "name": "Albers equal area conic @ 20\u00b0E,120\u00b0N",
-        "proj-string" : "+proj=aea +lon_0=120 +lat_1=20 +lat_2=40"
+        "proj-string" : "+proj=aea +lon_0=120 +lat_1=20 +lat_2=40",
+        "description" : "This region is an extended version of 'country.china' that includes all the waters claimed by China."
     },
     "country.chile": {
         "projection": "LambertAzimuthalEqualArea",
