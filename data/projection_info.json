@@ -157,6 +157,21 @@
         "name": "Albers equal area conic @ 15\u00b0E,50\u00b0N",
         "proj-string" : "=proj=aea +lat_1=33 +lat_2=67 +lon_0=15"
     },
+    "regional.china": {
+        "projection": "LambertAzimuthalEqualArea",
+        "args": {
+            "central_longitude": 120,
+            "central_latitude": 22.5
+        },
+        "extent": [
+            100,
+            140,
+            0,
+            45
+        ],
+        "name": "Lambert azimuthal equal area @ 120\u00b0E,22.5\u00b0N",
+        "proj-string" : "=proj=laea +lon_0=120 +lat_0=22.5"
+    },
     "country.indonesia": {
         "projection": "LambertCylindrical",
         "args": {
@@ -203,7 +218,7 @@
     "country.china": {
         "projection": "AlbersEqualArea",
         "args": {
-            "central_longitude": 130,
+            "central_longitude": 120,
             "central_latitude": 20
         },
         "extent": [
@@ -212,7 +227,7 @@
             15,
             45
         ],
-        "name": "Albers equal area conic @ 20\u00b0E,130\u00b0N",
+        "name": "Albers equal area conic @ 20\u00b0E,120\u00b0N",
         "proj-string" : "+proj=aea +lon_0=120 +lat_1=20 +lat_2=40"
     },
     "country.chile": {
