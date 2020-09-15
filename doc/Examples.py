@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.4.1
+#       jupytext_version: 1.5.2
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -76,6 +76,15 @@ with pyseas.context(styles.dark):
                                    projection='global.pacific_centered', 
                                    cmap='presence')
     maps.add_eezs(ax)
+
+reload()
+with pyseas.context(styles.dark):
+    with pyseas.context({'pyseas.eez.bordercolor' : 'white'}):
+        fig = plt.figure(figsize=(18, 6))
+        ax, im = maps.plot_raster(img[::10, ::10],
+                                       projection='global.pacific_centered', 
+                                       cmap='presence')
+        maps.add_eezs(ax)
 
 # ## Simple, Manual Colorbar
 
