@@ -21,8 +21,14 @@ is to install using Conda. The following recipe works currently:
 
     conda install -c conda-forge cartopy geopandas numpy matplotlib pandas \
                      jupyter jupytext scikit-image cmocean gdal netcdf4 pandas-gbq
+
+Then `cd` to the directory that PySeas was cloned into, typically `pyseas`, and run:
+
     pip install -e .
 
+This install PySeas into whatever Conda environment is active at the time it is run.
+We use the `-e` option so that EEZ data and logo data can be easily installed afterwards
+as described below.
 
 ### Installing EEZ data
 
@@ -41,5 +47,9 @@ is to install using Conda. The following recipe works currently:
 ### Installing Logos
 
 * Logos should be copied to `untracked\data\logos\`
-* Styles for `pyseas.logo.*` should be adjusted appropriately.
-   - Note that the default `base_scale` assumes a very large logo that is downscaled.
+* The default logo names in styles are `black_logo.png` and `white_logo.png` for
+  the light and dark styles respectively. You should either rename your logos to match
+  or adjust the logo names in `data/props.json`.
+* Logo style information defined in `data/props.json` should be adjusted appropriately.
+   - Note that the default value for `base_scale` assumes a very large logo that 
+     is downscaled.

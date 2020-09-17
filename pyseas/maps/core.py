@@ -42,6 +42,7 @@ import numpy as np
 from cartopy.feature import ShapelyFeature
 import shapely
 from shapely.geometry import MultiLineString
+from shapely.errors import TopologicalError
 from skimage import io as skio
 import warnings
 from . import ticks
@@ -464,7 +465,7 @@ def create_map(subplot=(1, 1, 1),
     if hide_axes:
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
-    ax.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])
+    ax.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])
     return ax
 
 def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None):
@@ -533,11 +534,12 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
         'lower right', 'center left' or 'center right'.
     size : float, optional
         Size of the mini globe relative to the primary map.
-    offset: float, optional
+    offset: float or str, optional
         How much to offset the mini globe relative to the edge of the map. By default,
         just covers the corner. `0` positions the globe just inside, `0.5` centers it on
         the edge, `0.5 + 0.25 * np.sqrt(2)` puts it just outside a corner, and `1` puts
-        it just outside an edge.
+        it just outside an edge. Alternatively, the names 'inside', 'inside corner',
+        'edge centered', or 'outside' can be used.
 
     Returns
     -------
@@ -548,6 +550,13 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
     """
     if ax is None:
         ax = plt.gca()
+    if isinstance(offset, str):
+        offset = {
+            'inside' : 0,
+            'inside corner' : 0.5 * (1 - 1 / np.sqrt(2)),
+            'edge centered' : 0.5,
+            'outside' : 1.0
+        }[offset]
 
     # proj -> projection of primary map
     # ortho -> projection of mini globe
@@ -601,32 +610,59 @@ def add_minimap_aoi(from_ax, to_ax):
     inset = to_ax
     ortho = to_ax.projection
 
-    # Get extent in proj coordinates.
-    x0, x1, y0, y1 = ax.get_extent()
+    # To add the AOI we need project the boundary of the primary
+    # map onto the minimap. The primary map is assumed to be rectangular
+    # So no global Orthographic, EqualEarth, etc projections. The 
+    # inset is assumed to be in an Orthographic projection. Both of
+    # these could be relaxed with some work if necessary.
 
-    # Determine the outline of the primary map in proj coordinates.
-    #   First build a rectangle in primary coordinates that corresponds
-    #   to the borders of the map.
+    # Projecting directly from the primary map to the minimap can result in 
+    # projecting points to infinity which is nonrecoverable. So instead we
+    # first project the boundaries of the minimap to the primary map (`proj`)
+    # projection, clip the primary map boundary there, then project back.
+
+    # Step 1: Build the primary map boundary in `proj` coordinates. It is 
+    # a rectangle there, so this is straightforward. 
+    x0, x1, y0, y1 = ax.get_extent(crs=proj)
     n = plt.rcParams.get('pyseas.miniglobe.ptsperside', props.dark.miniglobe.pts_per_side)
     xs = np.r_[np.linspace(x0, x0, n), np.linspace(x0, x1, n),
                np.linspace(x1, x1, n), np.linspace(x1, x0, n)]
     ys = np.r_[np.linspace(y0, y1, n), np.linspace(y1, y1, n),
                np.linspace(y1, y0, n), np.linspace(y0, y0, n)]
 
-    #   Then find the border of the ortho map and transform that to proj coordinates
-    outside_pixel = inset.outline_patch.get_verts()
+    # Step 2: Find the border of the ortho map and transform that to `proj` coordinates.
+    # We know that this is a circle of diameter 1 centered at 0.5, 0.5 in *axes* 
+    # coordinates (for Orthographic), so start there and use matplotlib transforms to
+    # get that to `proj` coordinates.
+    rads = np.linspace(0, 2 * np.pi, endpoint=True)
+    osxs = 0.5 + 0.5 * np.sin(rads)
+    osys = 0.5 + 0.5 * np.cos(rads)
+    outside_axes = np.transpose([osxs, osys])
+    outside_pixel = np.array([inset.transAxes.transform(xy) for xy in outside_axes])
     inv = inset.transData.inverted()
     outside_data = np.array([inv.transform(xy) for xy in outside_pixel])
     outside_data_proj = proj.transform_points(ortho, 
                                 outside_data[:, 0], outside_data[:, 1])[:, :2]
 
-    #    Clip the primary map outline to the ortho boundary. This prevents points
-    #    being projected to infinity, which is non-recoverable
-    inside_data_primary = shapely.geometry.Polygon(np.c_[xs, ys]).intersection(
-                          shapely.geometry.Polygon(outside_data_proj)).exterior.coords
+    # Step 3: Clip the primary map outline to the ortho boundary. This prevents points
+    # being projected to infinity when we project back to ortho coordinates.
+    outside_poly = shapely.geometry.Polygon(outside_data_proj)
+    raw_inside_coords = np.c_[xs, ys]
+    if outside_poly.is_valid:
+        inside_data_primary = shapely.geometry.Polygon(raw_inside_coords).intersection(
+                                                    outside_poly).exterior.coords
+        if len(inside_data_primary) == 0:
+            # This typically indicates a problem with the transformed geometry as 
+            # discussed below. Apply the same fix.
+            inside_data_primary = raw_inside_coords
+    else:
+        # If the geometry is too small, projecting the inset boundary into that space
+        # becomes a problem. In this case just punt and use the inside data as is.
+        # There's a small chance this could fail for very long thin geometries, will
+        # worry about that when we run into it.
+        inside_data_primary = raw_inside_coords
 
-
-    # Build a polygon that in the shape of the ortho plot, with a hole in it in 
+    # Step 4: Build a polygon that in the shape of the ortho plot, with a hole in it in 
     # the shape of the primary plot. Layer it over the ortho plot, to dim out 
     # everything but the primary plot area. `overlaycolor` is expected to have
     # alpha near 0.1, so the rest of the map shows through.
@@ -638,8 +674,8 @@ def add_minimap_aoi(from_ax, to_ax):
     inset.add_geometries([poly], ortho,
                        facecolor=hlc, edgecolor=plt.rcParams['axes.edgecolor'])
     lwidth = plt.rcParams.get('pyseas.miniglobe.outlinewidth', props.dark.miniglobe.outlinewidth)
-    inset.outline_patch.set_linewidth(lwidth)    
-    inset.outline_patch.set_edgecolor(plt.rcParams['axes.edgecolor'])       
+    inset.spines['geo'].set_linewidth(lwidth)    
+    inset.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])       
 
     # Restore primary map as current axes
     plt.sca(ax)     
