@@ -36,6 +36,8 @@ def build_doc(obj):
         name = v['name']
         if 'proj-string' in v:
             name += '<br/><em>{}</em>'.format(v['proj-string'])
+        if 'description' in v:
+            name += '<br/>{}'.format(v['description'])
         v['thumbnail'] = format_thumbnail(k, v)
         v['proj'] = v.get('proj-string', '')
         lines.append('{} | {} | {extent} | {thumbnail}'.format(

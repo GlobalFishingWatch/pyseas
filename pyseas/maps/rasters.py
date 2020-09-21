@@ -35,12 +35,16 @@ def df2raster(df, x_label, y_label, v_label, xyscale,
     ----------
     df : DataFrame
     x_label : str
+        Label in the dataframe containing the x-values. These values should be integers
+        specifying the relative pixel position in the raster. However they do not need
+        to be positive. Typically these values are produced from a query similar to
+        `SELECT CAST(lon * SOME_SCALE AS INT) AS x_values`
     y_label : str
+        Label in the dataframe containing the y-values. See `x_label`
     v_label : str
         Label for the value column
     xyscale : float
-        How many raster points per unit in x and y. Relates 
-        `x` and `y` values to `extent`.
+        How many raster points per degree in x and y.
     scale: float or func, optional
         Scale the output by this amount
     extent : tuple of float, optional
@@ -52,8 +56,11 @@ def df2raster(df, x_label, y_label, v_label, xyscale,
         or at the lower left.
     per_km2 : bool, optional
         If True, inputs are assumed to be per grid cell where
-        each side is 1/xyscale. Output is scaled to per km2, then
-        scaled using `scale`.
+        each side is 1/`xyscale` degrees. Output is scaled to per km2, 
+        then scaled using `scale`.  The primary purpose of this 
+        adjustment is to correct for the varying sizes of grid cells
+        by latitude. Note that this is not appropriate for quantities
+        such as reception quality that do not scale with area.
 
     Returns
     -------
