@@ -523,7 +523,8 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None):
 
 
 
-def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np.sqrt(2)), add_aoi=True):
+def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np.sqrt(2)), 
+                  add_aoi=True, central_marker=None, marker_size=10, marker_color='black'):
     """Add a mini globe to a corner of the maps showing where the primary map is located.
 
     Parameters
@@ -594,6 +595,10 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
                             size * dy / min(dy, dx),
                             size * dx / min(dy, dx)])
     inset.set_axes_locator(ip)
+
+    if central_marker is not None:
+        inset.plot(lon, lat, marker=central_marker, 
+                    markersize=marker_size, color=marker_color, transform=ortho)
 
     if add_minimap_aoi:
         add_minimap_aoi(ax, inset)     
@@ -671,10 +676,14 @@ def add_minimap_aoi(from_ax, to_ax):
             np.array([y for (x, y) in inside_data_primary]))[:, :2]
     poly = shapely.geometry.Polygon(outside_data, [inside_data[::-1]])
     hlc = plt.rcParams.get('pyseas.miniglobe.overlaycolor', props.dark.miniglobe.overlaycolor)
+    inner_width = plt.rcParams.get('pyseas.miniglobe.innerwidth', props.dark.miniglobe.inner_width)
+    # TODO: inner width should be applied to inner polygon only, so separate polygon with only 
+    # inside datas
     inset.add_geometries([poly], ortho,
-                       facecolor=hlc, edgecolor=plt.rcParams['axes.edgecolor'])
-    lwidth = plt.rcParams.get('pyseas.miniglobe.outlinewidth', props.dark.miniglobe.outlinewidth)
-    inset.spines['geo'].set_linewidth(lwidth)    
+                       facecolor=hlc, edgecolor=plt.rcParams['axes.edgecolor'],
+                       linewidth=inner_width)
+    outer_width = plt.rcParams.get('pyseas.miniglobe.outer_width', props.dark.miniglobe.outer_width)
+    inset.spines['geo'].set_linewidth(outer_width)    
     inset.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])       
 
     # Restore primary map as current axes
