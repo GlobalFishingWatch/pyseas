@@ -679,9 +679,12 @@ def add_minimap_aoi(from_ax, to_ax):
     inner_width = plt.rcParams.get('pyseas.miniglobe.innerwidth', props.dark.miniglobe.inner_width)
     # TODO: inner width should be applied to inner polygon only, so separate polygon with only 
     # inside datas
-    inset.add_geometries([poly], ortho,
-                       facecolor=hlc, edgecolor=plt.rcParams['axes.edgecolor'],
-                       linewidth=inner_width)
+    inset.add_geometries([poly], ortho, facecolor=hlc, edgecolor=None)
+    if inner_width > 0:
+        poly = shapely.geometry.Polygon(inside_data)
+        inset.add_geometries([poly], ortho, 
+            facecolor=(0, 0, 0, 0), linewidth=inner_width, edgecolor=plt.rcParams['axes.edgecolor'])
+
     outer_width = plt.rcParams.get('pyseas.miniglobe.outer_width', props.dark.miniglobe.outer_width)
     inset.spines['geo'].set_linewidth(outer_width)    
     inset.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])       
