@@ -8,7 +8,6 @@ import datetime as DT
 from collections import Counter
 from collections import namedtuple
 from cycler import cycler
-from shapely.geometry import MultiLineString
 from matplotlib.collections import LineCollection
 from matplotlib.colors import to_rgba
 import matplotlib.dates as mdates

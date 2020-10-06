@@ -43,6 +43,7 @@ from cartopy.feature import ShapelyFeature
 import shapely
 from shapely.geometry import MultiLineString
 from shapely.errors import TopologicalError
+from shapely import ops as shpops
 from skimage import io as skio
 import warnings
 from . import ticks
@@ -119,6 +120,7 @@ def add_land(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidth=Non
                                             linewidth=linewidth,
                                             **kwargs)
     return ax.add_feature(land)
+
 
 def add_countries(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
     """Add land to an existing map
@@ -289,6 +291,7 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, *a
         if mask.sum():
             ml_coords = _build_multiline_string_coords(lon, lat, mask, break_on_change)   
             mls = MultiLineString(ml_coords)
+            mls = shpops.unary_union(mls)
             ax.add_geometries([mls], crs=identity, **props[k1, k2])
 
 
@@ -451,7 +454,8 @@ def create_map(subplot=(1, 1, 1),
             extent = get_extent(projection)
         _last_projection = projection
         projection = get_projection(projection)
-    _last_projection = projection
+    else:
+        _last_projection = projection
     _last_extent = extent
 
     bg_color = bg_color or plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
@@ -468,7 +472,7 @@ def create_map(subplot=(1, 1, 1),
     ax.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])
     return ax
 
-def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None):
+def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, hshift=0, vshift=0):
     """Add a logo to a plot
 
     Parameters
@@ -478,10 +482,15 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None):
         Name of logo file located in `untracked/data/logos` default to value of 'pyseas.logo.name'
     scale : float, optional
         Additional scaling to apply to image in addition to value of 'pyseas.logo.base_scale'
-    loc : str, optional
-        Location to place logo. 'upper left', 'center right' etc. Similar to matplotlib Legend.
+    loc : str or (float, float), optional
+        Location to place logo. 'upper left', 'center right' etc. Or pair of floats in axes coords.
+        Similar to matplotlib Legend.
     alpha : float, optional
         Opacity to use when plotting legend. Default to value of `pyseas.logo.alpha`
+    hshift : float, optional
+        Additional horizontal shift in axis coordinates
+    vshift : float, optional
+        Additional verticals shift in axis coordinates    
 
     Keyword args are passed on to add_raster.
 
@@ -492,17 +501,17 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None):
     if name is None:
         name = plt.rcParams.get('pyseas.logo.name', 'logo.png')
     is_global = isinstance(_last_projection, str) and _last_projection.startswith('global.')
-    if is_global:
-        if loc == 'center':
-            box_alignment = (0.5, 0.5)
-            loc = (0.5, 0.5)
-        else:
-            v, h = loc.split()
-            a0, l0 = {'upper' : (1, 0.98), 'center' : (0.5, 0.5), 'lower' : (0, 0.02)}[v]
-            delta = 0.02 if (v == 'center') else 0.2
-            a1, l1 = {'right' : (1, 1 - delta), 'center' : (0.5, 0.5), 'left' : (0, delta)}[h]
-            box_alignment = (a1, a0)
-            loc = (l1, l0)
+    box_alignment = (0.5, 0.5)
+    if is_global and isinstance(loc, str):
+            if loc == 'center':
+                loc = (0.5, 0.5)
+            else:
+                v, h = loc.split()
+                a0, l0 = {'upper' : (1, 0.98), 'center' : (0.5, 0.5), 'lower' : (0, 0.02)}[v]
+                delta = 0.02 if (v == 'center') else 0.2
+                a1, l1 = {'right' : (1, 1 - delta), 'center' : (0.5, 0.5), 'left' : (0, delta)}[h]
+                box_alignment = (a1, a0)
+                loc = (l1, l0)
 
     base_scale = plt.rcParams.get('pyseas.logo.base_scale', 1)
     if alpha is None:

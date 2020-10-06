@@ -1,22 +1,7 @@
-# -*- coding: utf-8 -*-
-# ---
-# jupyter:
-#   jupytext:
-#     formats: ipynb,py:light
-#     text_representation:
-#       extension: .py
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.6.0
-#   kernelspec:
-#     display_name: Python 3
-#     language: python
-#     name: python3
-# ---
+# Examples of Plotting with `pyseas`
 
-# # Examples of Plotting with `pyseas`
 
-# +
+```python
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpcolors
@@ -51,24 +36,38 @@ def reload():
     imp.reload(pyseas)
 reload()
 
-# %matplotlib inline
-# -
+%matplotlib inline
+```
 
-# ## Recomended Style
-#
-# Import maps and styles directly. For other modules, reference
-# through the pyseas namespace.
-#
-#      import pyseas
-#      from pyseas import maps, styles
+## Recomended Style
 
-# ## Global Raster Plots
+Import maps and styles directly. For other modules, reference
+through the pyseas namespace.
 
-# !gsutil cp -n gs://machine-learning-dev-ttl-120d/named-achorages01-raster.tiff ../untracked/
+     import pyseas
+     from pyseas import maps, styles
+
+## Global Raster Plots
+
+
+```python
+!gsutil cp -n gs://machine-learning-dev-ttl-120d/named-achorages01-raster.tiff ../untracked/
 img = skimage.io.imread("../untracked/named-achorages01-raster.tiff")
+```
 
-# ### Global map centered over the Pacific using Dark Style
+    
+    
+    Updates are available for some Cloud SDK components.  To install them,
+    please run:
+      $ gcloud components update
+    
+    CommandException: No URLs matched: gs://machine-learning-dev-ttl-120d/named-achorages01-raster.tiff
 
+
+### Global map centered over the Pacific using Dark Style
+
+
+```python
 reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(18, 6))
@@ -76,7 +75,14 @@ with pyseas.context(styles.dark):
                                    projection='global.pacific_centered', 
                                    cmap='presence')
     maps.add_eezs(ax)
+```
 
+
+![png](Examples_files/Examples_6_0.png)
+
+
+
+```python
 reload()
 with pyseas.context(styles.dark):
     with pyseas.context({'pyseas.eez.bordercolor' : 'white'}):
@@ -85,9 +91,16 @@ with pyseas.context(styles.dark):
                                        projection='global.pacific_centered', 
                                        cmap='presence')
         maps.add_eezs(ax)
+```
 
-# ## Simple, Manual Colorbar
 
+![png](Examples_files/Examples_7_0.png)
+
+
+## Simple, Manual Colorbar
+
+
+```python
 reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(12,6))
@@ -100,9 +113,16 @@ with pyseas.context(styles.dark):
                       pad=0.04,
                      )
     _ = ax.set_title("distance to shore (km)", fontdict={'fontsize': 12})
+```
 
-# ## Auto Colorbar
 
+![png](Examples_files/Examples_9_0.png)
+
+
+## Auto Colorbar
+
+
+```python
 reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(12,7))
@@ -113,7 +133,14 @@ with pyseas.context(styles.dark):
     maps.add_logo(scale=0.8, loc='upper right')
     plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
                facecolor=plt.rcParams['pyseas.fig.background'])
+```
 
+
+![png](Examples_files/Examples_11_0.png)
+
+
+
+```python
 reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(8, 8))
@@ -126,9 +153,16 @@ with pyseas.context(styles.dark):
     maps.add_logo()
 #     plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
 #                facecolor=plt.rcParams['pyseas.fig.background'])
+```
 
-# ## Adding Gridlines
 
+![png](Examples_files/Examples_12_0.png)
+
+
+## Adding Gridlines
+
+
+```python
 reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(12, 8))
@@ -142,9 +176,16 @@ with pyseas.context(styles.dark):
     # If gridlines are not passed, last gridlines added are used
     maps.add_gridlabels()
     maps.add_countries()
+```
 
-# ## Plotting Tracks
 
+![png](Examples_files/Examples_14_0.png)
+
+
+## Plotting Tracks
+
+
+```python
 query = """
     select ssvid, lat, lon, timestamp, seg_id
     from `world-fishing-827.pipe_production_v20200203.messages_segmented_2018*`
@@ -154,10 +195,23 @@ query = """
     order by timestamp
     """
 msgs = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
+```
 
+
+```python
 ssvids = sorted(set(msgs.ssvid))
 ssvids
+```
 
+
+
+
+    ['220413000', '249014000', '413461490']
+
+
+
+
+```python
 reload()
 with pyseas.context(pyseas.styles.light):
     fig = plt.figure(figsize=(10, 10))
@@ -166,10 +220,16 @@ with pyseas.context(pyseas.styles.light):
     maps.add_gridlabels(gl)
     maps.add_land()
     maps.add_plot(msgs.lon, msgs.lat, msgs.ssvid) 
+```
 
 
-# ## Predefined Regional Styles
+![png](Examples_files/Examples_18_0.png)
 
+
+## Predefined Regional Styles
+
+
+```python
 reload()
 with pyseas.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
@@ -177,7 +237,14 @@ with pyseas.context(styles.light):
     maps.add_land(ax)
     maps.add_countries(ax)
     plt.show()
+```
 
+
+![png](Examples_files/Examples_20_0.png)
+
+
+
+```python
 reload()
 with pyseas.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
@@ -185,7 +252,14 @@ with pyseas.context(styles.light):
     maps.add_land(ax)
     maps.add_countries(ax)
     plt.show()
+```
 
+
+![png](Examples_files/Examples_21_0.png)
+
+
+
+```python
 reload()
 with pyseas.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
@@ -193,7 +267,14 @@ with pyseas.context(styles.light):
     maps.add_land(ax)
     maps.add_countries(ax)
     plt.show()
+```
 
+
+![png](Examples_files/Examples_22_0.png)
+
+
+
+```python
 reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(10, 10))
@@ -201,7 +282,14 @@ with pyseas.context(styles.dark):
     maps.add_land(ax)
     maps.add_countries(ax)
     plt.show()
+```
 
+
+![png](Examples_files/Examples_23_0.png)
+
+
+
+```python
 reload()
 with pyseas.context(styles.light):
     fig = plt.figure(figsize=(10, 10))
@@ -209,7 +297,14 @@ with pyseas.context(styles.light):
     maps.add_land()
     maps.add_countries()
     plt.show()
+```
 
+
+![png](Examples_files/Examples_24_0.png)
+
+
+
+```python
 reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(10, 10))
@@ -217,7 +312,14 @@ with pyseas.context(styles.dark):
     maps.add_land(ax)
     maps.add_countries(ax)
     plt.show()
+```
 
+
+![png](Examples_files/Examples_25_0.png)
+
+
+
+```python
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(10, 10))
     ax1 = maps.create_map(subplot=(1, 2, 1), projection='country.indonesia')
@@ -227,11 +329,21 @@ with pyseas.context(styles.dark):
     maps.add_land(ax2)
     maps.add_countries(ax2)
     plt.show()
+```
+
+
+![png](Examples_files/Examples_26_0.png)
 
 
 
-# ## `maps.rasters` has utilities for generating raster from BigQuery.
+```python
 
+```
+
+## `maps.rasters` has utilities for generating raster from BigQuery.
+
+
+```python
 query = """
 with seismic as 
 (select distinct ssvid from (
@@ -255,8 +367,10 @@ unnest(registry_info.best_known_vessel_class) v
  group by lat_bin, lon_bin
  """
 seismic_presence = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
+```
 
-# +
+
+```python
 reload()
 raster = maps.rasters.df2raster(seismic_presence, 'lon_bin', 'lat_bin', 'hours', 
                                  xyscale=10, origin='lower', per_km2=True)
@@ -282,13 +396,18 @@ with plt.rc_context(styles.dark):
     maps.add_logo(loc='lower left')
     plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
                facecolor=plt.rcParams['pyseas.fig.background'])
-# -
+```
 
-# ## `contrib`
 
-# ### Plot Tracks and Lat/Lon vs Time
+![png](Examples_files/Examples_30_0.png)
 
-# +
+
+## `contrib`
+
+### Plot Tracks and Lat/Lon vs Time
+
+
+```python
 reload()
 import matplotlib.dates as mdates
 import datetime as DT
@@ -320,10 +439,16 @@ with pyseas.context(styles.panel):
             
 
 
-# -
+```
 
-# ### Plots for examining fishing
 
+![png](Examples_files/Examples_33_0.png)
+
+
+### Plots for examining fishing
+
+
+```python
 query = """
 WITH 
 
@@ -351,8 +476,10 @@ WHERE ssvid IN (SELECT * FROM ssvid_list)
 ORDER BY timestamp
 """
 fishing_df = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
+```
 
-# +
+
+```python
 reload()
 from scipy.signal import medfilt
 ssvids = sorted(set(fishing_df.ssvid))[1:]
@@ -397,11 +524,16 @@ with pyseas.context(pyseas.styles.panel):
                        facecolor=plt.rcParams['pyseas.fig.background'])
 
             plt.show()
-# -
+```
 
-# ### Basic annotations can be added that match map to time axis
 
-# +
+![png](Examples_files/Examples_36_0.png)
+
+
+### Basic annotations can be added that match map to time axis
+
+
+```python
 from pyseas import props
 reload()
 from pyseas.util import lon_avg, asarray
@@ -447,12 +579,17 @@ with pyseas.context(pyseas.styles.panel):
                        facecolor=plt.rcParams['pyseas.fig.background'])
 
             plt.show()
-# -
+```
 
-# A ProjectionInfo instance can be passed in rather than having plot_tracks compute
-# a suitable projection
 
-# +
+![png](Examples_files/Examples_38_0.png)
+
+
+A ProjectionInfo instance can be passed in rather than having plot_tracks compute
+a suitable projection
+
+
+```python
 
 projinfo = plot_tracks.ProjectionInfo(
     projection=cartopy.crs.EqualEarth(central_longitude=160),
@@ -492,11 +629,16 @@ with pyseas.context(pyseas.styles.panel):
                        facecolor=plt.rcParams['pyseas.fig.background'])
 
             plt.show()
-# -
+```
 
-# ## A mini globe can be used to help locate the main map.
 
-# +
+![png](Examples_files/Examples_40_0.png)
+
+
+## A mini globe can be used to help locate the main map.
+
+
+```python
 reload()
 raster = maps.rasters.df2raster(seismic_presence, 'lon_bin', 'lat_bin', 'hours', 
                                  xyscale=10, origin='lower', per_km2=True)
@@ -533,7 +675,26 @@ with plt.rc_context(styles.dark):
 
 #     plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
 #                facecolor=plt.rcParams['pyseas.fig.background'])
-# +
+```
+
+
+    ---------------------------------------------------------------------------
+
+    NameError                                 Traceback (most recent call last)
+
+    <ipython-input-42-127675aaf514> in <module>()
+          1 reload()
+    ----> 2 raster = maps.rasters.df2raster(seismic_presence, 'lon_bin', 'lat_bin', 'hours', 
+          3                                  xyscale=10, origin='lower', per_km2=True)
+          4 
+          5 mask = {'pyseas.miniglobe.overlaycolor' : pyseas.props.dark.ocean.color}
+
+
+    NameError: name 'seismic_presence' is not defined
+
+
+
+```python
 reload()
 local_props = {'pyseas.miniglobe.innerwidth' : 3}
 
@@ -548,19 +709,29 @@ with pyseas.context(styles.light):
         maps.add_eezs()
         gl = maps.add_gridlines()
         maps.add_miniglobe()#central_marker='*', marker_size=10, marker_color='black')
-# -
+```
 
-# ## Publish
 
-# +
+![png](Examples_files/Examples_43_0.png)
+
+
+## Publish
+
+
+```python
 # import rendered
 # rendered.publish_to_github('./Examples.ipynb', 
 #                            'pyseas/doc', action='push')
-# -
+```
 
+
+```python
 SELECT * FROM `machine_learning_dev_ttl_120d.test_tracks_voyages_v20200930b` 
 where ssvid = '416002325' AND trip_start > TIMESTAMP('2018-01-01') ORDER BY trip_start
+```
 
+
+```python
 query = '''
 select a.ssvid, timestamp, lon, lat, course, speed, a.track_id, trip_id, trip_start
 from `machine_learning_dev_ttl_120d.thinned_messages_v20200709_2018*` a 
@@ -570,7 +741,10 @@ where a.ssvid = '416002325'
 order by timestamp
 '''
 ex_416002325 = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
+```
 
+
+```python
 with pyseas.context(styles.panel):
     for track_id in sorted(set(ex_416002325.track_id)):
         df = ex_416002325[ex_416002325.track_id == track_id]
@@ -578,16 +752,49 @@ with pyseas.context(styles.panel):
         info = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat)
         maps.add_miniglobe()
         plt.show()
+```
 
+
+![png](Examples_files/Examples_48_0.png)
+
+
+
+![png](Examples_files/Examples_48_1.png)
+
+
+
+```python
 start_map = {x.trip_id : x.trip_start for x in ex_416002325.itertuples()}
+```
 
+
+```python
 start_map = {x.trip_id : x.trip_start for x in ex_416002325.itertuples()}
 with pyseas.context(styles.panel):
     for trip_id in sorted(set(ex_416002325.trip_id), key = lambda x : start_map[x]):
         df = ex_416002325[ex_416002325.trip_id == trip_id]
         fig = plt.figure(figsize=(10, 14))
         info = plot_tracks.plot_fishing_panel(df.timestamp, df.lon, df.lat, df.lat * 0)
+```
 
+
+![png](Examples_files/Examples_50_0.png)
+
+
+
+![png](Examples_files/Examples_50_1.png)
+
+
+
+![png](Examples_files/Examples_50_2.png)
+
+
+
+![png](Examples_files/Examples_50_3.png)
+
+
+
+```python
 query = '''
 select a.ssvid, timestamp, lon, lat, course, speed, a.track_id, trip_id, trip_start
 from `machine_learning_dev_ttl_120d.thinned_messages_v20200709_2017*` a 
@@ -597,7 +804,10 @@ where a.ssvid = '416005359' and timestamp > timestamp('2017-07-11')
 order by timestamp
 '''
 ex_416005359 = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
+```
 
+
+```python
 with pyseas.context(styles.panel):
     for track_id in sorted(set(ex_416005359.track_id)):
         df = ex_416005359[ex_416005359.track_id == track_id]
@@ -605,7 +815,14 @@ with pyseas.context(styles.panel):
         info = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat)
         maps.add_miniglobe()
         plt.show()
+```
 
+
+![png](Examples_files/Examples_52_0.png)
+
+
+
+```python
 start_map = {x.trip_id : x.trip_start for x in ex_416005359.itertuples()}
 with pyseas.context(styles.panel):
     for trip_id in sorted(set(ex_416005359.trip_id), key = lambda x : start_map[x]):
@@ -615,8 +832,27 @@ with pyseas.context(styles.panel):
         fig = plt.figure(figsize=(10, 14))
         print(trip_id, len(df))
         info = plot_tracks.plot_fishing_panel(df.timestamp, df.lon, df.lat, df.lat * 0)
+```
 
-# +
+    416005359-2017-05-26T04:09:11.000000Z-2017-05-26--3882683afc00 2
+    416005359-2017-05-26T04:09:11.000000Z-2017-05-26-015d2f5b1e58 2
+    416005359-2017-05-26T04:09:11.000000Z-2017-05-26-015d65cc2d10 5381
+
+
+
+![png](Examples_files/Examples_53_1.png)
+
+
+
+![png](Examples_files/Examples_53_2.png)
+
+
+
+![png](Examples_files/Examples_53_3.png)
+
+
+
+```python
 # SELECT  * FROM `world-fishing-827.pipe_production_v20190502.port_events_*` 
 # WHERE
 # vessel_id = '308bedf1d-d12b-f775-8e6a-2ee85fe1f307'
@@ -624,8 +860,10 @@ with pyseas.context(styles.panel):
 # timestamp>=timestamp('2017-07-11')
 # ORDER BY
 # timestamp
-# -
+```
 
+
+```python
 reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(18, 6))
@@ -633,13 +871,44 @@ with pyseas.context(styles.dark):
     maps.add_land()
     maps.core._last_projection = 'global.pacific_centered'
     maps.add_logo(loc=(0.6, 0.7))
+```
 
+
+![png](Examples_files/Examples_55_0.png)
+
+
+
+```python
 maps.core._last_projection
+```
 
+
+
+
+    'global.pacific_centered'
+
+
+
+
+```python
 from collections import Counter
 Counter(msgs.seg_id).most_common(6)
+```
 
-# +
+
+
+
+    [('220413000-2017-12-18T20:34:03.000000Z', 8647),
+     ('249014000-2017-12-24T22:05:19.000000Z', 3089),
+     ('220413000-2018-01-20T01:01:17.000000Z', 1444),
+     ('249014000-2018-01-21T16:36:23.000000Z', 1233),
+     ('249014000-2018-01-28T05:05:07.000000Z', 998),
+     ('249014000-2018-01-15T00:21:43.000000Z', 976)]
+
+
+
+
+```python
 df_positions_all = msgs
 
 with pyseas.context(pyseas.styles.light):
@@ -682,6 +951,13 @@ with pyseas.context(pyseas.styles.light):
                      props={(1, 1) :  make_props('red')})
         maps.add_plot(df_positions_carrier.lon.values, df_positions_carrier.lat.values, 
                      props={(1, 1) :  make_props('blue')})
-# -
+```
 
 
+![png](Examples_files/Examples_58_0.png)
+
+
+
+```python
+
+```
