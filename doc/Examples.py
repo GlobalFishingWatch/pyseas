@@ -558,9 +558,6 @@ with pyseas.context(styles.light):
 #                            'pyseas/doc', action='push')
 # -
 
-SELECT * FROM `machine_learning_dev_ttl_120d.test_tracks_voyages_v20200930b` 
-where ssvid = '416002325' AND trip_start > TIMESTAMP('2018-01-01') ORDER BY trip_start
-
 query = '''
 select a.ssvid, timestamp, lon, lat, course, speed, a.track_id, trip_id, trip_start
 from `machine_learning_dev_ttl_120d.thinned_messages_v20200709_2018*` a 
@@ -586,7 +583,7 @@ with pyseas.context(styles.panel):
     for trip_id in sorted(set(ex_416002325.trip_id), key = lambda x : start_map[x]):
         df = ex_416002325[ex_416002325.trip_id == trip_id]
         fig = plt.figure(figsize=(10, 14))
-        info = plot_tracks.plot_fishing_panel(df.timestamp, df.lon, df.lat, df.lat * 0)
+        info = plot_tracks.plot_fishing_panel(df.timestamp, df.lon, df.lat, df.trip_id)
 
 query = '''
 select a.ssvid, timestamp, lon, lat, course, speed, a.track_id, trip_id, trip_start
@@ -616,16 +613,6 @@ with pyseas.context(styles.panel):
         print(trip_id, len(df))
         info = plot_tracks.plot_fishing_panel(df.timestamp, df.lon, df.lat, df.lat * 0)
 
-# +
-# SELECT  * FROM `world-fishing-827.pipe_production_v20190502.port_events_*` 
-# WHERE
-# vessel_id = '308bedf1d-d12b-f775-8e6a-2ee85fe1f307'
-# AND
-# timestamp>=timestamp('2017-07-11')
-# ORDER BY
-# timestamp
-# -
-
 reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(18, 6))
@@ -640,6 +627,8 @@ from collections import Counter
 Counter(msgs.seg_id).most_common(6)
 
 # +
+reload()
+
 df_positions_all = msgs
 
 with pyseas.context(pyseas.styles.light):
@@ -649,7 +638,9 @@ with pyseas.context(pyseas.styles.light):
         df_positions_gap = df_positions_all[df_positions_all.seg_id 
                                             == '249014000-2018-01-21T16:36:23.000000Z']
         df_positions_carrier = df_positions_all[df_positions_all.seg_id 
-                                                == '249014000-2018-01-15T00:21:43.000000Z']
+                                            == '249014000-2018-01-15T00:21:43.000000Z']
+        
+        
 
         if True:
             extent = [df_positions_gap.lon.min(), df_positions_gap.lon.max(), \
@@ -668,20 +659,36 @@ with pyseas.context(pyseas.styles.light):
 
         ### Add the inset where it's working currently
         try:
-            inset = maps.add_miniglobe(loc='lower left', offset="outside")
+            inset = maps.add_miniglobe(loc='lower left', offset="outside", central_marker='*')
         except:
             inset = None
             
-        def make_props(color):
-            return {'edgecolor' : color,
-                 'facecolor' : 'none',
-                 'linewidth' : 1,
-                 'alpha' : 1}
+#         def make_props(color):
+#             return {'edgecolor' : color,
+#                  'facecolor' : 'none',
+#                  'linewidth' : 1,
+#                  'alpha' : 1}
 
-        maps.add_plot(df_positions_gap.lon.values, df_positions_gap.lat.values, 
-                     props={(1, 1) :  make_props('red')})
-        maps.add_plot(df_positions_carrier.lon.values, df_positions_carrier.lat.values, 
-                     props={(1, 1) :  make_props('blue')})
+
+        df = df_positions_all[(df_positions_all.seg_id.values == '249014000-2018-01-21T16:36:23.000000Z') |
+                           (df_positions_all.seg_id.values == '249014000-2018-01-15T00:21:43.000000Z')].copy()
+        lat = df.lat.values.copy()
+        lat[df.seg_id.values == '249014000-2018-01-21T16:36:23.000000Z'] += 0.4
+        df['lat'] = lat
+#         handles = maps.add_plot(df.lon.values, df.lat.values, df.seg_id.values == '249014000-2018-01-21T16:36:23.000000Z',
+#                       colors=['red', 'green'])
+        df1 = df_positions_gap
+    
+        [hnd1] = maps.add_plot(df1.lon.values, df1.lat.values, colors='red', widths=3)
+        [hnd2] = maps.add_plot(df1.lon.values, df1.lat.values + 0.1, colors='green')
+        plt.legend([hnd1, hnd2], ['first', 'second'])
+# +
+# Arbitrary label offsets
+# Optional central markers for miniglobe, plus more configurability
+# Simplify adding plots with single colors
 # -
+
+
+geoms
 
 

@@ -29,6 +29,7 @@ from ._monkey_patch_cartopy import monkey_patch_cartopy
 import matplotlib.pyplot as plt
 import matplotlib.offsetbox as mplobox
 import matplotlib.colors as mplcolors
+from matplotlib.lines import Line2D
 from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 import cartopy
 import cartopy.feature as cfeature
@@ -225,7 +226,8 @@ def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
     return ml_coords
         
 
-def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, *args, **kwargs):
+def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, 
+             colors=None, widths=None, transform=identity):
     """Add a plot to an existing map
 
     Parameters
@@ -245,25 +247,24 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, *a
     break_on_change : bool, optional
         Whether to create a new segment when kind changes. Generally True for fishing plots
         and False for vessel plots.
-    
-    Other Parameters
-    ----------------
-    Keyword args are passed on to ax.plot.
-
-
-    This function hides the need to specify the transform in the common
-    case. Unless the transform is specified it defaults to PlateCarree,
-    which is generally what you want.
+    colors : str or list of str, optional
+        Color of plotted lines. If a list is specified, it should have the same number of 
+        values as there are distinct values in `kind`. Colors are applied to kinds in sorted
+        order. Ignored if `props` is specified.
+    widths : float or list of float, optional
+        Width of plotted lines. If a list is specified, it should have the same number of 
+        values as there are distinct values in `kind`. Widths are applied to kinds in sorted
+        order. Ignored if `props` is specified.
+    transform : cartopy.crs.Projection, optional
 
     Returns
     -------
-    A list of Line2D objects.
+    list of Line2D objects.
+        Suitable for passing to legend.s
     """
     if ax is None:
         ax = plt.gca()
     assert len(lon) == len(lat)
-    if 'transform' not in kwargs:
-        kwargs['transform'] = identity
     if kind is None:
         kind = np.ones(len(lon))
     else:
@@ -272,12 +273,24 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, *a
 
     if props is None:
         raw_kinds = sorted(set(kind))
-        props = {(k, k) : v for (k, v) in zip(raw_kinds, plt.rcParams['pyseas.map.trackprops'])}
+        props = dict()
+        if colors and not isinstance(colors, list):
+            colors = [colors] * len(raw_kinds)
+        if widths and not isinstance(widths, list):
+            widths = [widths] * len(raw_kinds)
+        props = dict()
+        for i, (k, p) in enumerate(zip(raw_kinds, plt.rcParams['pyseas.map.trackprops'])):
+            p = p.copy()
+            if colors:
+                p['edgecolor'] = colors[i % len(colors)]
+            if widths:
+                p['linewidth'] = widths[i % len(widths)]
+            props[(k, k)] = p       
+
     kinds = list(props.keys())
 
+    lines = []
     for k1, k2 in kinds:
-        if (k1, k2) not in props:
-            continue
         mask1 = (kind == k1)
         if k2 == k1:
             mask2 = mask1
@@ -292,7 +305,11 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, *a
             ml_coords = _build_multiline_string_coords(lon, lat, mask, break_on_change)   
             mls = MultiLineString(ml_coords)
             mls = shpops.unary_union(mls)
-            ax.add_geometries([mls], crs=identity, **props[k1, k2])
+            p = props[k1, k2]
+            ax.add_geometries([mls], crs=transform, **p)
+            lines.append(Line2D([0], [0], color=p['edgecolor'], lw=p.get('linewidth', 1)))
+
+    return  lines
 
 
 _eezs = {}
