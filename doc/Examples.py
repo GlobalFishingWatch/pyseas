@@ -156,7 +156,63 @@ with plt.rc_context(styles.dark):
 
 # ## Plotting Tracks
 
-....
+# There are two base functions for plotting vessel tracks. `maps.plot` is
+# a simple wrapper around `plt.plot` that plots tracks specified in lat/lon,
+# but is otherwise identical `plt.plot`. `maps.add_plot` can plot plot tracks
+# with multiple subsegments, using different styles for each subsegment.
+#
+# Both of these support creation of legends. However, the second requires a bit
+# of manual intervention.
+
+query = """
+    select ssvid, lat, lon, timestamp, seg_id, speed
+    from `world-fishing-827.pipe_production_v20200203.messages_scored_2018*`
+    where _TABLE_SUFFIX between "0101" and "0131"
+    and ssvid in ("413461490", "249014000", "220413000")
+    and seg_id is not null
+    order by timestamp
+    """
+position_msgs = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
+
+# Simple track plotting analogous to plt.plot
+with pyseas.context(pyseas.styles.light):
+    fig = plt.figure(figsize=(8, 8))
+    df = position_msgs[position_msgs.seg_id == '249014000-2018-01-21T16:36:23.000000Z']
+    projinfo = plot_tracks.find_projection(df.lon, df.lat)
+    maps.create_map(projection=projinfo.projection)
+    maps.add_land()
+
+    maps.plot(df.lon.values, df.lat.values, label='first')
+    maps.plot(df.lon.values, df.lat.values + 0.1, label='second')
+    maps.plot(df.lon.values - 0.3, df.lat.values, color='purple', linewidth=3, label='third')
+    
+    plt.legend()
+
+# Use add plot, to display multple tracks at once.
+with pyseas.context(pyseas.styles.light):
+    fig = plt.figure(figsize=(8, 8))
+    df = position_msgs[position_msgs.ssvid != '220413000']
+    projinfo = plot_tracks.find_projection(df.lon, df.lat)
+    maps.create_map(projection=projinfo.projection, extent=projinfo.extent)
+    maps.add_land()
+    handles = maps.add_plot(df.lon.values, df.lat.values, df.ssvid, break_on_change=False)
+    plt.legend(handles.values(), handles.keys())
+
+# Use add plot, to display tracks with multiple values
+# this simple example leaves gaps between the segments
+# Generating an appropriate set of props is a bit tricky --
+# here we use the built in fishing props.
+with pyseas.context(pyseas.styles.light):
+    fig = plt.figure(figsize=(8, 8))
+    df = position_msgs[position_msgs.ssvid == '413461490']
+    projinfo = plot_tracks.find_projection(df.lon, df.lat)
+    maps.create_map(projection=projinfo.projection, extent=projinfo.extent)
+    maps.add_land()
+    handles = maps.add_plot(df.lon.values, df.lat.values, df.speed > 7, break_on_change=True,
+                            props=styles._fishing_props)
+    plt.legend(handles.values(), ['speed <= 7 knots', 'speed > 7 knots'])
+
+# ## Old Examples
 
 # +
 reload()
