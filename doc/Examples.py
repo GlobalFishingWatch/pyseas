@@ -26,30 +26,9 @@ import cartopy
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
-
-# We are importing extra stuff here and defining a reload function to
-# make iterative testing of PySeas easier. You should not need to use
-# `reload` during normal use.
 import pyseas
-from pyseas import maps, cm, styles, util
-import pyseas.props
+from pyseas import maps, styles
 from pyseas.contrib import plot_tracks
-from pyseas.maps import scalebar, core, rasters, ticks
-import imp
-
-def reload():
-    imp.reload(util)
-    imp.reload(ticks)
-    imp.reload(scalebar)
-    imp.reload(pyseas.props)
-    imp.reload(cm)
-    imp.reload(styles)
-    imp.reload(rasters)
-    imp.reload(core)
-    imp.reload(maps)
-    imp.reload(plot_tracks)
-    imp.reload(pyseas)
-reload()
 
 # %matplotlib inline
 # -
@@ -174,10 +153,7 @@ query = """
     """
 position_msgs = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
-# +
 # Simple track plotting analogous to plt.plot
-reload()
-
 with pyseas.context(pyseas.styles.light):
     fig = plt.figure(figsize=(8, 8))
     df = position_msgs[position_msgs.seg_id == '249014000-2018-01-21T16:36:23.000000Z']
@@ -190,9 +166,8 @@ with pyseas.context(pyseas.styles.light):
     maps.plot(df.lon.values - 0.3, df.lat.values, color='purple', linewidth=3, label='third')
     
     plt.legend()
-# -
 
-# Use add plot, to display multple tracks at once.
+# Use add plot, to display multiple tracks at once.
 with pyseas.context(pyseas.styles.light):
     fig = plt.figure(figsize=(8, 8))
     df = position_msgs[position_msgs.ssvid != '220413000']
@@ -259,7 +234,6 @@ with pyseas.context(styles.panel):
 # pieces internally, despite its relative outward simplicity. The miniglobe can
 # be specified to either have an AOI indicated or a marker at the specified location.
 
-reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(10, 10))
     ax = maps.create_map(projection='country.indonesia')
@@ -268,21 +242,17 @@ with pyseas.context(styles.dark):
     maps.add_miniglobe(loc='upper left')
     plt.show()
 
-reload()
 with pyseas.context(styles.dark):
     fig = plt.figure(figsize=(10, 10))
     ax = maps.create_map(projection='country.indonesia')
     maps.add_land(ax)
     maps.add_countries(ax)
-    maps.add_miniglobe(loc='lower right', central_marker='*', add_aoi=False)
+    maps.add_miniglobe(loc='lower right', central_marker='*')
     plt.show()
-
-plt.rcParams.keys()
 
 # ## Old Examples
 
 # +
-reload()
 raster = maps.rasters.df2raster(seismic_presence, 'lon_bin', 'lat_bin', 'hours', 
                                  xyscale=10, origin='lower', per_km2=True)
 
@@ -636,7 +606,7 @@ with pyseas.context(pyseas.styles.panel):
 
 # +
 from pyseas import props
-reload()
+pyseas._reload()
 from pyseas.util import lon_avg, asarray
 
 ssvids = sorted(set(fishing_df.ssvid))[1:2]
