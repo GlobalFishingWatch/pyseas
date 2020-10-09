@@ -79,6 +79,7 @@ _colorbarlabelfont  = {'fontsize': 12}
 # TODO: swap 'pyseas.' for 'pyseas.'
 
 dark = {
+        'text.use_tex' : False,
         'grid.alpha': _props.dark.grid.alpha,
         'grid.color': _props.dark.grid.color,
         'grid.linestyle': _props.dark.grid.style,
@@ -122,6 +123,7 @@ dark = {
          }
 
 light = {
+         'text.use_tex' : False,
          'grid.alpha': _props.light.grid.alpha,
          'grid.color': _props.light.grid.color,
          'grid.linestyle': _props.light.grid.style,

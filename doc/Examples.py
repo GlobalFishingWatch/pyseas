@@ -62,6 +62,130 @@ reload()
 #      import pyseas
 #      from pyseas import maps, styles
 
+# ## Basic Mapping
+#
+# Projections can be specified by using any of the names found in the acompanying 
+# `projection_info.md` document, or with any Cartopy projection. There are built in 
+# light and dark styles, which are activated using `pyseas.context`.
+
+with pyseas.context(styles.dark):
+    fig = plt.figure(figsize=(18, 6))
+    maps.create_map(projection='regional.european_union')
+    maps.add_land()
+
+# In addition to `add_land` there a number of other features that can be added to maps
+# including eezs, grid_lines, countries, logos, etc.
+
+with pyseas.context(styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    maps.create_map(projection='country.china')
+    maps.add_land()
+    maps.add_countries()
+    maps.add_eezs()
+    maps.add_gridlines()
+    maps.add_gridlabels()
+    maps.add_logo(loc='upper left')
+
+# ## Rasters
+#
+# There are facilities for creating and displaying rasters.
+
+# Grab some data and create a raster
+query = """
+with seismic as 
+(select distinct ssvid from (
+select ssvid, v  from `gfw_research.vi_ssvid_v20200312` cross join
+unnest(registry_info.best_known_vessel_class) v
+ ) where v = 'seismic_vessel'
+ ),
+ good_segs as (select seg_id from `gfw_research.pipe_v20190502_segs`  where 
+ good_seg and not overlapping_and_short
+ and positions > 20)
+ select 
+ floor(lat*10) lat_bin,
+ floor(lon*10) lon_bin,
+ sum(hours) hours,
+ sum(if(nnet_score>.5,1,0)) fishing_hours
+ from `gfw_research.pipe_v20190502` 
+ join seismic
+ using(ssvid)
+ where date between timestamp("2019-01-01") and timestamp("2019-12-31")
+ and seg_id in (select seg_id from good_segs)
+ group by lat_bin, lon_bin
+ """
+seismic_presence = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard') 
+seismic_raster = maps.rasters.df2raster(seismic_presence, 'lon_bin', 'lat_bin', 'hours', 
+                                         xyscale=10, origin='lower', per_km2=True)
+
+# Display a raster along with standard colorbar.
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(vmin=1, vmax=1000)
+with plt.rc_context(styles.dark):
+    ax, im = maps.plot_raster(raster * (60 * 60), 
+                              projection='country.indonesia',
+                              cmap='presence',
+                              norm=norm,
+                              origin='lower')
+    maps.add_countries()
+    maps.add_eezs()
+    ax.set_title('Seismic Vessel Presence Near Indonesia')
+    fig.colorbar(im, ax=ax, 
+                      orientation='horizontal',
+                      fraction=0.02,
+                      aspect=40,
+                      pad=0.04,
+                     )
+    maps.add_logo(loc='lower left')
+
+# Display a raster along with aligned, labeled colorbar.
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(vmin=1, vmax=1000)
+with plt.rc_context(styles.dark):
+    ax, im, cb = maps.plot_raster_w_colorbar(raster * (60 * 60), 
+                                             r"seconds per $\mathregular{km^2}$ ",
+                                             projection='country.indonesia',
+                                             cmap='presence',
+                                             norm=norm,
+                                             cbformat='%.0f',
+                                             origin='lower',
+                                             loc='bottom')
+    maps.add_countries()
+    maps.add_eezs()
+    ax.set_title('Seismic Vessel Presence Near Indonesia')
+    maps.add_logo(loc='lower left')
+
+# ## Plotting Tracks
+
+....
+
+# +
+reload()
+raster = maps.rasters.df2raster(seismic_presence, 'lon_bin', 'lat_bin', 'hours', 
+                                 xyscale=10, origin='lower', per_km2=True)
+
+plt.rc('text', usetex=False)
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(vmin=1, vmax=1000)
+with plt.rc_context(styles.dark):
+    ax, im, cb = maps.plot_raster_w_colorbar(raster * (60 * 60), 
+                                       r"seconds per $\mathregular{km^2}$ ",
+                                        projection='country.indonesia',
+                                       cmap='presence',
+                                      norm=norm,
+                                      cbformat='%.0f',
+                                      origin='lower',
+                                      loc='top')
+    maps.add_countries()
+    maps.add_eezs()
+    ax.set_title('Seismic Vessel Presence Near Indonesia', pad=40)
+    maps.add_figure_background()
+    gl = maps.add_gridlines()
+    maps.add_gridlabels(gl)
+    maps.add_logo(loc='lower left')
+    plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
+               facecolor=plt.rcParams['pyseas.fig.background'])
+# -
+
 # ## Global Raster Plots
 
 # !gsutil cp -n gs://machine-learning-dev-ttl-120d/named-achorages01-raster.tiff ../untracked/
@@ -165,7 +289,8 @@ with pyseas.context(pyseas.styles.light):
     gl = maps.add_gridlines()
     maps.add_gridlabels(gl)
     maps.add_land()
-    maps.add_plot(msgs.lon, msgs.lat, msgs.ssvid) 
+    handles = maps.add_plot(msgs.lon, msgs.lat, msgs.ssvid)    
+    plt.legend(handles.values(), handles.keys())
 
 
 # ## Predefined Regional Styles
@@ -297,28 +422,11 @@ df = msgs[(msgs.ssvid == "413461490")]
 reload()
 with pyseas.context(styles.panel):
     fig = plt.figure(figsize=(10, 10))
-    info = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat,
-                                                 df.seg_id)
+    info = plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id)
+#     info = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat, df.seg_id)
     maps.add_logo(loc='upper left')
-    
-#     print()
-    min_dt, max_dt = [mdates.num2date(x) for x in info.plot_axes[0].get_xlim()]
-    
-    for ax in info.plot_axes:
-        if min_dt.hour < 6:
-            start = DT.datetime(min_dt.year, min_dt.month, min_dt.day, tzinfo=min_dt.tzinfo) - DT.timedelta(hours=6)
-        else:
-            start = DT.datetime(min_dt.year, min_dt.month, min_dt.day, tzinfo=min_dt.tzinfo) + DT.timedelta(hours=30)
-        while start < max_dt:
-            stop = start + DT.timedelta(hours=12)
-            if stop > max_dt:
-                stop = max_dt
-            ax.axvspan(mdates.date2num(start), mdates.date2num(stop), alpha=0.1, color='#888888')
-            start += DT.timedelta(hours=24)
-            
-        ax.set_xlim(min_dt, max_dt)
-            
-
+    plt.legend(info.legend_handles.values(), [x.split('-', 1)[1].rstrip('.000000000Z') 
+                                              for x in info.legend_handles.keys()])
 
 # -
 
@@ -376,7 +484,7 @@ with pyseas.context(pyseas.styles.panel):
             is_fishing = (dfn.nnet_score > 0.5)      
 
             fig = plt.figure(figsize=(12, 8))
-            info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
+            info = plot_tracks.track_state_panel(dfn.timestamp, dfn.lon,
                                      dfn.lat, is_fishing,
                                      plots = [
                     {'label' : 'speed (knots)', 'values' : medfilt(dfn.speed.values,11), 
@@ -385,7 +493,7 @@ with pyseas.context(pyseas.styles.panel):
                         'min_y' : 0, 'invert_yaxis' : True},                       
                                      ],
                                      map_ratio=6,
-                                     annotations=7,
+#                                      annotations=7,
                                     annotation_y_loc=1,
                                     annotation_y_align='bottom',
                                     annotation_axes_ndx=0,
@@ -395,6 +503,8 @@ with pyseas.context(pyseas.styles.panel):
 
             plt.savefig('/Users/timothyhochberg/Desktop/test_fpanel.png', dpi=300,
                        facecolor=plt.rcParams['pyseas.fig.background'])
+            
+            plt.legend(info.legend_handles.values(), ['non-fishing', 'fishing'], loc=(1.1, 0.88))
 
             plt.show()
 # -
@@ -426,7 +536,7 @@ with pyseas.context(pyseas.styles.panel):
             is_fishing = (dfn.nnet_score > 0.5)      
 
             fig = plt.figure(figsize=(12, 12))
-            info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
+            info = plot_tracks.track_state_panel(dfn.timestamp, dfn.lon,
                                      dfn.lat, is_fishing,
                                      plots = [
                     {'label' : 'speed (knots)', 'values' : medfilt(dfn.speed.values,11), 
@@ -470,7 +580,7 @@ with pyseas.context(pyseas.styles.panel):
             is_fishing = (dfn.nnet_score > 0.5)      
 
             fig = plt.figure(figsize=(12, 12))
-            info = plot_tracks.plot_fishing_panel(dfn.timestamp, dfn.lon,
+            info = plot_tracks.track_state_panel(dfn.timestamp, dfn.lon,
                                      dfn.lat, is_fishing,
                                      plots = [
                     {'label' : 'speed (knots)', 'values' : medfilt(dfn.speed.values,11), 
@@ -568,11 +678,12 @@ order by timestamp
 '''
 ex_416002325 = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
+reload()
 with pyseas.context(styles.panel):
     for track_id in sorted(set(ex_416002325.track_id)):
         df = ex_416002325[ex_416002325.track_id == track_id]
         fig = plt.figure(figsize=(10, 14))
-        info = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat)
+        info = plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat)
         maps.add_miniglobe()
         plt.show()
 
@@ -582,8 +693,9 @@ start_map = {x.trip_id : x.trip_start for x in ex_416002325.itertuples()}
 with pyseas.context(styles.panel):
     for trip_id in sorted(set(ex_416002325.trip_id), key = lambda x : start_map[x]):
         df = ex_416002325[ex_416002325.trip_id == trip_id]
-        fig = plt.figure(figsize=(10, 14))
-        info = plot_tracks.plot_fishing_panel(df.timestamp, df.lon, df.lat, df.trip_id)
+        if len(df):
+            fig = plt.figure(figsize=(10, 14))
+            info = plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat)
 
 query = '''
 select a.ssvid, timestamp, lon, lat, course, speed, a.track_id, trip_id, trip_start
@@ -595,13 +707,18 @@ order by timestamp
 '''
 ex_416005359 = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
+# +
+reload()
+
 with pyseas.context(styles.panel):
     for track_id in sorted(set(ex_416005359.track_id)):
         df = ex_416005359[ex_416005359.track_id == track_id]
         fig = plt.figure(figsize=(10, 14))
-        info = plot_tracks.plot_tracks_panel(df.timestamp, df.lon, df.lat)
+        info = plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat)
         maps.add_miniglobe()
+        plt.legend(info.legend_handles.values(), ['the track'], loc='upper left')
         plt.show()
+# -
 
 start_map = {x.trip_id : x.trip_start for x in ex_416005359.itertuples()}
 with pyseas.context(styles.panel):
@@ -611,7 +728,7 @@ with pyseas.context(styles.panel):
         df = ex_416005359[ex_416005359.trip_id == trip_id]
         fig = plt.figure(figsize=(10, 14))
         print(trip_id, len(df))
-        info = plot_tracks.plot_fishing_panel(df.timestamp, df.lon, df.lat, df.lat * 0)
+        info = plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat)
 
 reload()
 with pyseas.context(styles.dark):
@@ -679,16 +796,7 @@ with pyseas.context(pyseas.styles.light):
 #                       colors=['red', 'green'])
         df1 = df_positions_gap
     
-        [hnd1] = maps.add_plot(df1.lon.values, df1.lat.values, colors='red', widths=3)
-        [hnd2] = maps.add_plot(df1.lon.values, df1.lat.values + 0.1, colors='green')
-        plt.legend([hnd1, hnd2], ['first', 'second'])
-# +
-# Arbitrary label offsets
-# Optional central markers for miniglobe, plus more configurability
-# Simplify adding plots with single colors
-# -
-
-
-geoms
-
-
+        maps.plot(df1.lon.values, df1.lat.values, label='first')
+        maps.plot(df1.lon.values, df1.lat.values + 0.1, label='second')
+        maps.plot(df1.lon.values - 0.3, df1.lat.values, color='purple', linewidth=3, label='third')
+        plt.legend()

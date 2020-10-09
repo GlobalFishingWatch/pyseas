@@ -226,17 +226,16 @@ def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
     return ml_coords
         
 
-def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, 
-             colors=None, widths=None, transform=identity):
-    """Add a plot to an existing map
+def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, transform=identity):
+    """Add a plot with different props for different 'kind' values to an existing map
 
     Parameters
     ----------
     lon : sequence of float
     lat : sequence of float
     kind : sequence of hashable, optional
-        Length must match lon/lat and values are used to index into the
-        `props` map.
+        Controls what props are used. Length must match lon/lat and values 
+        are used to index into the `props` map.
     props : dict, optional.
         Maps `kind` of first and last point of each segment to plot style.
          By default, sorted values from `kind`
@@ -247,20 +246,12 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False,
     break_on_change : bool, optional
         Whether to create a new segment when kind changes. Generally True for fishing plots
         and False for vessel plots.
-    colors : str or list of str, optional
-        Color of plotted lines. If a list is specified, it should have the same number of 
-        values as there are distinct values in `kind`. Colors are applied to kinds in sorted
-        order. Ignored if `props` is specified.
-    widths : float or list of float, optional
-        Width of plotted lines. If a list is specified, it should have the same number of 
-        values as there are distinct values in `kind`. Widths are applied to kinds in sorted
-        order. Ignored if `props` is specified.
     transform : cartopy.crs.Projection, optional
 
     Returns
     -------
-    list of Line2D objects.
-        Suitable for passing to legend.s
+    dict mapping keys to Line2D
+        Values are suitable for passing to legend.
     """
     if ax is None:
         ax = plt.gca()
@@ -272,25 +263,11 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False,
         assert len(kind) == len(lon)
 
     if props is None:
-        raw_kinds = sorted(set(kind))
-        props = dict()
-        if colors and not isinstance(colors, list):
-            colors = [colors] * len(raw_kinds)
-        if widths and not isinstance(widths, list):
-            widths = [widths] * len(raw_kinds)
-        props = dict()
-        for i, (k, p) in enumerate(zip(raw_kinds, plt.rcParams['pyseas.map.trackprops'])):
-            p = p.copy()
-            if colors:
-                p['edgecolor'] = colors[i % len(colors)]
-            if widths:
-                p['linewidth'] = widths[i % len(widths)]
-            props[(k, k)] = p       
+        kinds = sorted(set(kind))
+        props = {(k, k) : p for (k, p) in zip(kinds, _plot_cycler)}       
 
-    kinds = list(props.keys())
-
-    lines = []
-    for k1, k2 in kinds:
+    handles = {}
+    for k1, k2 in sorted(props.keys()):
         mask1 = (kind == k1)
         if k2 == k1:
             mask2 = mask1
@@ -307,9 +284,20 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False,
             mls = shpops.unary_union(mls)
             p = props[k1, k2]
             ax.add_geometries([mls], crs=transform, **p)
-            lines.append(Line2D([0], [0], color=p['edgecolor'], lw=p.get('linewidth', 1)))
+            key = k1 if (k1 == k2) else k2
+            handles[key] = Line2D([0], [0], color=p['edgecolor'], lw=p.get('linewidth', 1))
 
-    return  lines
+    return handles
+
+
+def plot(*args, **kwargs):
+    """Add a simple plot to an existing map
+
+    This is a thin wrapper around matplotlib.plot that sets the default transform.
+    """
+    if 'transform' not in kwargs:
+        kwargs['transform'] = identity
+    return plt.plot(*args, **kwargs)
 
 
 _eezs = {}
@@ -445,6 +433,7 @@ def add_gridlabels(gl=None, lons=None, lats=None, ax=None, fig=None,
 
 _last_projection = None
 _last_extent = None
+_plot_cycler = None
 
 def create_map(subplot=(1, 1, 1), 
                 projection='global.default', 
@@ -465,7 +454,7 @@ def create_map(subplot=(1, 1, 1),
     -------
     GeoAxes
     """
-    global _last_projection, _last_extent
+    global _last_projection, _last_extent, _plot_cycler
     if isinstance(projection, str):
         if extent is None:
             extent = get_extent(projection)
@@ -474,6 +463,7 @@ def create_map(subplot=(1, 1, 1),
     else:
         _last_projection = projection
     _last_extent = extent
+    _plot_cycler = iter(plt.rcParams.get('pyseas.map.trackprops', styles._dark_artist_cycler))
 
     bg_color = bg_color or plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
     if not isinstance(subplot, tuple):
