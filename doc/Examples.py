@@ -212,6 +212,69 @@ with pyseas.context(pyseas.styles.light):
                             props=styles._fishing_props)
     plt.legend(handles.values(), ['speed <= 7 knots', 'speed > 7 knots'])
 
+# ## Panels
+#
+# There are a couple of convenience functions that package up add_plot
+# for a couple of common cases. These also support adding subsidiary 
+# time/other-parameter plots.
+#
+# The first of these `multi_track_panel` is specialized for plotting multiple
+# tracks at once.
+
+df = position_msgs[(position_msgs.ssvid == "413461490")]
+with pyseas.context(styles.panel):
+    fig = plt.figure(figsize=(12, 12))
+    info = plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.lon},
+                       {'label' : 'lat', 'values' : df.lat}])
+    plt.legend(info.legend_handles.values(), [x.split('-', 1)[1].rstrip('.000000000Z') 
+                                              for x in info.legend_handles.keys()])
+
+# The second panel type, `track_state_panel`, plots single tracks with multiple states. For instance,
+# fishing/non-fishing, loitering/non-loitering, etc.
+
+df = position_msgs[(position_msgs.ssvid == "413461490")].reset_index()
+with pyseas.context(styles.panel):
+    fig = plt.figure(figsize=(12, 12))
+    info = plot_tracks.track_state_panel(df.timestamp, df.lon, df.lat, df.speed > 7.0,
+                    plots = [{'label' : 'speed (knots)', 'values' : df.speed, 'min_y' : 0}])
+
+# Both panel types have a number of options including `annotations` and
+# `add_night_shades`.
+
+df = position_msgs[(position_msgs.ssvid == "413461490")].reset_index()
+with pyseas.context(styles.panel):
+    fig = plt.figure(figsize=(12, 12))
+    info = plot_tracks.track_state_panel(df.timestamp, df.lon, df.lat, df.speed > 7.0,
+                                        annotations=5, add_night_shades=True,
+                    plots = [{'label' : 'speed (knots)', 'values' : df.speed, 'min_y' : 0}])
+
+# ## Miniglobe
+#
+# The miniglobe gets its own section by virtue of being one of the most complex
+# pieces internally, despite its relative outward simplicity. The miniglobe can
+# be specified to either have an AOI indicated or a marker at the specified location.
+
+reload()
+with pyseas.context(styles.dark):
+    fig = plt.figure(figsize=(10, 10))
+    ax = maps.create_map(projection='country.indonesia')
+    maps.add_land(ax)
+    maps.add_countries(ax)
+    maps.add_miniglobe(loc='upper left')
+    plt.show()
+
+reload()
+with pyseas.context(styles.dark):
+    fig = plt.figure(figsize=(10, 10))
+    ax = maps.create_map(projection='country.indonesia')
+    maps.add_land(ax)
+    maps.add_countries(ax)
+    maps.add_miniglobe(loc='lower right', central_marker='*', add_aoi=False)
+    plt.show()
+
+plt.rcParams.keys()
+
 # ## Old Examples
 
 # +

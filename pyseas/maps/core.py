@@ -219,7 +219,6 @@ def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
             ml_coords.append(crds)
             crds = []
 
-
     ml_coords.append(crds)
 
     ml_coords = [x for x in ml_coords if len(x) > 1]
@@ -540,7 +539,7 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, hshift=0
 
 
 def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np.sqrt(2)), 
-                  add_aoi=True, central_marker=None, marker_size=10, marker_color='black'):
+                  add_aoi=None, central_marker=None, marker_size=16, marker_color=None):
     """Add a mini globe to a corner of the maps showing where the primary map is located.
 
     Parameters
@@ -551,12 +550,19 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
         'lower right', 'center left' or 'center right'.
     size : float, optional
         Size of the mini globe relative to the primary map.
-    offset: float or str, optional
+    offset : float or str, optional
         How much to offset the mini globe relative to the edge of the map. By default,
         just covers the corner. `0` positions the globe just inside, `0.5` centers it on
         the edge, `0.5 + 0.25 * np.sqrt(2)` puts it just outside a corner, and `1` puts
         it just outside an edge. Alternatively, the names 'inside', 'inside corner',
         'edge centered', or 'outside' can be used.
+    add_aoi : bool, optional
+        Default is to add an aoi unless a `central_marker` is specified.
+    central_marker: None or str, optional
+        Matplotlib code for a central marker to add. Defaults to None meaning
+        no marker.
+    marker_size : int, optional
+    marker_color : matplotlib color spec, optional
 
     Returns
     -------
@@ -574,6 +580,8 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
             'edge centered' : 0.5,
             'outside' : 1.0
         }[offset]
+    if add_aoi is None:
+        add_aoi = central_marker is not None
 
     # proj -> projection of primary map
     # ortho -> projection of mini globe
@@ -613,10 +621,12 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
     inset.set_axes_locator(ip)
 
     if central_marker is not None:
+        if marker_color is None:
+            marker_color = plt.rcParams['axes.edgecolor']
         inset.plot(lon, lat, marker=central_marker, 
                     markersize=marker_size, color=marker_color, transform=ortho)
 
-    if add_minimap_aoi:
+    if add_aoi:
         add_minimap_aoi(ax, inset)     
 
     # Restore primary map as current axes

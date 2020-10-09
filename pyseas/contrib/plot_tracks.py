@@ -224,7 +224,7 @@ def plot_panel(timestamp, lon, lat, kind, plots,
 
 
 def track_state_panel(timestamp, lon, lat, state, plots=(), prop_map=None,
-                      map_ratio=5, annotations=5, 
+                      map_ratio=5, annotations=0, 
                       annotation_y_loc=1.0, annotation_y_align='bottom',
                       annotation_axes_ndx=0, add_night_shades=False,
                       projection_info=None, shift_by_cent_lon={'longitude'}):
