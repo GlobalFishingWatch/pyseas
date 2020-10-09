@@ -581,7 +581,7 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
             'outside' : 1.0
         }[offset]
     if add_aoi is None:
-        add_aoi = central_marker is not None
+        add_aoi = (central_marker is None)
 
     # proj -> projection of primary map
     # ortho -> projection of mini globe

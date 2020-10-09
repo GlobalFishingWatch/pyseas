@@ -121,7 +121,7 @@ seismic_raster = maps.rasters.df2raster(seismic_presence, 'lon_bin', 'lat_bin', 
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=1, vmax=1000)
 with plt.rc_context(styles.dark):
-    ax, im = maps.plot_raster(raster * (60 * 60), 
+    ax, im = maps.plot_raster(seismic_raster * (60 * 60), 
                               projection='country.indonesia',
                               cmap='presence',
                               norm=norm,
@@ -141,7 +141,7 @@ with plt.rc_context(styles.dark):
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=1, vmax=1000)
 with plt.rc_context(styles.dark):
-    ax, im, cb = maps.plot_raster_w_colorbar(raster * (60 * 60), 
+    ax, im, cb = maps.plot_raster_w_colorbar(seismic_raster * (60 * 60), 
                                              r"seconds per $\mathregular{km^2}$ ",
                                              projection='country.indonesia',
                                              cmap='presence',
@@ -174,7 +174,10 @@ query = """
     """
 position_msgs = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
 
+# +
 # Simple track plotting analogous to plt.plot
+reload()
+
 with pyseas.context(pyseas.styles.light):
     fig = plt.figure(figsize=(8, 8))
     df = position_msgs[position_msgs.seg_id == '249014000-2018-01-21T16:36:23.000000Z']
@@ -187,6 +190,7 @@ with pyseas.context(pyseas.styles.light):
     maps.plot(df.lon.values - 0.3, df.lat.values, color='purple', linewidth=3, label='third')
     
     plt.legend()
+# -
 
 # Use add plot, to display multple tracks at once.
 with pyseas.context(pyseas.styles.light):
