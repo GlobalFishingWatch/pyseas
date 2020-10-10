@@ -200,6 +200,9 @@ with pyseas.context(pyseas.styles.light):
 # The first of these `multi_track_panel` is specialized for plotting multiple
 # tracks at once.
 
+# +
+
+pyseas._reload()
 df = position_msgs[(position_msgs.ssvid == "413461490")]
 with pyseas.context(styles.panel):
     fig = plt.figure(figsize=(12, 12))
@@ -208,6 +211,7 @@ with pyseas.context(styles.panel):
                        {'label' : 'lat', 'values' : df.lat}])
     plt.legend(info.legend_handles.values(), [x.split('-', 1)[1].rstrip('.000000000Z') 
                                               for x in info.legend_handles.keys()])
+# -
 
 # The second panel type, `track_state_panel`, plots single tracks with multiple states. For instance,
 # fishing/non-fishing, loitering/non-loitering, etc.
@@ -221,6 +225,7 @@ with pyseas.context(styles.panel):
 # Both panel types have a number of options including `annotations` and
 # `add_night_shades`.
 
+pyseas._reload()
 df = position_msgs[(position_msgs.ssvid == "413461490")].reset_index()
 with pyseas.context(styles.panel):
     fig = plt.figure(figsize=(12, 12))
@@ -249,6 +254,14 @@ with pyseas.context(styles.dark):
     maps.add_countries(ax)
     maps.add_miniglobe(loc='lower right', central_marker='*')
     plt.show()
+
+# ## Publish
+
+# +
+# import rendered
+# rendered.publish_to_github('./Examples.ipynb', 
+#                            'pyseas/doc', action='push')
+# -
 
 # ## Old Examples
 
@@ -893,3 +906,5 @@ with pyseas.context(pyseas.styles.light):
         maps.plot(df1.lon.values, df1.lat.values + 0.1, label='second')
         maps.plot(df1.lon.values - 0.3, df1.lat.values, color='purple', linewidth=3, label='third')
         plt.legend()
+# -
+

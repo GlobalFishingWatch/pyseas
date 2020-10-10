@@ -225,6 +225,20 @@ def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
     return ml_coords
         
 
+# TODO: move this and add_plot out of core to plot.py
+def _build_mask(kind, k1, k2):
+    mask1 = (kind == k1)
+    if k2 == k1:
+        mask2 = mask1
+    else:
+        mask2 = (kind == k2)
+
+    mask = np.zeros_like(mask1)
+    mask[:-1] = mask1[:-1] & mask2[1:]
+    mask[1:] |= mask1[:-1] & mask2[1:]
+    return mask
+
+
 def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, transform=identity):
     """Add a plot with different props for different 'kind' values to an existing map
 
@@ -267,16 +281,7 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, tr
 
     handles = {}
     for k1, k2 in sorted(props.keys()):
-        mask1 = (kind == k1)
-        if k2 == k1:
-            mask2 = mask1
-        else:
-            mask2 = (kind == k2)
-
-        mask = np.zeros_like(mask1)
-        mask[:-1] = mask1[:-1] & mask2[1:]
-        mask[1:] |= mask1[:-1] & mask2[1:]
-
+        mask = _build_mask(kind, k1, k2)
         if mask.sum():
             ml_coords = _build_multiline_string_coords(lon, lat, mask, break_on_change)   
             mls = MultiLineString(ml_coords)

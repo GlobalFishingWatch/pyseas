@@ -19,3 +19,4 @@ from .projection import find_projection
 from .scalebar import add_scalebar
 
 from . import rasters
+from . import overlays

@@ -18,116 +18,133 @@ from .. import props
 from ..util import asarray, lon_avg
 
 from ..maps import find_projection
+from ..maps.overlays import add_shades
+from ..maps.core import _build_mask
 
 
-def add_subpanel(gs, timestamp, y, kind, label, prop_map, break_on_change, miny=None, maxy=None, 
-                    show_xticks=True, tick_label_width=5):
-    ax = plt.subplot(gs)
-
-    x = mdates.date2num(timestamp)
-
-    indices = set(kind)
-    for (k1, k2) in prop_map:
-            mask1 = (kind == k1)
-            if k2 == k1:
-                mask2 = mask1
-            else:
-                mask2 = (kind == k2)
-
-            mask = np.zeros_like(mask1)
-            mask[:-1] = mask1[:-1] & mask2[1:]
-            mask[1:] |= mask1[:-1] & mask2[1:]
-
-            ml_coords = maps._build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=False)  
-
-            mls = LineCollection(ml_coords, **prop_map[k1, k2])
-            ax.add_collection(mls)
-
-    if miny is None and maxy is None:
+def _find_y_range(y, min_y, max_y):
+    if min_y is None and max_y is None:
         miny0, maxy0 = np.percentile(y, [0.1, 99]) 
         y0 = 0.5 * (maxy0 + miny0)
         dy = maxy0  - miny0
-        miny = y0 - 0.75 * dy
-        maxy = y0 + 0.75 * dy
-    elif maxy is None:
-        maxy = miny + np.percentile(y - miny, 99) * 1.5
-    elif miny is None:
-        miny = maxy - np.percentile(maxy - y, 99) * 1.5
+        min_y = y0 - 0.75 * dy
+        max_y = y0 + 0.75 * dy
+    elif max_y is None:
+        max_y = min_y + np.percentile(y - min_y, 99) * 1.5
+    elif min_y is None:
+        min_y = max_y - np.percentile(max_y - y, 99) * 1.5
+    return min_y, max_y
+
+
+def _add_subpanel(gs, timestamp, values, kind, label, prop_map, break_on_change, 
+                    min_y=None, max_y=None, show_xticks=True, offset=None):
+    ax = plt.subplot(gs)
+
+    x = mdates.date2num(timestamp)
+    y = asarray(values)
+    if offset is not None:
+        y = (y + offset) % 360 - offset
+
+    indices = set(kind)
+    for (k1, k2) in prop_map:
+        mask = _build_mask(kind, k1, k2)
+        ml_coords = maps._build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=False)  
+        mls = LineCollection(ml_coords, **prop_map[k1, k2])
+        ax.add_collection(mls)
+
+    min_y, max_y = _find_y_range(y, min_y, max_y)
     ax.autoscale_view()
-    ax.set_ylim(miny, maxy)
+    ax.set_ylim(min_y, max_y)
     ax.set_ylabel(label)
     if not show_xticks:
         ax.set_xticks([]) 
     else:
         ax.xaxis_date()
+    ax.set_facecolor(plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color))
     return ax
 
 
-def hour_offset(lons):
-    lon0 = lon_avg(lons)
-    return (lon0 / 180) * 12
-
-
-# TODO: Clean up and document
-def add_shades(ax, timestamp, lon, color=None, alpha=None):
-    if color is None:
-        color = plt.rcParams.get('pyseas.nightshade.color', props.chart.nightshade.color)
-    if alpha is None:
-        alpha = alpha=plt.rcParams.get('pyseas.nightshade.alpha', props.chart.nightshade.alpha)
-    min_dt, max_dt = [mdates.num2date(x).replace(tzinfo=None) for x in ax.get_xlim()]
-
-    timestamp = pd.to_datetime(asarray(timestamp)).to_pydatetime()
-    lon = asarray(lon)
-
-    mask = [(timestamp[0] <= x <= 
-            (timestamp[0] + DT.timedelta(hours=1))) for x in timestamp]
-    
-    (min_dt <= timestamp) & (timestamp <= min_dt + DT.timedelta(hours=1))
-    osh = hour_offset(lon[mask])
-    os_min_dt = min_dt + DT.timedelta(hours=osh)
-    # TODO: check this logic
-    if os_min_dt.hour < 6:
-        start = (DT.datetime(os_min_dt.year, os_min_dt.month, os_min_dt.day, tzinfo=os_min_dt.tzinfo)
-                     - DT.timedelta(hours=6 - osh))
-    else:
-        start = (DT.datetime(os_min_dt.year, os_min_dt.month, os_min_dt.day, tzinfo=os_min_dt.tzinfo) 
-                     + DT.timedelta(hours=18 - osh))
-    while start < max_dt:
-        stop = start + DT.timedelta(hours=12)
-        
-        adj_start = min_dt if (start < min_dt) else start
-        if stop > max_dt:
-            stop = max_dt
-        ax.axvspan(mdates.date2num(adj_start), mdates.date2num(stop), 
-                        alpha=alpha, facecolor=color, edgecolor='none')
-        start += DT.timedelta(hours=24)
-        mask = (start <= timestamp) & (timestamp <= start + DT.timedelta(hours=1))
-        if mask.sum():
-            new_osh = hour_offset(lon[mask])
-            delta = new_osh - osh
-            # Chose shorter delta if possible
-            delta = (delta + 12) % 24 - 12
-            start -= DT.timedelta(hours=delta)
-            osh = new_osh
-
-        ax.set_xlim(min_dt, max_dt)
+def _add_annotations(map_axes, time_axes, timestamp, lon, lat, n_annotations, y_loc, y_align):
+    assert n_annotations > 1
+    time_range = (timestamp[-1] - timestamp[0])
+    dts = [(x - timestamp[0]) / time_range for x in timestamp]
+    indices = np.searchsorted(dts, np.linspace(0, 1, n_annotations))
+    time_as_num = mdates.date2num(timestamp[indices[0]])
+    display_coords = time_axes.transAxes.transform([time_as_num, y_loc])
+    _, y_coord = time_axes.transData.inverted().transform(display_coords)
+    mapprops = plt.rcParams.get('pyseas.map.annotationmapprops', styles._annotationmapprops)
+    plotprops = plt.rcParams.get('pyseas.map.annotationplotprops', styles._annotationmapprops)
+    for i, ndx in enumerate(indices):
+        map_axes.text(lon[ndx], lat[ndx], str(i + 1), transform=maps.identity, **mapprops)
+        time_axes.text(timestamp[ndx], y_coord, str(i + 1), horizontalalignment='center',
+                        verticalalignment=y_align, **plotprops)
 
 
 
 PlotPanelInfo = namedtuple('PlotFishingPanelInfo',
     ['map_ax', 'plot_axes', 'projection_info', 'legend_handles'])
 
+
+
 def plot_panel(timestamp, lon, lat, kind, plots, 
                 prop_map, break_on_change,
-                map_ratio=5,
-                annotations=3, annotation_y_loc=1.0, annotation_y_align='bottom',
+                map_ratio=5.0,
+                annotations=0, annotation_y_loc=1.0, annotation_y_align='bottom',
                 annotation_axes_ndx=0, add_night_shades=False, projection_info=None,
                 shift_by_cent_lon={'longitude'}):
-    """
+    """Plot a panel with a map and associated time-value plots
 
+    Parameters
+    ----------
+    timestamp : sequence of timestamps
+    lon : array of float
+    lat : array of float
+    kind : array
+        Typically int, but should be OK as long as equality works.
+    plots : list of dict containing
+        values : sequence of float
+            y-values for plot
+        label : str
+            y-label for plot
+        min_y : float, optional
+        max_y : float, optional
+            Optional fixed range for y-axis
+    prop_map : dict of (kind, kind) to matplotlib props
+        Defines the props of the line segments drawn between points
+        with the given kind values on either end.
+    break_on_change : bool
+        Controls how plots are segmented. `True` is suitable for fishing
+        and other state change plots, while `False` is suitable for tracks.
+    map_ratio : float, optional
+        Ratio of map height to individual time-value plots.
+    annotations : int, optional
+        Number of annotations linking map to time-value plots to use.
+    annotation_y_loc : float, optional
+    annotation_y_align : str, optional
+        Vertical alignment of annotation text. 
+    annotation_axes_ndx : int, optional
+        Which time-value to add annotations to. `0` is the topmost plot.
+    add_night_shades : bool, optional
+        Add shaded regions to time/value plots indicating night.
+    projection_info : ProjectionInfo, optional
+    shift_by_cent_lon : set of str
+        Values in time-value plots to treat as longitude and recenter to prevent
+        unnecessary dateline issues.
+
+    Note
+    ----
+    Length of `timestamp`, `lat`, `lon` and `values` items in `plots` must
+    all match.
+
+    Returns
+    -------
+    PlotPanelInfo namedtuple containing
+        map_ax : matplotlib axes
+        plot_axes : list of matplotlib axes
+        projection_info : ProjectionInfo describing projection and extent
+        legend_handles : Dict of key, handle pairs suitable for building a legend
     """
-    timestamp, lon, lat, kind = [asarray(x) for x in 
-                                    (timestamp, lon, lat, kind)]
+    timestamp, lon, lat, kind = [asarray(x) for x in (timestamp, lon, lat, kind)]
         
     if projection_info is None:
         projection_info = find_projection(lon, lat)
@@ -144,44 +161,19 @@ def plot_panel(timestamp, lon, lat, kind, plots,
                     props=prop_map, break_on_change=break_on_change)
     
     axes = []
-    for i, d in enumerate(plots):
-        values = np.array(d['values'])
-        if d['label'] in shift_by_cent_lon:
-            offset = 180 - projection_info.central_longitude
-            values = (values + offset) % 360 - offset
-        ax = add_subpanel(gs[i + 1], timestamp, values, kind, d['label'],
-                          prop_map=prop_map, break_on_change=break_on_change,
-                          show_xticks=(i == len(plots) - 1),
-                          miny = d.get('min_y'),
-                          maxy = d.get('max_y')
-                          )
-        if d.get('invert_yaxis'):
-            ax.invert_yaxis()
+    for i, plot_descr in enumerate(plots):
+        offset = None if (plot_descr['label'] not in shift_by_cent_lon) else (
+                                180 - projection_info.central_longitude)
+        show_xticks = (i == len(plots) - 1)
+        ax = _add_subpanel(gs[i + 1], timestamp,  kind=kind, 
+                                 prop_map=prop_map, break_on_change=break_on_change,
+                                 show_xticks=show_xticks, offset = offset, **plot_descr)
         axes.append(ax)
 
-    if annotations and len(axes):
-        assert annotations > 1
-        time_range = (timestamp[-1] - timestamp[0])
-        # assert time_range > 0
-        dts = [(x - timestamp[0]) / time_range for x in timestamp]
-        indices = np.searchsorted(dts, np.linspace(0, 1, annotations))
-        axn = axes[-1]
-        time_as_num = mdates.date2num(timestamp[indices[0]])
-        display_coords = axes[annotation_axes_ndx].transAxes.transform([time_as_num, annotation_y_loc])
-        _, y_coord = axes[annotation_axes_ndx].transData.inverted().transform(display_coords)
-        mapprops = plt.rcParams.get('pyseas.map.annotationmapprops', styles._annotationmapprops)
-        plotprops = plt.rcParams.get('pyseas.map.annotationplotprops', styles._annotationmapprops)
-        for i, ndx in enumerate(indices):
-            ax1.text(lon[ndx], lat[ndx], str(i + 1), transform=maps.identity,
-                     **mapprops)
-            axes[annotation_axes_ndx].text(timestamp[ndx], y_coord, str(i + 1), horizontalalignment='center',
-                            verticalalignment=annotation_y_align,
-                          **plotprops)
-
-    for ax in axes:
-        ax.set_facecolor(plt.rcParams['pyseas.ocean.color'])
-        if add_night_shades:
-            add_shades(ax, timestamp, lon)
+  
+    if annotations and axes:
+        _add_annotations(ax1, axes[annotation_axes_ndx], timestamp, lon, lat, 
+                         annotations, annotation_y_loc, annotation_y_align)
 
     maps.add_figure_background(color=plt.rcParams['pyseas.ocean.color'])
     plt.sca(ax1)
