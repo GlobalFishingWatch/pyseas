@@ -16,6 +16,8 @@
 
 # # Examples of Plotting with `pyseas`
 
+
+
 # +
 import numpy as np
 import matplotlib.pyplot as plt
