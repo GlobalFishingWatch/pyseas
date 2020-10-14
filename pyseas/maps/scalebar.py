@@ -179,7 +179,6 @@ def scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
 # ## Add a dynamic scale bar
 # Adding to the given axis a scale bar whose scale/length is dynamically determined on the basis of the plot extent
 
-# +
 #
 # Add a scale bar which takes up to 1/3 of the horizontal length of the plot
 # and is based on the power of 10 (in kilometers) e.g. 0.1km, 1km, 10km...
@@ -198,7 +197,8 @@ def add_scalebar(ax=None, extent=NoValue, location=(0.05, 0.05), color=None, ski
         if skip_when_extent_large:
             return ax
         else:
-            raise ValueError('cannot create scalebar for `None` extent')
+            raise ValueError('cannot create scalebar for `None` extent,'
+                             'consider setting `skip_when_extent_large=True`')
     lat_extent = (extent[3] - extent[2]) / 2.0
     lon_extent = (extent[1] - extent[0]) / 2.0
 

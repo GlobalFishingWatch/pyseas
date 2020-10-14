@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.3.4
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -15,8 +15,6 @@
 # ---
 
 # # Examples of Plotting with `pyseas`
-
-
 
 # +
 import numpy as np
@@ -66,6 +64,18 @@ with pyseas.context(styles.light):
     maps.add_gridlines()
     maps.add_gridlabels()
     maps.add_logo(loc='upper left')
+
+# If not region is specified, you get the default global map as specified by the 
+# projection name `global.default`. Currently that's ExactEarth centered at 0 longitude.
+
+with pyseas.context(styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    maps.create_map()
+    maps.add_land()
+    maps.add_countries()
+    maps.add_eezs()
+    maps.add_gridlines()
+    maps.add_gridlabels()
 
 # ## Rasters
 #
@@ -135,11 +145,35 @@ with plt.rc_context(styles.dark):
     ax.set_title('Seismic Vessel Presence Near Indonesia')
     maps.add_logo(loc='lower left')
 
+# It's important to realize that normally one is not seeing the background of the map over water, 
+# but instead the zero value of the raster. Sometimes it's useful to make some portion of the 
+# raster transparent, which can be done by setting values to np.nan. A somewhat contrived example
+# is shown below, where normally using a light colormap with a dark background would result in
+# a bizzare light background, but this is prevented by making the background transparent.
+
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(vmin=1, vmax=1000)
+raster = seismic_raster.copy()
+raster[raster == 0] = np.nan
+with plt.rc_context(styles.dark):
+    ax, im, cb = maps.plot_raster_w_colorbar(raster * (60 * 60), 
+                                             r"seconds per $\mathregular{km^2}$ ",
+                                             projection='country.indonesia',
+                                             cmap=pyseas.cm.light.presence,
+                                             norm=norm,
+                                             cbformat='%.0f',
+                                             origin='lower',
+                                             loc='bottom')
+    maps.add_countries()
+    maps.add_eezs()
+    ax.set_title('Seismic Vessel Presence Near Indonesia')
+    maps.add_logo(loc='lower left')
+
 # ## Plotting Tracks
 
 # There are two base functions for plotting vessel tracks. `maps.plot` is
 # a simple wrapper around `plt.plot` that plots tracks specified in lat/lon,
-# but is otherwise identical `plt.plot`. `maps.add_plot` can plot plot tracks
+# but is otherwise identical `plt.plot`. The alternative, `maps.add_plot` can plot plot tracks
 # with multiple subsegments, using different styles for each subsegment.
 #
 # Both of these support creation of legends. However, the second requires a bit
@@ -154,6 +188,9 @@ query = """
     order by timestamp
     """
 position_msgs = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
+
+# Note the use of `maps.find_projection` to find an appropriate projection and extents
+# based on lat/lon data.
 
 # Simple track plotting analogous to plt.plot
 with pyseas.context(pyseas.styles.light):
@@ -197,7 +234,9 @@ with pyseas.context(pyseas.styles.light):
 #
 # There are a couple of convenience functions that package up add_plot
 # for a couple of common cases. These also support adding subsidiary 
-# time/other-parameter plots.
+# time/other-parameter plots and both functions will automatically choses
+# and appropriate projection and extents based on the input data
+# using `maps.find_projection`.
 #
 # The first of these `multi_track_panel` is specialized for plotting multiple
 # tracks at once.
@@ -256,6 +295,15 @@ with pyseas.context(styles.dark):
     maps.add_countries(ax)
     maps.add_miniglobe(loc='lower right', central_marker='*')
     plt.show()
+
+# ## Saving Plots
+#
+# Plots can be saved in the normal way, using `plt.savefig`. If a background
+# is needed, the standard facecolor can be applied as shown below.
+
+# +
+# plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
+# -
 
 # ## Publish
 
@@ -343,8 +391,6 @@ with pyseas.context(styles.dark):
                                 cmap='presence',
                                loc='bottom')
     maps.add_logo(scale=0.8, loc='upper right')
-    plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
-               facecolor=plt.rcParams['pyseas.fig.background'])
 
 reload()
 with pyseas.context(styles.dark):
@@ -356,8 +402,6 @@ with pyseas.context(styles.dark):
                                              cmap='fishing')
     ax.set_title('distance from shore')
     maps.add_logo()
-#     plt.savefig('/Users/timothyhochberg/Desktop/test_plot.png', dpi=300,
-#                facecolor=plt.rcParams['pyseas.fig.background'])
 
 # ## Adding Gridlines
 
@@ -908,5 +952,128 @@ with pyseas.context(pyseas.styles.light):
         maps.plot(df1.lon.values, df1.lat.values + 0.1, label='second')
         maps.plot(df1.lon.values - 0.3, df1.lat.values, color='purple', linewidth=3, label='third')
         plt.legend()
+# +
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import colors,colorbar
+from IPython.core.display import display, HTML
+import pyseas.styles
+import subprocess
+from datetime import datetime
+import pyseas
+import pyseas.maps
+import pyseas.styles
+import pyseas.maps.rasters
+import cartopy
+import cmocean
+import cartopy.crs as ccrs
+from shapely import wkt
+import scipy.signal
+
+q_newer = '''with
+-- squid vessels
+squid_vessels as
+(select ssvid, count(*) number
+from world-fishing-827.gfw_research.pipe_v20190502_fishing
+where date(date) between "2020-06-01" and "2020-07-01"
+and nnet_score != nnet_score2
+and nnet_score is not null
+and ssvid in
+(select ssvid from world-fishing-827.gfw_research.vi_ssvid_v20200801
+where best.best_vessel_class = "squid_jigger")
+group by ssvid),
+
+good_segs as (select distinct seg_id from gfw_research.pipe_v20200805_segs
+where good_seg and not overlapping_and_short )
+
+select
+ssvid,
+floor(lat*2) lat_bin, floor(lon*2) lon_bin,
+sum(if(nnet_score = 1, hours,0)) nnet_hours,
+sum(if(nnet_score2 = 1, hours,0)) nnet2_hours
+from (select * from gfw_research.pipe_v20200805_fishing
+where _PARTITIONDATE between "2020-06-01" and "2020-07-01")
+join
+squid_vessels
+using(ssvid)
+join good_segs
+using(seg_id)
+group by ssvid, lat_bin, lon_bin
+'''
+df_new_pipeline = pd.read_gbq(q_newer, project_id='world-fishing-827')
+
+df_new_pipe = df_new_pipeline
+
+newPipe_ras = pyseas.maps.rasters.df2raster(df_new_pipe, 'lon_bin', 'lat_bin',
+'nnet2_hours', xyscale=2,
+per_km2=True, origin = 'lower')
+
+raster=np.copy(newPipe_ras)
+plt.rc('text', usetex=False)
+fig = plt.figure(figsize=(14,8))
+norm = colors.Normalize(0, 10)
+with plt.rc_context(pyseas.styles.dark):
+    ax, im, cb = pyseas.maps.plot_raster_w_colorbar(raster ,
+    r"Hours of Vessel Presence per $\mathregular{km^2}$ ",
+    cmap='fishing',
+    norm=norm,
+    cbformat='%.0f',
+    origin='lower',
+    loc='bottom')
+
+    pyseas.maps.add_countries()
+    pyseas.maps.add_eezs()
+    ax.set_title('nnet2_score New Pipe June 2020', pad=10, fontsize=20 )
+    pyseas.maps.add_figure_background()
+    gl = pyseas.maps.add_gridlines()
+    pyseas.maps.add_logo(loc='lower right')
 # -
+
+fig = plt.figure(figsize=(14,8))
+norm = colors.Normalize(-1, 1)
+raster2 = raster.copy()
+raster2[raster2 == 0] = np.nan
+with plt.rc_context(pyseas.styles.dark):
+    ax, im, cb = pyseas.maps.plot_raster_w_colorbar(raster2 ,
+    r"Hours of Vessel Presence per $\mathregular{km^2}$ ",
+    cmap='fishing',
+    norm=norm,
+    cbformat='%.0f',
+    origin='lower',
+    loc='bottom')
+
+    pyseas.maps.add_countries()
+    pyseas.maps.add_eezs()
+    ax.set_title('nnet2_score New Pipe June 2020', pad=10, fontsize=20 )
+    pyseas.maps.add_figure_background()
+    gl = pyseas.maps.add_gridlines()
+    pyseas.maps.add_logo(loc='lower right')
+
+fig = plt.figure(figsize=(14,8))
+norm = colors.Normalize(-1, 1)
+with plt.rc_context(pyseas.styles.dark):
+    ax, im, cb = pyseas.maps.plot_raster_w_colorbar(raster[:len(raster)//2] ,
+    r"Hours of Vessel Presence per $\mathregular{km^2}$ ",
+    extent=(-180, 180, 0, 90),
+    cmap='fishing',
+    norm=norm,
+    cbformat='%.0f',
+    origin='lower',
+    loc='bottom')
+    ax.set_global()
+
+    pyseas.maps.add_countries()
+    pyseas.maps.add_eezs()
+    ax.set_title('nnet2_score New Pipe June 2020', pad=10, fontsize=20 )
+    pyseas.maps.add_figure_background()
+    gl = pyseas.maps.add_gridlines()
+    pyseas.maps.add_logo(loc='lower right')
+
+with plt.rc_context(pyseas.styles.dark):
+    fig = plt.figure(figsize=(18, 6))
+    maps.create_map()
+    maps.add_land()
+    maps.add_scalebar()
+
 
