@@ -50,10 +50,10 @@ def add_shades(timestamp, lon, ax=None, color=None, alpha=None):
     os_min_dt = min_dt + timedelta(hours=osh)
     # TODO: check this logic
     if os_min_dt.hour < 6:
-        start = (datetime(os_min_dt.year, os_min_dt.month, os_min_dt.day, tzinfo=os_min_dt.tzinfo)
-                     - timedelta(hours=6 - osh))
+        start = (datetime(os_min_dt.year, os_min_dt.month, os_min_dt.day, tzinfo=None)
+                     - timedelta(hours=6 + osh))
     else:
-        start = (datetime(os_min_dt.year, os_min_dt.month, os_min_dt.day, tzinfo=os_min_dt.tzinfo) 
+        start = (datetime(os_min_dt.year, os_min_dt.month, os_min_dt.day, tzinfo=None) 
                      + timedelta(hours=18 - osh))
     while start < max_dt:
         stop = start + timedelta(hours=12)
