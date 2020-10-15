@@ -2,7 +2,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import pandas as pd
 from datetime import datetime, timedelta
-from ..util import asarray, lon_avg
+from ..util import asarray, lon_avg, is_sorted
 from .. import props
 
 
@@ -29,6 +29,8 @@ def add_shades(timestamp, lon, ax=None, color=None, alpha=None):
         Taken from 'pyseas.nightshade.alpha' if not specified.
     """
     timestamp, lon = (asarray(x) for x in (timestamp, lon))
+    if not is_sorted(timestamp):
+        raise ValueError('inputs must be sorted by time')
     if ax is None:
         ax = plt.gca()
     if color is None:
@@ -43,7 +45,7 @@ def add_shades(timestamp, lon, ax=None, color=None, alpha=None):
     mask = [(timestamp[0] <= x <= 
             (timestamp[0] + timedelta(hours=1))) for x in timestamp]
     
-    (min_dt <= timestamp) & (timestamp <= min_dt + timedelta(hours=1))
+    # (min_dt <= timestamp) & (timestamp <= min_dt + timedelta(hours=1))
     osh = hour_offset(lon[mask])
     os_min_dt = min_dt + timedelta(hours=osh)
     # TODO: check this logic
