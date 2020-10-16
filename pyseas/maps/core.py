@@ -285,7 +285,6 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, tr
         if mask.sum():
             ml_coords = _build_multiline_string_coords(lon, lat, mask, break_on_change)   
             mls = MultiLineString(ml_coords)
-            mls = shpops.unary_union(mls)
             p = props[k1, k2]
             ax.add_geometries([mls], crs=transform, **p)
             key = k1 if (k1 == k2) else k2
