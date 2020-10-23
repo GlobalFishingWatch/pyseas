@@ -466,7 +466,7 @@ def create_map(subplot=(1, 1, 1),
     else:
         _last_projection = projection
     _last_extent = extent
-    _plot_cycler = iter(plt.rcParams.get('pyseas.map.trackprops', styles._dark_artist_cycler))
+    _plot_cycler = plt.rcParams.get('pyseas.map.trackprops', styles._dark_artist_cycler)()
 
     bg_color = bg_color or plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
     if not isinstance(subplot, tuple):

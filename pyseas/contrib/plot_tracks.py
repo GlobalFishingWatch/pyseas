@@ -219,7 +219,7 @@ def multi_track_panel(timestamp, lon, lat, track_id=None, plots=(), prop_map=Non
     if track_id is None:
         track_id = np.ones(len(lon))
     if prop_map is None:
-        prop_cycle = iter(plt.rcParams.get('pyseas.map.trackprops', styles._dark_artist_cycler))
+        prop_cycle = plt.rcParams.get('pyseas.map.trackprops', styles._dark_artist_cycler)()
         prop_map = {(k, k) : next(prop_cycle) for k in set(track_id)}
     return plot_panel(timestamp, lon, lat, track_id, plots, prop_map,
                       break_on_change=False, map_ratio=map_ratio, annotations=annotations, 
@@ -236,7 +236,7 @@ def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None, prop_map=N
     if track_id is None:
         track_id = np.ones(len(lon))
     if prop_map is None:
-        prop_cycle = iter(plt.rcParams.get('pyseas.map.trackprops', styles._dark_artist_cycler))
+        prop_cycle = plt.rcParams.get('pyseas.map.trackprops', styles._dark_artist_cycler)()
         prop_map = {(k, k) : next(prop_cycle) for k in set(track_id)}
     if plots is None:
         plots = [{'label' : 'longitude', 'values' : lon},
