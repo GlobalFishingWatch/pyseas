@@ -188,9 +188,9 @@ def add_raster(raster, ax=None, extent=(-180, 180, -90, 90), origin='upper', **k
             kwargs['cmap'] = getattr(src, kwargs['cmap'])
         except AttributeError:
             pass
-    cmap = kwargs.pop('cmap', pycm.dark.presence)
-    norm = kwargs.pop('norm', mplcolors.Normalize())
-    return ax.imshow(cmap(norm(raster)), transform=identity, 
+    # cmap = kwargs.pop('cmap', pycm.dark.presence)
+    # norm = kwargs.pop('norm', mplcolors.Normalize())
+    return ax.imshow(raster, transform=identity, 
                         extent=extent, origin=origin, **kwargs)
 
 
