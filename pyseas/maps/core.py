@@ -38,6 +38,7 @@ import json
 import os
 from .. import props
 from .. import styles
+from .. import cm as pycm
 import geopandas as gpd
 import numpy as np
 from cartopy.feature import ShapelyFeature
@@ -187,9 +188,10 @@ def add_raster(raster, ax=None, extent=(-180, 180, -90, 90), origin='upper', **k
             kwargs['cmap'] = getattr(src, kwargs['cmap'])
         except AttributeError:
             pass
-    return ax.imshow(raster, transform=identity, 
+    cmap = kwargs.pop('cmap', pycm.dark.presence)
+    norm = kwargs.pop('norm', mplcolors.Normalize())
+    return ax.imshow(cmap(norm(raster)), transform=identity, 
                         extent=extent, origin=origin, **kwargs)
-
 
 
 def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
