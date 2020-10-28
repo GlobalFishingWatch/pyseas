@@ -165,7 +165,7 @@ def _warn_if_has_nans(raster, norm):
     if np.isnan(raster).sum():
         warnings.warn('`norm(raster)` has `nan`s which may not render well. '
                       'Consider removing `nan`s and clipping values to prevent this '
-                      '(.e.g., `raster[(v <= 0) | np.isnan(raster)] = sys.float_info.min`'
+                      '(.e.g., `raster[(raster <= 0) | np.isnan(raster)] = sys.float_info.min`'
                       'for `LogNorm`)')
 
 
