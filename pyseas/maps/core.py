@@ -38,7 +38,6 @@ import json
 import os
 from .. import props
 from .. import styles
-from .. import cm as pycm
 import geopandas as gpd
 import numpy as np
 from cartopy.feature import ShapelyFeature
@@ -160,6 +159,16 @@ def add_countries(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidt
     return ax.add_feature(land)
 
 
+def _warn_if_has_nans(raster, norm):
+    if norm is not None:
+        raster = norm(raster)
+    if np.isnan(raster).sum():
+        warnings.warn('`norm(raster)` has `nan`s which may not render well. '
+                      'Consider removing `nan`s and clipping values to prevent this '
+                      '(.e.g., `raster[(v <= 0) | np.isnan(raster)] = sys.float_info.min`'
+                      'for `LogNorm`)')
+
+
 def add_raster(raster, ax=None, extent=(-180, 180, -90, 90), origin='upper', **kwargs):
     """Add a raster to an existing map
 
@@ -188,10 +197,10 @@ def add_raster(raster, ax=None, extent=(-180, 180, -90, 90), origin='upper', **k
             kwargs['cmap'] = getattr(src, kwargs['cmap'])
         except AttributeError:
             pass
-    # cmap = kwargs.pop('cmap', pycm.dark.presence)
-    # norm = kwargs.pop('norm', mplcolors.Normalize())
+    _warn_if_has_nans(raster, kwargs.get('norm'))
     return ax.imshow(raster, transform=identity, 
                         extent=extent, origin=origin, **kwargs)
+
 
 
 def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
