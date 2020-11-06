@@ -7,7 +7,7 @@
         "highlight" : {"color" : "#0a1738"},
         "title" : {"color" : "#363c4c"},
         "eez" : {"color" : "#374a6d", "width" : 0.4},
-        "miniglobe" : {"overlaycolor" : [1, 1, 1, 0.05], "outlinewidth": 1, "pts_per_side" : 100},
+        "miniglobe" : {"overlaycolor" : [1, 1, 1, 0.05], "outer_width": 1, "inner_width": 1, "pts_per_side" : 100},
         "scale" : {"color" : "#374a6d"},
         "track" : {
             "colors" : ["#00C1E7", "#F59E84", "#CC3A8E", "#99C945", "#DAA51B", "#24796C",
@@ -29,7 +29,7 @@
         "highlight" : {"color" : "#0a1738"},
         "title" : {"color" : "#363c4c"},
         "eez" : {"color" : "#C9D2D3", "width" : 0.4},
-        "miniglobe" : {"overlaycolor" : [0, 0, 0, 0.05], "outlinewidth": 1, "pts_per_side" : 100},
+        "miniglobe" : {"overlaycolor" : [0, 0, 0, 0.05], "outer_width": 1, "inner_width": 1, "pts_per_side" : 100},
         "scale" : {"color" : "#C9D2D3"},
         "track" : {
             "colors" : ["#00C1E7", "#F59E84", "#CC3A8E", "#99C945", "#DAA51B", "#24796C",
