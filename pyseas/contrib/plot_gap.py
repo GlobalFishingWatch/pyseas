@@ -143,7 +143,7 @@ def plot_table_ee(all_gaps):
 ### Outputs:
 # Figure, (GridSpec axes)
 
-def plot_gaps(gap_id, gaps_data, positions_gfw, hourly_data, positions_ee=None, performance_data=None, show_all_gaps=False, table_type="basic", out_dir=None):
+def plot_gap(gap_id, gaps_data, positions_gfw, hourly_data, positions_ee=None, performance_data=None, show_all_gaps=False, table_type="basic", out_dir=None):
     if table_type not in ["none", "basic", "ee"]:
         raise("%s is not a valid model type. Choose from 'none', basic', or 'ee'.")
         
