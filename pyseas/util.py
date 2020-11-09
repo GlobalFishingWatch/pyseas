@@ -23,3 +23,17 @@ def lon_avg(lons):
     coslon = np.mean(np.cos(np.radians(lons)))
     sinlon = np.mean(np.sin(np.radians(lons)))
     return np.degrees(np.arctan2(sinlon, coslon))
+
+
+
+def is_sorted(values):
+    """Returns True if sequence is sorted else False"""
+    is_first = True
+    for x in values:
+        if is_first:
+            is_first = False
+        elif x < last:
+            return False
+        last = x
+    return True
+

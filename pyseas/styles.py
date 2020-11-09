@@ -79,6 +79,7 @@ _colorbarlabelfont  = {'fontsize': 12}
 # TODO: swap 'pyseas.' for 'pyseas.'
 
 dark = {
+        'text.usetex' : False,
         'grid.alpha': _props.dark.grid.alpha,
         'grid.color': _props.dark.grid.color,
         'grid.linestyle': _props.dark.grid.style,
@@ -116,11 +117,13 @@ dark = {
          'pyseas.logo.base_scale' : _props.dark.logo.base_scale,
          'pyseas.logo.alpha' : _props.dark.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.dark.miniglobe.overlaycolor,
-         'pyseas.miniglobe.outlinewidth' : _props.dark.miniglobe.outlinewidth,
+         'pyseas.miniglobe.outerwidth' : _props.dark.miniglobe.outer_width,
+         'pyseas.miniglobe.innerwidth' : _props.dark.miniglobe.inner_width,
          'pyseas.miniglobe.ptsperside' : _props.dark.miniglobe.pts_per_side,
          }
 
 light = {
+         'text.usetex' : False,
          'grid.alpha': _props.light.grid.alpha,
          'grid.color': _props.light.grid.color,
          'grid.linestyle': _props.light.grid.style,
@@ -158,7 +161,8 @@ light = {
          'pyseas.logo.base_scale' : _props.light.logo.base_scale,
          'pyseas.logo.alpha' : _props.light.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.light.miniglobe.overlaycolor,
-         'pyseas.miniglobe.outlinewidth' : _props.light.miniglobe.outlinewidth,
+         'pyseas.miniglobe.outerwidth' : _props.light.miniglobe.outer_width,
+         'pyseas.miniglobe.innerwidth' : _props.light.miniglobe.inner_width,
          'pyseas.miniglobe.ptsperside' : _props.light.miniglobe.pts_per_side,
          }
 
