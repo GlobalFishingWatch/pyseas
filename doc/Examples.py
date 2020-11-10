@@ -304,7 +304,7 @@ with pyseas.context(styles.dark):
 
 # ## Plotting Gaps
 #
-# See [PlotGap.ipynb](https://github.com/GlobalFishingWatch/pyseas/blob/gaps-viz/doc/contrib/PlotGap.ipynb)
+# See [PlotGap.ipynb](https://github.com/GlobalFishingWatch/rendered/blob/master/pyseas/doc/contrib/PlotGap.ipynb)
 #
 # (or if navigating from within a clone of the repo, go directly to the file [here](contrib/PlotGap.ipynb))
 
