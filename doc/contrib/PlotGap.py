@@ -456,4 +456,13 @@ fig, axes = plot_gap.plot_gap(gap_id, gaps_data=df_gaps, hourly_data=df_hourly_a
                                      table_type='ee')
 
 
+# ### Save to file using *out_filepath*
+#
+# Note: uncomment out the last portion of the funciton call below to save
+
+fig, axes = plot_gap.plot_gap(gap_id, gaps_data=df_gaps, hourly_data=df_hourly_all, performance_data=df_performance, \
+                                     positions_gfw=df_gap_positions_gfw, positions_ee=df_gap_positions_ee, show_all_gaps=False, \
+                                     table_type='basic')#, out_filepath="test.png")
+
+
 

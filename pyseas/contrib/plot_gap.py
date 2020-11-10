@@ -143,7 +143,7 @@ def plot_table_ee(all_gaps):
 ### Outputs:
 # Figure, (GridSpec axes)
 
-def plot_gap(gap_id, gaps_data, positions_gfw, hourly_data, positions_ee=None, performance_data=None, show_all_gaps=False, table_type="basic", out_dir=None):
+def plot_gap(gap_id, gaps_data, positions_gfw, hourly_data, positions_ee=None, performance_data=None, show_all_gaps=False, table_type="basic", out_filepath=None):
     if table_type not in ["none", "basic", "ee"]:
         raise("%s is not a valid model type. Choose from 'none', basic', or 'ee'.")
         
@@ -328,8 +328,8 @@ def plot_gap(gap_id, gaps_data, positions_gfw, hourly_data, positions_ee=None, p
                     plt.text(x_offset, y_offsets[4], 'Avg Expected PPD: %0.2f' % vessel_perf.avg_expected_positions_per_day, transform=plt.gca().transAxes, fontsize='14')
                     plt.text(x_offset, y_offsets[5], 'Ratio actual/exp.: %0.2f' % vessel_perf.ratio_actual_to_expected, transform=plt.gca().transAxes, fontsize='14')
 
-            if out_dir:
-                plt.savefig(os.path.join(out_dir, 'gap_%s.png' % gap_id), bbox_inches='tight', dpi=150)
+            if out_filepath:
+                plt.savefig(out_filepath, bbox_inches='tight', dpi=150)
                 
             plt.show()
             
