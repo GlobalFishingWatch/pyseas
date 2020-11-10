@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.5.2
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -301,6 +301,12 @@ with pyseas.context(styles.dark):
     maps.add_countries(ax)
     maps.add_miniglobe(loc='lower right', central_marker='*')
     plt.show()
+
+# ## Plotting Gaps
+#
+# See [PlotGap.ipynb](https://github.com/GlobalFishingWatch/pyseas/blob/gaps-viz/pyseas/contrib/plot_gap.py)
+#
+# (or if navigating from within a clone of the repo, go directly to the file [here](contrib/PlotGap.ipynb))
 
 # ## Saving Plots
 #
