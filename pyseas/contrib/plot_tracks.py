@@ -87,13 +87,19 @@ PlotPanelInfo = namedtuple('PlotFishingPanelInfo',
 
 
 def get_panel_gs(nr, nc, n_plots, map_ratio=5):
-    assert nc > 1 # TODO fix so not necessary
     dr = 1 + n_plots
     gs = gridspec.GridSpec(nr * dr, nc, height_ratios=[map_ratio] + [1] * n_plots)
     grid = np.zeros([nr, nc], dtype=object)
     for r in range(nr):
         for c in range(nc):
-            grid[r, c] = [gs[dr * r + n, c] for n in range(dr)]
+            if nc == 1:
+                grid[r, c] = [gs[dr * r + n] for n in range(dr)]
+            else:
+                grid[r, c] = [gs[dr * r + n, c] for n in range(dr)]
+    if nc == 1:
+        grid = grid[:, 0]
+    if nr == 1:
+        grid = grid[0]
     return grid
 
 
@@ -161,8 +167,7 @@ def plot_panel(timestamp, lon, lat, kind, plots,
     if projection_info is None:
         projection_info = find_projection(lon, lat)
     if gs is None:
-        gs = get_panel_gs(1, 1, len(plots))[0, 0]
-    # gs = gridspec.GridSpec(1 + len(plots), 1, height_ratios=[map_ratio] + [1] * len(plots))
+        gs = get_panel_gs(1, 1, len(plots))
 
     ax1 = maps.create_map(gs[0], projection=projection_info.projection, 
                                  extent=projection_info.extent)
