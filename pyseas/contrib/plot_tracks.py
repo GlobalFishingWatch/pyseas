@@ -22,6 +22,9 @@ from ..maps.overlays import add_shades
 from ..maps.core import _build_mask
 
 
+# Matplotlib uses days rather than seconds for its timestamps
+S_PER_DAY = 24 * 60 * 60
+
 def _find_y_range(y, min_y, max_y):
     if min_y is None and max_y is None:
         miny0, maxy0 = np.percentile(y, [0.1, 99]) 
@@ -37,7 +40,7 @@ def _find_y_range(y, min_y, max_y):
 
 
 def _add_subpanel(gs, timestamp, values, kind, label, prop_map, break_on_change, 
-                    min_y=None, max_y=None, show_xticks=True, offset=None):
+                    min_y=None, max_y=None, show_xticks=True, offset=None, label_angle=45):
     ax = plt.subplot(gs)
 
     x = mdates.date2num(timestamp)
@@ -60,6 +63,12 @@ def _add_subpanel(gs, timestamp, values, kind, label, prop_map, break_on_change,
         ax.set_xticks([]) 
     else:
         ax.xaxis_date()
+        ticks = ax.get_xticks()
+        stamps = [DT.datetime.fromtimestamp(x * S_PER_DAY) for x in ticks]
+        lbls = ['{x:%Y-%m-%d}'.format(x=x) for x in stamps]
+        ax.set_xticks(ticks)
+        ax.set_xticklabels(lbls, rotation=label_angle, ha='right')
+
     ax.set_facecolor(plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color))
     return ax
 
@@ -109,7 +118,7 @@ def plot_panel(timestamp, lon, lat, kind, plots,
                 annotations=0, annotation_y_loc=1.0, annotation_y_align='bottom',
                 annotation_axes_ndx=0, add_night_shades=False, projection_info=None,
                 shift_by_cent_lon={'longitude'},
-                gs=None):
+                label_angle=30, gs=None):
     """Plot a panel with a map and associated time-value plots
 
     Parameters
@@ -186,7 +195,8 @@ def plot_panel(timestamp, lon, lat, kind, plots,
         show_xticks = (i == len(plots) - 1)
         ax = _add_subpanel(gs[i + 1], timestamp,  kind=kind, 
                                  prop_map=prop_map, break_on_change=break_on_change,
-                                 show_xticks=show_xticks, offset = offset, **plot_descr)
+                                 show_xticks=show_xticks, offset = offset, 
+                                 label_angle=label_angle, **plot_descr)
         axes.append(ax)
 
   
@@ -205,14 +215,16 @@ def track_state_panel(timestamp, lon, lat, state, plots=(), prop_map=None,
                       map_ratio=5, annotations=0, 
                       annotation_y_loc=1.0, annotation_y_align='bottom',
                       annotation_axes_ndx=0, add_night_shades=False,
-                      projection_info=None, shift_by_cent_lon={'longitude'}):
+                      projection_info=None, shift_by_cent_lon={'longitude'},
+                      label_angle=30, gs=None):
     if prop_map is None:
         prop_map = plt.rcParams.get('pyseas.map.fishingprops', styles._fishing_props)
     return plot_panel(timestamp, lon, lat, state, plots, prop_map,
                       break_on_change=True, map_ratio=map_ratio, annotations=annotations, 
                       annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
                       annotation_axes_ndx=annotation_axes_ndx, add_night_shades=add_night_shades,
-                      projection_info=projection_info, shift_by_cent_lon=shift_by_cent_lon)
+                      projection_info=projection_info, shift_by_cent_lon=shift_by_cent_lon,
+                      label_angle=label_angle, gs=gs)
 
 
 # Backward compatibility
@@ -220,14 +232,16 @@ def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots=(), prop_map=None,
                       map_ratio=5, annotations=0, 
                       annotation_y_loc=1.0, annotation_y_align='bottom',
                       annotation_axes_ndx=0, add_night_shades=False,
-                      projection_info=None, shift_by_cent_lon={'longitude'}):    
+                      projection_info=None, shift_by_cent_lon={'longitude'},
+                      label_angle=30, gs=None):    
     if prop_map is None:
         prop_map = plt.rcParams.get('pyseas.map.fishingprops', styles._fishing_props)
     return plot_panel(timestamp, lon, lat, is_fishing, plots, prop_map,
                       break_on_change=True, map_ratio=map_ratio, annotations=annotations, 
                       annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
                       annotation_axes_ndx=annotation_axes_ndx, add_night_shades=add_night_shades,
-                      projection_info=projection_info, shift_by_cent_lon=shift_by_cent_lon)
+                      projection_info=projection_info, shift_by_cent_lon=shift_by_cent_lon,
+                      label_angle=label_angle, gs=gs)
 
 
 def multi_track_panel(timestamp, lon, lat, track_id=None, plots=(), prop_map=None,
@@ -235,7 +249,7 @@ def multi_track_panel(timestamp, lon, lat, track_id=None, plots=(), prop_map=Non
                       annotation_y_loc=1.0, annotation_y_align='bottom',
                       annotation_axes_ndx=0, add_night_shades=False,
                       projection_info=None, shift_by_cent_lon={'longitude'},
-                      gs=None): 
+                      label_angle=30, gs=None): 
     if track_id is None:
         track_id = np.ones(len(lon))
     if prop_map is None:
@@ -246,7 +260,7 @@ def multi_track_panel(timestamp, lon, lat, track_id=None, plots=(), prop_map=Non
                       annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
                       annotation_axes_ndx=annotation_axes_ndx, add_night_shades=add_night_shades,
                       projection_info=projection_info, shift_by_cent_lon=shift_by_cent_lon,
-                      gs=gs)
+                      label_angle=label_angle, gs=gs)
 
 # Backward compatibility
 def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None, prop_map=None,
@@ -254,7 +268,7 @@ def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None, prop_map=N
                       annotation_y_loc=1.0, annotation_y_align='bottom',
                       annotation_axes_ndx=0, add_night_shades=False,
                       projection_info=None, shift_by_cent_lon={'longitude'}, 
-                      gs=None): 
+                      label_angle=30, gs=None): 
     if track_id is None:
         track_id = np.ones(len(lon))
     if prop_map is None:
@@ -268,4 +282,4 @@ def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None, prop_map=N
                       annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
                       annotation_axes_ndx=annotation_axes_ndx, add_night_shades=add_night_shades,
                       projection_info=projection_info, shift_by_cent_lon=shift_by_cent_lon,
-                      gs=gs)
+                      label_angle=label_angle, gs=gs)
