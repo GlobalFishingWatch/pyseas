@@ -67,7 +67,14 @@ def _add_subpanel(gs, timestamp, values, kind, label, prop_map, break_on_change,
         stamps = [DT.datetime.fromtimestamp(x * S_PER_DAY) for x in ticks]
         lbls = ['{x:%Y-%m-%d}'.format(x=x) for x in stamps]
         ax.set_xticks(ticks)
-        ax.set_xticklabels(lbls, rotation=label_angle, ha='right')
+        label_angle = label_angle % 360
+        if label_angle == 0:
+            alignment = 'center'
+        elif label_angle > 180:
+            alignment = 'left'
+        else:
+            alignment = 'right'
+        ax.set_xticklabels(lbls, rotation=label_angle, ha=alignment)
 
     ax.set_facecolor(plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color))
     return ax
