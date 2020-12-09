@@ -97,7 +97,8 @@ PlotPanelInfo = namedtuple('PlotFishingPanelInfo',
 
 def get_panel_gs(nr, nc, n_plots, map_ratio=5):
     dr = 1 + n_plots
-    gs = gridspec.GridSpec(nr * dr, nc, height_ratios=[map_ratio] + [1] * n_plots)
+
+    gs = gridspec.GridSpec(nr * dr, nc, height_ratios=([map_ratio] + [1] * n_plots) * nr)
     grid = np.zeros([nr, nc], dtype=object)
     for r in range(nr):
         for c in range(nc):
