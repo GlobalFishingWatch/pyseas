@@ -260,6 +260,16 @@ with pyseas.context(styles.panel):
                                               for x in info.legend_handles.keys()])
 # -
 
+pyseas._reload()
+df = position_msgs[(position_msgs.ssvid == "413461490")]
+with pyseas.context(styles.panel):
+    fig = plt.figure(figsize=(12, 12))
+    info = plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.lon},
+                       {'label' : 'lat', 'values' : df.lat}])
+    plt.legend(info.legend_handles.values(), [x.split('-', 1)[1].rstrip('.000000000Z') 
+                                              for x in info.legend_handles.keys()])
+
 # The second panel type, `track_state_panel`, plots single tracks with multiple states. For instance,
 # fishing/non-fishing, loitering/non-loitering, etc.
 

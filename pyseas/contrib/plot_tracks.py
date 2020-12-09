@@ -86,12 +86,24 @@ PlotPanelInfo = namedtuple('PlotFishingPanelInfo',
 
 
 
+def get_panel_gs(nr, nc, n_plots, map_ratio=5):
+    assert nc > 1 # TODO fix so not necessary
+    dr = 1 + n_plots
+    gs = gridspec.GridSpec(nr * dr, nc, height_ratios=[map_ratio] + [1] * n_plots)
+    grid = np.zeros([nr, nc], dtype=object)
+    for r in range(nr):
+        for c in range(nc):
+            grid[r, c] = [gs[dr * r + n, c] for n in range(dr)]
+    return grid
+
+
 def plot_panel(timestamp, lon, lat, kind, plots, 
                 prop_map, break_on_change,
                 map_ratio=5.0,
                 annotations=0, annotation_y_loc=1.0, annotation_y_align='bottom',
                 annotation_axes_ndx=0, add_night_shades=False, projection_info=None,
-                shift_by_cent_lon={'longitude'}):
+                shift_by_cent_lon={'longitude'},
+                gs=None):
     """Plot a panel with a map and associated time-value plots
 
     Parameters
@@ -148,7 +160,9 @@ def plot_panel(timestamp, lon, lat, kind, plots,
         
     if projection_info is None:
         projection_info = find_projection(lon, lat)
-    gs = gridspec.GridSpec(1 + len(plots), 1, height_ratios=[map_ratio] + [1] * len(plots))
+    if gs is None:
+        gs = get_panel_gs(1, 1, len(plots))[0, 0]
+    # gs = gridspec.GridSpec(1 + len(plots), 1, height_ratios=[map_ratio] + [1] * len(plots))
 
     ax1 = maps.create_map(gs[0], projection=projection_info.projection, 
                                  extent=projection_info.extent)
@@ -215,7 +229,8 @@ def multi_track_panel(timestamp, lon, lat, track_id=None, plots=(), prop_map=Non
                       map_ratio=5, annotations=0, 
                       annotation_y_loc=1.0, annotation_y_align='bottom',
                       annotation_axes_ndx=0, add_night_shades=False,
-                      projection_info=None, shift_by_cent_lon={'longitude'}): 
+                      projection_info=None, shift_by_cent_lon={'longitude'},
+                      gs=None): 
     if track_id is None:
         track_id = np.ones(len(lon))
     if prop_map is None:
@@ -225,14 +240,16 @@ def multi_track_panel(timestamp, lon, lat, track_id=None, plots=(), prop_map=Non
                       break_on_change=False, map_ratio=map_ratio, annotations=annotations, 
                       annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
                       annotation_axes_ndx=annotation_axes_ndx, add_night_shades=add_night_shades,
-                      projection_info=projection_info, shift_by_cent_lon=shift_by_cent_lon)
+                      projection_info=projection_info, shift_by_cent_lon=shift_by_cent_lon,
+                      gs=gs)
 
 # Backward compatibility
 def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None, prop_map=None,
                       map_ratio=5, annotations=0, 
                       annotation_y_loc=1.0, annotation_y_align='bottom',
                       annotation_axes_ndx=0, add_night_shades=False,
-                      projection_info=None, shift_by_cent_lon={'longitude'}): 
+                      projection_info=None, shift_by_cent_lon={'longitude'}, 
+                      gs=None): 
     if track_id is None:
         track_id = np.ones(len(lon))
     if prop_map is None:
@@ -245,4 +262,5 @@ def plot_tracks_panel(timestamp, lon, lat, track_id=None, plots=None, prop_map=N
                       break_on_change=False, map_ratio=map_ratio, annotations=annotations, 
                       annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
                       annotation_axes_ndx=annotation_axes_ndx, add_night_shades=add_night_shades,
-                      projection_info=projection_info, shift_by_cent_lon=shift_by_cent_lon)
+                      projection_info=projection_info, shift_by_cent_lon=shift_by_cent_lon,
+                      gs=gs)
