@@ -262,20 +262,30 @@ with pyseas.context(styles.panel):
 # +
 pyseas._reload()
 
-gs0, gs1 = plot_tracks.get_panel_gs(1, 2, n_plots=2)
+[(gs0, gs1), (gs2, gs3)] = plot_tracks.get_panel_gs(2, 2, n_plots=2)
 
 df = position_msgs[(position_msgs.ssvid == "413461490")]
 with pyseas.context(styles.panel):
-    fig = plt.figure(figsize=(18, 9))
+    fig = plt.figure(figsize=(18, 18))
     plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
                 plots=[{'label' : 'lon', 'values' : df.lon},
                        {'label' : 'lat', 'values' : df.lat}],
-                gs=gs0)
+                gs=gs0, label_angle=30)
     
     plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
                 plots=[{'label' : 'lon', 'values' : df.lon},
                        {'label' : 'lat', 'values' : df.lat}],
-                gs=gs1)
+                gs=gs1, label_angle=90)
+    
+    plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.speed}],
+                gs=gs2, label_angle=30)
+    
+    plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.speed}],
+                gs=gs3, label_angle=90)
+    
+#     plt.tight_layout()
 # -
 
 # The second panel type, `track_state_panel`, plots single tracks with multiple states. For instance,

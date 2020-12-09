@@ -95,17 +95,18 @@ PlotPanelInfo = namedtuple('PlotFishingPanelInfo',
 
 
 
-def get_panel_gs(nr, nc, n_plots, map_ratio=5):
-    dr = 1 + n_plots
+def get_panel_gs(nr, nc, n_plots, map_ratio=5, hgap_ratio=0.5):
+    dr = 1 + n_plots + 1 # Add one intervening subplot for padding
+    hr = [map_ratio] + [1] * n_plots + [hgap_ratio]
 
-    gs = gridspec.GridSpec(nr * dr, nc, height_ratios=([map_ratio] + [1] * n_plots) * nr)
+    gs = gridspec.GridSpec(nr * dr - 1, nc, height_ratios=(hr * nr)[:-1])
     grid = np.zeros([nr, nc], dtype=object)
     for r in range(nr):
         for c in range(nc):
             if nc == 1:
-                grid[r, c] = [gs[dr * r + n] for n in range(dr)]
+                grid[r, c] = [gs[dr * r + n] for n in range(dr - 1)]
             else:
-                grid[r, c] = [gs[dr * r + n, c] for n in range(dr)]
+                grid[r, c] = [gs[dr * r + n, c] for n in range(dr - 1)]
     if nc == 1:
         grid = grid[:, 0]
     if nr == 1:
