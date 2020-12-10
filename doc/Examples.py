@@ -247,21 +247,22 @@ with pyseas.context(pyseas.styles.light):
 # The first of these `multi_track_panel` is specialized for plotting multiple
 # tracks at once.
 
-# +
-
-pyseas._reload()
 df = position_msgs[(position_msgs.ssvid == "413461490")]
 with pyseas.context(styles.panel):
     fig = plt.figure(figsize=(12, 12))
     info = plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
                 plots=[{'label' : 'lon', 'values' : df.lon},
-                       {'label' : 'lat', 'values' : df.lat}])
+                       {'label' : 'lat', 'values' : df.lat}],
+                                        label_angle=0)
     plt.legend(info.legend_handles.values(), [x.split('-', 1)[1].rstrip('.000000000Z') 
                                               for x in info.legend_handles.keys()])
+
+# There is some basic functionality for combining multiple panels as shown below.
 
 # +
 pyseas._reload()
 
+# Shape of returned value mirrors that of subplots
 [(gs0, gs1), (gs2, gs3)] = plot_tracks.get_panel_gs(2, 2, n_plots=2)
 
 df = position_msgs[(position_msgs.ssvid == "413461490")]
@@ -270,12 +271,12 @@ with pyseas.context(styles.panel):
     plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
                 plots=[{'label' : 'lon', 'values' : df.lon},
                        {'label' : 'lat', 'values' : df.lat}],
-                gs=gs0, label_angle=30)
+                gs=gs0, label_angle=-30)
     
     plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
                 plots=[{'label' : 'lon', 'values' : df.lon},
                        {'label' : 'lat', 'values' : df.lat}],
-                gs=gs1, label_angle=90)
+                gs=gs1, label_angle=30)
     
     plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
                 plots=[{'label' : 'lon', 'values' : df.speed}],
@@ -283,9 +284,7 @@ with pyseas.context(styles.panel):
     
     plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
                 plots=[{'label' : 'lon', 'values' : df.speed}],
-                gs=gs3, label_angle=90)
-    
-#     plt.tight_layout()
+                gs=gs3, label_angle=30)
 # -
 
 # The second panel type, `track_state_panel`, plots single tracks with multiple states. For instance,

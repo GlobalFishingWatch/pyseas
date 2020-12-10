@@ -103,6 +103,38 @@ PlotPanelInfo = namedtuple('PlotFishingPanelInfo',
 
 
 def get_panel_gs(nr, nc, n_plots, map_ratio=5, hgap_ratio=0.5):
+    """Make set of GridSpecs suitable for multiple `plot_panel`s.
+
+    This is used to make grids of plot panels. Typical usage is
+
+        (gs0, gs1) = plot_tracks.get_panel_gs(1, 2, n_plots=2)
+
+        with pyseas.context(styles.panel):
+            fig = plt.figure(figsize=(9, 18))
+            plot_tracks.multi_track_panel(..., gs=gs0)
+            plot_tracks.multi_track_panel(..., gs=gs1)
+
+    Parameters
+    ----------
+    nr : int
+    nc : int
+        Number of rows and columns
+    n_plots : int
+        Should be as large as the largest number of plots in any 
+        `plot_panel`.
+    map_ratio : float, optional
+        Ratio of map height to individual time-value plots.
+    hgap_ratio : float, optional
+        Ratio of gap between vertically stacked panels and individual
+        plots.
+
+    Returns
+    -------
+    array of list of GridSpec
+        Shape of the array is `nr`x`nc`, unless `nr` or `nc` is one, in which
+        case the dimension of length 1 is collapsed. This mimics the
+        behavior of `matplotlib.pyplot.subplots`.
+    """
     dr = 1 + n_plots + 1 # Add one intervening subplot for padding
     hr = [map_ratio] + [1] * n_plots + [hgap_ratio]
 
@@ -166,6 +198,10 @@ def plot_panel(timestamp, lon, lat, kind, plots,
     shift_by_cent_lon : set of str
         Values in time-value plots to treat as longitude and recenter to prevent
         unnecessary dateline issues.
+    label_angle : float, optional
+        Angle to use for date values. Helps avoid dates crashing into each other.
+    gs : list of GridSpec values
+        Typically value returned from `get_panel_gs`.
 
     Note
     ----
