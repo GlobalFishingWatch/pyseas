@@ -6,18 +6,20 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.2
+#       jupytext_version: 1.6.0
 #   kernelspec:
-#     display_name: gfw-viz
+#     display_name: Python 3
 #     language: python
-#     name: gfw-viz
+#     name: python3
 # ---
 
 # +
 import pandas as pd
 import datetime as dt
 from pyseas.contrib import plot_gap
+import matplotlib
 
+pd.plotting.register_matplotlib_converters()
 # %matplotlib inline
 # -
 
@@ -418,6 +420,21 @@ else:
 # # Plotting with *pyseas.plot_gap*
 
 # ### Plot without attribute table (table_type = 'none')
+
+df_gap_positions_gfw
+
+# +
+import matplotlib.pyplot as plt
+df_gap_hourly = plot_gap.get_hourly_positions(gap_id, df_gaps, df_hourly_all)
+df_gap_hourly = df_gap_hourly.assign(timestamp = 
+                    pd.to_datetime(df_gap_hourly.date, format='%Y%m%d %H%M%S') + 
+                    pd.to_timedelta(df_gap_hourly.hour, unit='h'))
+df_gap_hourly.timestamp = df_gap_hourly.timestamp.apply(lambda ts: ts.tz_localize(tz='UTC'))
+
+plt.plot(df_gap_hourly.timestamp.values, df_gap_hourly.sat_positions.values)
+# -
+
+df_gap_hourly.timestamp.dtype
 
 fig, axes = plot_gap.plot_gap(gap_id, gaps_data=df_gaps, hourly_data=df_hourly_all, performance_data=df_performance, \
                                      positions_gfw=df_gap_positions_gfw, positions_ee=df_gap_positions_ee, show_all_gaps=False, \

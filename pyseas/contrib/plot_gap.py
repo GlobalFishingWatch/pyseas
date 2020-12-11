@@ -277,10 +277,13 @@ def plot_gap(gap_id, gaps_data, positions_gfw, hourly_data, positions_ee=None, p
 
             ### Graph hourly positions by type
             ax1 = fig.add_subplot(gs[1])
-            plt.plot(df_gap_hourly.timestamp, df_gap_hourly.sat_positions, color=sat_color, label="Satellite", zorder=3)
-            plt.plot(df_gap_hourly.timestamp, df_gap_hourly.ter_positions, color=ter_color, label="Terrestrial", zorder=2)
+            plt.plot(df_gap_hourly.timestamp.values, df_gap_hourly.sat_positions.values, 
+                color=sat_color, label="Satellite", zorder=3)
+            plt.plot(df_gap_hourly.timestamp.values, df_gap_hourly.ter_positions.values, 
+                color=ter_color, label="Terrestrial", zorder=2)
             if (has_ee):
-                plt.plot(df_gap_hourly.timestamp, df_gap_hourly.ee_positions, color=ee_color, label="Exact Earth", zorder=1)
+                plt.plot(df_gap_hourly.timestamp.values, df_gap_hourly.ee_positions.values, 
+                    color=ee_color, label="Exact Earth", zorder=1)
 
             ### Highlight the gap to be labeled
             plt.axvspan(gap_info.gap_start, gap_info.gap_end, ls="-", lw=0.7, edgecolor=gap_fig_color_edge, facecolor=gap_fig_color_face, alpha=0.5, zorder=0, label="Gap" if 'Gap' not in plt.gca().get_legend_handles_labels()[1] else '')
