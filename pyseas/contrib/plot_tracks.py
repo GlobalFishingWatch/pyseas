@@ -49,11 +49,20 @@ def _add_subpanel(gs, timestamp, values, kind, label, prop_map, break_on_change,
         y = (y + offset) % 360 - offset
 
     indices = set(kind)
-    for (k1, k2) in prop_map:
-        mask = _build_mask(kind, k1, k2)
-        ml_coords = maps._build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=False)  
-        mls = LineCollection(ml_coords, **prop_map[k1, k2])
-        ax.add_collection(mls)
+
+    if break_on_change:
+        for (k1, k2) in prop_map:
+            mask = _build_mask(kind, k1, k2)
+            ml_coords = maps._build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=False)  
+            mls = LineCollection(ml_coords, **prop_map[k1, k2])
+            ax.add_collection(mls)
+    else:
+        kinds = sorted(set(k1 for (k1, k2) in prop_map.keys()))
+        for k in kinds:
+            mask = (kind == k)
+            ml_coords = maps._build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=False)  
+            mls = LineCollection(ml_coords, **prop_map[k, k])
+            ax.add_collection(mls)
 
     min_y, max_y = _find_y_range(y, min_y, max_y)
     ax.autoscale_view()
