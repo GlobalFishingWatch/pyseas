@@ -1,9 +1,8 @@
-################################################
-### Module for generating gap visualizations ###
-### ---------------------------------------- ###
-### Author: Jenn Van Osdel                   ###
-### Date: 2020-11-06                         ###
-################################################
+'''
+Module for generating gap visualizations
+Author: Jenn Van Osdel
+Date: 2020-11-06
+'''
 
 import os
 import pandas as pd
@@ -26,6 +25,26 @@ custom_artist_cycler = cycler(edgecolor=colors, \
 
 ### Transforms hourly data into 
 def get_hourly_positions(gap_id, gaps_data, hourly_data):
+    '''
+    Transforms hourly data into proper format for plotting.
+    
+    Parameters
+    ----------
+    gap_id: gap_id being plotted
+    gaps_data: dataframe with gap information
+    hourly_data: dataframe with raw hourly positions
+    
+    Note
+    ----
+    gaps_data and hourly_data come from specific queries. 
+    See pyseas/doc/contrib/PlotGap.py for more information 
+    on those queries.
+    
+    Returns
+    -------
+    Dataframe containing the hourly positions information formatted for plotting.
+    '''
+    
     gap = gaps_data[gaps_data.gap_id == gap_id].iloc[0]
     query_start = gap.gap_start - pd.to_timedelta(2, unit='d')
     query_end = gap.gap_end + pd.to_timedelta(2, unit='d')
@@ -42,14 +61,24 @@ def get_hourly_positions(gap_id, gaps_data, hourly_data):
     return df
 
 
+'''
 ##############################################################
 ### Table creation functions for each supported table type ###
 ##############################################################
+'''
 
-### Creates basic table with only GFW related attributes 
-### (no Exact Earth dependencies)
-def plot_table_basic(all_gaps, show_all_gaps):
+def plot_table_basic(all_gaps):
+    '''
+    Creates basic table with only GFW-related attributes (no Exact Earth dependencies)
     
+    Parameters
+    ----------
+    all_gaps: dataframe of gap information, one row per gap
+    
+    Returns
+    -------
+    Matplotlib table object with the gap information.
+    '''
     gap_hours = []
     gap_offon_class = []
     gap_implied_speed = []
@@ -74,9 +103,19 @@ def plot_table_basic(all_gaps, show_all_gaps):
     return table
 
 
-### Creates table for use with Exact Earth gaps including
-### attributes relevant for the gap classification modeling
 def plot_table_ee(all_gaps):
+    '''
+    Creates table for use with Exact Earth gaps including attributes 
+    relevant for the gap classification modeling
+    
+    Parameters
+    ----------
+    all_gaps: dataframe of gap information, one row per gap
+    
+    Returns
+    -------
+    Matplotlib table object with the gap information.
+    '''
     
     ### TABLE ###
     gap_hours = []
@@ -121,29 +160,39 @@ def plot_table_ee(all_gaps):
     
     return table
 
-
+'''
 ##############################
 ### MAIN PLOTTING FUNCTION ###
 ##############################
-
-### Inputs
-# gap_id: the gap_id for the gap to plot
-# gaps_data: dataframe with all the relevant gap data from either `proj_ais_gaps_catena.raw_gaps_v` 
-#     (if using table_type == 'none' or 'basic') or `proj_ais_gaps_catena.raw_gaps_with_ee_stats_v` 
-#     (if using table_type == 'ee')
-# positions_gfw: AIS positions from `gfw_research.pipe_v` or `gfw_research.pipe_vYYYYMMDD_fishing`
-# hourly_data: hourly positions data from `gfw_research_precursors.ais_positions_byssvid_hourly_v`
-# positions_ee: Exact Earth positions from `world-fishing-827.ais_exact_earth.XXXX_csv_data_formated_and_partitioned` (where XXXX is 2017, 2018, or 2019)
-# (optional - if excluded, cannot use table_type == 'ee')
-# performance_data: performance metrics calculated from by the query available in doc/Examples.py (optional - if excluded, metrics will not be included in the visualization)
-# show_all_gaps: True if all gaps in the visualized time period should be marked or False if only the gap represented by gap_id should be marked (note: will only include gaps represented in gaps_data)
-# table_type: "none", "basic", or "ee" (see doc/Examples.py)
-# out_dir: location to save image to (if None, no image will be exported)
-
-### Outputs:
-# Figure, (GridSpec axes)
+'''
 
 def plot_gap(gap_id, gaps_data, positions_gfw, hourly_data, positions_ee=None, performance_data=None, show_all_gaps=False, table_type="basic", out_filepath=None):
+    '''
+    Creates table for use with Exact Earth gaps including attributes 
+    relevant for the gap classification modeling
+    
+    Parameters
+    ----------
+    gap_id: the gap_id for the gap to plot
+    gaps_data: dataframe with all the relevant gap data from either `proj_ais_gaps_catena.raw_gaps_v` 
+        (if using table_type == 'none' or 'basic') or `proj_ais_gaps_catena.raw_gaps_with_ee_stats_v` 
+        (if using table_type == 'ee')
+    positions_gfw: AIS positions from `gfw_research.pipe_v` or `gfw_research.pipe_vYYYYMMDD_fishing`
+    hourly_data: hourly positions data from `gfw_research_precursors.ais_positions_byssvid_hourly_v`
+    positions_ee: Exact Earth positions from `world-fishing-827.ais_exact_earth.XXXX_csv_data_formated_and_partitioned` 
+        (where XXXX is 2017, 2018, or 2019) (optional - if excluded, cannot use table_type == 'ee')
+    performance_data: performance metrics calculated from by the query available in doc/Examples.py
+        (optional - if excluded, metrics will not be included in the visualization)
+    show_all_gaps: True if all gaps in the visualized time period should be marked or False if only the gap 
+        represented by gap_id should be marked (note: will only include gaps represented in gaps_data)
+    table_type: "none", "basic", or "ee" (see doc/Examples.py)
+    out_dir: location to save image to (if None, no image will be exported)
+    
+    Returns
+    -------
+    Figure, (GridSpec axes)
+    '''
+    
     if table_type not in ["none", "basic", "ee"]:
         raise("%s is not a valid model type. Choose from 'none', basic', or 'ee'.")
         
@@ -309,7 +358,7 @@ def plot_gap(gap_id, gaps_data, positions_gfw, hourly_data, positions_ee=None, p
                 ax2 = fig.add_subplot(gs[2])
 
                 if table_type == 'basic':
-                    plot_table_basic(df_all_gaps, show_all_gaps)
+                    plot_table_basic(df_all_gaps)
                 if table_type == 'ee':
                     plot_table_ee(df_all_gaps)
     
