@@ -20,6 +20,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpcolors
+import matplotlib.gridspec as gridspec
 import skimage.io
 import pandas as pd
 import cartopy
@@ -247,13 +248,15 @@ with pyseas.context(pyseas.styles.light):
 # The first of these `multi_track_panel` is specialized for plotting multiple
 # tracks at once.
 
+# +
+
+pyseas._reload()
 df = position_msgs[(position_msgs.ssvid == "413461490")]
 with pyseas.context(styles.panel):
     fig = plt.figure(figsize=(12, 12))
     info = plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
                 plots=[{'label' : 'lon', 'values' : df.lon},
-                       {'label' : 'lat', 'values' : df.lat}],
-                                        label_angle=0)
+                       {'label' : 'lat', 'values' : df.lat}])
     plt.legend(info.legend_handles.values(), [x.split('-', 1)[1].rstrip('.000000000Z') 
                                               for x in info.legend_handles.keys()])
 
@@ -262,37 +265,32 @@ with pyseas.context(styles.panel):
 # +
 pyseas._reload()
 
-# Shape of returned value mirrors that of subplots
-[(gs0, gs1), (gs2, gs3)] = plot_tracks.get_panel_gs(2, 2, n_plots=2)
 
 df = position_msgs[(position_msgs.ssvid == "413461490")]
 with pyseas.context(styles.panel):
     fig = plt.figure(figsize=(18, 18))
+    gs = gridspec.GridSpec(2, 2)
+    
     plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
                 plots=[{'label' : 'lon', 'values' : df.lon},
                        {'label' : 'lat', 'values' : df.lat}],
-                gs=gs0, label_angle=-30)
+                gs=gs[0, 0], label_angle=-30)
     
-    plot_tracks.multi_track_panel(df.import matplotlib.gridspec as gridspec
-timestamp, df.lon, df.lat, df.seg_id,
+    plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
                 plots=[{'label' : 'lon', 'values' : df.lon},
                        {'label' : 'lat', 'values' : df.lat}],
-                gs=gs1, label_angle=30)
+                gs=gs[0, 1], label_angle=30)
     
     plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
                 plots=[{'label' : 'lon', 'values' : df.speed}],
-                gs=gs2, label_angle=30)
+                gs=gs[1, 0], label_angle=30)
     
     plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
                 plots=[{'label' : 'lon', 'values' : df.speed}],
-                gs=gs3, label_angle=30)
+                gs=gs[1, 1], label_angle=30)
 
 # +
 pyseas._reload()
-
-# Shape of returned value mirrors that of subplots
-# [(gs0, gs1), (gs2, gs3)] = plot_tracks.get_panel_gs(2, 2, n_plots=2)
-import matplotlib.gridspec as gridspec
 
 df = position_msgs[(position_msgs.ssvid == "413461490")]
 with pyseas.context(styles.panel):
@@ -352,6 +350,12 @@ with pyseas.context(styles.dark):
     maps.add_countries(ax)
     maps.add_miniglobe(loc='lower right', central_marker='*')
     plt.show()
+
+# ## Plotting Gaps
+#
+# See [PlotGap.ipynb](https://github.com/GlobalFishingWatch/rendered/blob/master/pyseas/doc/contrib/PlotGap.ipynb)
+#
+# (or if navigating from within a clone of the repo, go directly to the file [here](contrib/PlotGap.ipynb))
 
 # ## Saving Plots
 #
