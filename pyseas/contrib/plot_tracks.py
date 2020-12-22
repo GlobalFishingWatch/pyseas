@@ -102,56 +102,13 @@ PlotPanelInfo = namedtuple('PlotFishingPanelInfo',
     ['map_ax', 'plot_axes', 'projection_info', 'legend_handles'])
 
 
-
-def get_panel_gs(nr, nc, n_plots, map_ratio=5, hgap_ratio=0.5):
-    """Make set of GridSpecs suitable for multiple `plot_panel`s.
-
-    This is used to make grids of plot panels. Typical usage is
-
-        (gs0, gs1) = plot_tracks.get_panel_gs(1, 2, n_plots=2)
-
-        with pyseas.context(styles.panel):
-            fig = plt.figure(figsize=(9, 18))
-            plot_tracks.multi_track_panel(..., gs=gs0)
-            plot_tracks.multi_track_panel(..., gs=gs1)
-
-    Parameters
-    ----------
-    nr : int
-    nc : int
-        Number of rows and columns
-    n_plots : int
-        Should be as large as the largest number of plots in any 
-        `plot_panel`.
-    map_ratio : float, optional
-        Ratio of map height to individual time-value plots.
-    hgap_ratio : float, optional
-        Ratio of gap between vertically stacked panels and individual
-        plots.
-
-    Returns
-    -------
-    array of list of GridSpec
-        Shape of the array is `nr`x`nc`, unless `nr` or `nc` is one, in which
-        case the dimension of length 1 is collapsed. This mimics the
-        behavior of `matplotlib.pyplot.subplots`.
-    """
-    dr = 1 + n_plots + 1 # Add one intervening subplot for padding
-    hr = [map_ratio] + [1] * n_plots + [hgap_ratio]
-
-    gs = gridspec.GridSpec(nr * dr - 1, nc, height_ratios=(hr * nr)[:-1])
-    grid = np.zeros([nr, nc], dtype=object)
-    for r in range(nr):
-        for c in range(nc):
-            if nc == 1:
-                grid[r, c] = [gs[dr * r + n] for n in range(dr - 1)]
-            else:
-                grid[r, c] = [gs[dr * r + n, c] for n in range(dr - 1)]
-    if nc == 1:
-        grid = grid[:, 0]
-    if nr == 1:
-        grid = grid[0]
-    return grid
+def _get_gs(gs, n_plots, map_ratio):
+    dr = 1 + n_plots
+    hr = [map_ratio] + [1] * n_plots
+    if gs is None:
+        return gridspec.GridSpec(dr, 1, height_ratios=hr)
+    else:
+        return gs.subgridspec(dr, 1, height_ratios=hr)
 
 
 def plot_panel(timestamp, lon, lat, kind, plots, 
@@ -201,8 +158,7 @@ def plot_panel(timestamp, lon, lat, kind, plots,
         unnecessary dateline issues.
     label_angle : float, optional
         Angle to use for date values. Helps avoid dates crashing into each other.
-    gs : list of GridSpec values
-        Typically value returned from `get_panel_gs`.
+    gs : GridSpec, optional
 
     Note
     ----
@@ -221,8 +177,8 @@ def plot_panel(timestamp, lon, lat, kind, plots,
         
     if projection_info is None:
         projection_info = find_projection(lon, lat)
-    if gs is None:
-        gs = get_panel_gs(1, 1, len(plots))
+
+    gs = _get_gs(gs, len(plots), map_ratio)
 
     ax1 = maps.create_map(gs[0], projection=projection_info.projection, 
                                  extent=projection_info.extent)
