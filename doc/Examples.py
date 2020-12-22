@@ -285,6 +285,33 @@ with pyseas.context(styles.panel):
     plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
                 plots=[{'label' : 'lon', 'values' : df.speed}],
                 gs=gs3, label_angle=30)
+
+# +
+pyseas._reload()
+
+# Shape of returned value mirrors that of subplots
+# [(gs0, gs1), (gs2, gs3)] = plot_tracks.get_panel_gs(2, 2, n_plots=2)
+
+df = position_msgs[(position_msgs.ssvid == "413461490")]
+with pyseas.context(styles.panel):
+    fig = plt.figure(figsize=(18, 18))
+    plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.lon},
+                       {'label' : 'lat', 'values' : df.lat}],
+                gs=gs0, label_angle=-30)
+    
+    plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.lon},
+                       {'label' : 'lat', 'values' : df.lat}],
+                gs=gs1, label_angle=30)
+    
+    plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.speed}],
+                gs=gs2, label_angle=30)
+    
+    plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.speed}],
+                gs=gs3, label_angle=30)
 # -
 
 # The second panel type, `track_state_panel`, plots single tracks with multiple states. For instance,
