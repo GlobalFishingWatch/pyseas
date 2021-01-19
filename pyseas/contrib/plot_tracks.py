@@ -103,6 +103,24 @@ PlotPanelInfo = namedtuple('PlotFishingPanelInfo',
 
 
 def _get_gs(gs, n_plots, map_ratio):
+    """Get an appropriate gridspec for a PlotPanel
+
+    If `gs` is specified, return an appropriate nested
+    GridSpec within `gs`. Otherwise create a new GridSpec
+    from scratch.
+
+    Parameters
+    ----------
+    gs : GridSpec or None
+    n_plots : int
+      Length of the `plots` argument passed to `plot_panel`
+    map_ratio : float
+      See docs for `plot_panel`
+      
+    Returns
+    -------
+    GridSpec
+    """
     dr = 1 + n_plots
     hr = [map_ratio] + [1] * n_plots
     if gs is None:
