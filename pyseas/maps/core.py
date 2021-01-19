@@ -36,6 +36,7 @@ import cartopy.feature as cfeature
 import cartopy.mpl.gridliner
 import json
 import os
+import uuid
 from .. import props
 from .. import styles
 import geopandas as gpd
@@ -237,17 +238,27 @@ def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
         
 
 # TODO: move this and add_plot out of core to plot.py
-def _build_mask(kind, k1, k2):
-    mask1 = (kind == k1)
-    if k2 == k1:
-        mask2 = mask1
-    else:
-        mask2 = (kind == k2)
+def _build_mask(kind, k1, k2, break_on_change):
+    if break_on_change:
+        # Create separate line segments for for each block
+        # with endpoints of k1, k2. If k1 != k2, these segments
+        # will necessarily have only two points.
+        mask1 = (kind == k1)
+        if k2 == k1:
+            mask2 = mask1
+        else:
+            mask2 = (kind == k2)
 
-    mask = np.zeros_like(mask1)
-    mask[:-1] = mask1[:-1] & mask2[1:]
-    mask[1:] |= mask1[:-1] & mask2[1:]
-    return mask
+        mask = np.zeros_like(mask1)
+        mask[:-1] = mask1[:-1] & mask2[1:]
+        mask[1:] |= mask1[:-1] & mask2[1:]
+        return mask
+    else:
+        # Create one segment for each type.
+        if k1 == k2:
+            return (kind == k1) 
+        else:
+            return np.zeros(len(kind), dtype=bool)
 
 
 def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, transform=identity):
@@ -292,7 +303,7 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, tr
 
     handles = {}
     for k1, k2 in sorted(props.keys()):
-        mask = _build_mask(kind, k1, k2)
+        mask = _build_mask(kind, k1, k2, break_on_change)
         if mask.sum():
             ml_coords = _build_multiline_string_coords(lon, lat, mask, break_on_change)   
             mls = MultiLineString(ml_coords)
@@ -613,7 +624,7 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
 
     # Create the mini globe, with continents 
     ortho = cartopy.crs.Orthographic(central_latitude=lat, central_longitude=lon)
-    inset = plt.axes([0, 0, 1, 1], projection=ortho)
+    inset = plt.axes([0, 0, 1, 1], projection=ortho, label=uuid.uuid1().hex)
     inset.set_global()
     bg_color = plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
     inset.background_patch.set_facecolor(bg_color)
