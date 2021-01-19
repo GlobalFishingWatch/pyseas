@@ -20,6 +20,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpcolors
+import matplotlib.gridspec as gridspec
 import skimage.io
 import pandas as pd
 import cartopy
@@ -258,6 +259,54 @@ with pyseas.context(styles.panel):
                        {'label' : 'lat', 'values' : df.lat}])
     plt.legend(info.legend_handles.values(), [x.split('-', 1)[1].rstrip('.000000000Z') 
                                               for x in info.legend_handles.keys()])
+
+# There is some basic functionality for combining multiple panels as shown below.
+
+# +
+pyseas._reload()
+
+
+df = position_msgs[(position_msgs.ssvid == "413461490")]
+with pyseas.context(styles.panel):
+    fig = plt.figure(figsize=(18, 18))
+    gs = gridspec.GridSpec(2, 2)
+    
+    plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.lon},
+                       {'label' : 'lat', 'values' : df.lat}],
+                gs=gs[0, 0], label_angle=-30)
+    
+    plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.lon},
+                       {'label' : 'lat', 'values' : df.lat}],
+                gs=gs[0, 1], label_angle=30)
+    
+    plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.speed}],
+                gs=gs[1, 0], label_angle=30)
+    
+    plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.speed}],
+                gs=gs[1, 1], label_angle=30)
+
+# +
+pyseas._reload()
+
+df = position_msgs[(position_msgs.ssvid == "413461490")]
+with pyseas.context(styles.panel):
+    fig = plt.figure(figsize=(18, 18))
+    gs = gridspec.GridSpec(1, 2, figure=fig)
+    
+    plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.lon},
+                       {'label' : 'lat', 'values' : df.lat}],
+                gs=gs[0])
+    
+    plot_tracks.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
+                plots=[{'label' : 'lon', 'values' : df.lon},
+                       {'label' : 'lat', 'values' : df.lat}],
+                gs=gs[1])
+    
 # -
 
 # The second panel type, `track_state_panel`, plots single tracks with multiple states. For instance,
