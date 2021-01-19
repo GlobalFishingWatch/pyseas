@@ -36,6 +36,7 @@ import cartopy.feature as cfeature
 import cartopy.mpl.gridliner
 import json
 import os
+import uuid
 from .. import props
 from .. import styles
 import geopandas as gpd
@@ -623,7 +624,7 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
 
     # Create the mini globe, with continents 
     ortho = cartopy.crs.Orthographic(central_latitude=lat, central_longitude=lon)
-    inset = plt.axes([0, 0, 1, 1], projection=ortho)
+    inset = plt.axes([0, 0, 1, 1], projection=ortho, label=uuid.uuid1().hex)
     inset.set_global()
     bg_color = plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
     inset.background_patch.set_facecolor(bg_color)
