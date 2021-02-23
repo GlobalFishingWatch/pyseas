@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.2
+#       jupytext_version: 1.6.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -169,6 +169,51 @@ with plt.rc_context(styles.dark):
     maps.add_eezs()
     ax.set_title('Seismic Vessel Presence Near Indonesia')
     maps.add_logo(loc='lower left')
+
+# ### H3 Discrete Global Grids
+#
+# There is also support for rendering data defined in terms of H3 DGG as rasters
+
+query_template = """
+with h3_fishing as (
+  select jslibs.h3.ST_H3(ST_GEOGPOINT(lon, lat), {level}) h3_n 
+  from gfw_research.pipe_v20190502_fishing
+  where lon between 3.8 and 65.2 and lat between 48.6 and 75.4
+  and date(date) between "2019-05-01" and "2019-10-31"
+  and nnet_score > .5
+)
+
+select h3_n as h3, count(*) as cnt
+from h3_fishing
+group by h3_n
+"""
+fishing_h3_6 = pd.read_gbq(query_template.format(level=6), project_id='world-fishing-827')
+h3cnts_6_b = {np.uint64(int(x.h3, 16)) : x.cnt for x in fishing_h3_6.itertuples()}
+
+# +
+pyseas._reload()
+
+
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(1, 400000)
+with plt.rc_context(styles.dark):
+    ax, im = maps.plot_h3_data(h3cnts_6_b, 
+                              projection=cartopy.crs.LambertAzimuthalEqualArea
+                                                   (central_longitude=10, central_latitude=60),
+                              extent=(3.8, 25.0, 65.0, 75.4),
+                              cmap='presence',
+                              norm=norm)
+    maps.add_countries()
+    maps.add_eezs()
+    ax.set_title('H3 data example')
+    fig.colorbar(im, ax=ax, 
+                      orientation='horizontal',
+                      fraction=0.02,
+                      aspect=40,
+                      pad=0.04,
+                     )
+    maps.add_logo(loc='lower left')
+# -
 
 # ## Plotting Tracks
 
