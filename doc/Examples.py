@@ -117,7 +117,7 @@ with plt.rc_context(styles.dark):
                               projection='country.indonesia',
                               cmap='presence',
                               norm=norm,
-                              origin='upper')
+                              origin='lower')
     maps.add_countries()
     maps.add_eezs()
     ax.set_title('Seismic Vessel Presence Near Indonesia')
@@ -129,16 +129,12 @@ with plt.rc_context(styles.dark):
                      )
     maps.add_logo(loc='lower left')
 
-# +
-pyseas._reload()
-
-
 # Display a raster along with aligned, labeled colorbar.
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=1, vmax=1000)
 with plt.rc_context(styles.dark):
     ax, im = maps.plot_raster(seismic_raster * (60 * 60), 
-                                             projection='global.default',
+                                             projection='country.indonesia',
                                              cmap='presence',
                                              norm=norm,
                                              origin='lower')
@@ -146,11 +142,6 @@ with plt.rc_context(styles.dark):
     maps.add_eezs()
     ax.set_title('Seismic Vessel Presence Near Indonesia')
     maps.add_logo(loc='lower left')
-# -
-
-im, rst = im
-
-plt.imshow((rst - rst.min()) / rst.max())
 
 # It's important to realize that normally one is not seeing the background of the map over water, 
 # but instead the zero value of the raster. Sometimes it's useful to make some portion of the 
@@ -196,10 +187,6 @@ group by h3_n
 fishing_h3_6 = pd.read_gbq(query_template.format(level=6), project_id='world-fishing-827')
 h3cnts_6_b = {np.uint64(int(x.h3, 16)) : x.cnt for x in fishing_h3_6.itertuples()}
 
-# +
-pyseas._reload()
-
-
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(1, 400000)
 with plt.rc_context(styles.dark):
@@ -219,7 +206,6 @@ with plt.rc_context(styles.dark):
                       pad=0.04,
                      )
     maps.add_logo(loc='lower left')
-# -
 
 # ## Plotting Tracks
 
@@ -300,8 +286,6 @@ with pyseas.context(pyseas.styles.light):
 # tracks at once.
 
 # +
-
-pyseas._reload()
 df = position_msgs[(position_msgs.ssvid == "413461490")]
 with pyseas.context(styles.panel):
     fig = plt.figure(figsize=(12, 12))
@@ -312,10 +296,7 @@ with pyseas.context(styles.panel):
                                               for x in info.legend_handles.keys()])
 
 # There is some basic functionality for combining multiple panels as shown below.
-
-# +
-pyseas._reload()
-
+# -
 
 df = position_msgs[(position_msgs.ssvid == "413461490")]
 with pyseas.context(styles.panel):
@@ -340,9 +321,6 @@ with pyseas.context(styles.panel):
                 plots=[{'label' : 'lon', 'values' : df.speed}],
                 gs=gs[1, 1], label_angle=30)
 
-# +
-pyseas._reload()
-
 df = position_msgs[(position_msgs.ssvid == "413461490")]
 with pyseas.context(styles.panel):
     fig = plt.figure(figsize=(18, 18))
@@ -358,7 +336,6 @@ with pyseas.context(styles.panel):
                        {'label' : 'lat', 'values' : df.lat}],
                 gs=gs[1])
     
-# -
 
 # The second panel type, `track_state_panel`, plots single tracks with multiple states. For instance,
 # fishing/non-fishing, loitering/non-loitering, etc.
@@ -372,7 +349,6 @@ with pyseas.context(styles.panel):
 # Both panel types have a number of options including `annotations` and
 # `add_night_shades`.
 
-pyseas._reload()
 df = position_msgs[(position_msgs.ssvid == "413461490")].reset_index()
 with pyseas.context(styles.panel):
     fig = plt.figure(figsize=(12, 12))

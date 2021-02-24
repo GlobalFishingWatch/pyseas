@@ -4,9 +4,13 @@ import h3.api.numpy_int as h3
 from h3.unstable import vect
 
 
-def locs_to_h3cnts(lons, lats, level):
+def locs_to_h3_cnts(lons, lats, level):
     """Count occurences per H3 grid cell
-    
+
+    If you are pulling data from BigQuery, use the H3 functions
+    there to aggregate the data, since performance will be better
+    and that approach is more flexible.
+
     Parameters
     ----------
     df : pd.DataFrame
@@ -29,31 +33,32 @@ def locs_to_h3cnts(lons, lats, level):
     return counts
 
 
-def h3cnts_to_raster(h3cnts, xvals, yvals, transform):
-    """Convert dictionary of h3cnts to raster
+def h3cnts_to_raster(h3_data, row_locs, col_locs, transform):
+    """Convert dictionary of H3 data to raster in projected coords
 
-    TODO: discuss how it plots from low resolution to
-    high resolution
+    If multiple resolutions of cells are present in h3_data they
+    are plotted from lowest resolution to highest resolution,
+    putting the high resolution cells on top.
     
     Parameters
     ----------
-    h3cnts: dict mapping str to number
-        Key is an h3id, while value is the count at that id
-    xvals : array of float
-    yvals : array of float
-    transform : function mapping array of (x, y) to array of (lon, lat)
+    h3_data: dict mapping str to number
+        Key is an H3 id, while value is the count or density at that id
+    row_locs : array of float
+    col_locs : array of float
+    transform : function of (rows, columns) -> (lons, lats)
 
     Returns
     -------
     2D array of float
     """
-    levels = sorted(set(h3.h3_get_resolution(h3id) for h3id in h3cnts))
-    raster = np.zeros([len(yvals), len(xvals)])
-    for i, y in enumerate(yvals):
-        lons, lats = np.transpose(transform([(x, y) for x in xvals]))
+    levels = sorted(set(h3.h3_get_resolution(h3id) for h3id in h3_data))
+    raster = np.zeros([len(row_locs), len(col_locs)])
+    for i, row in enumerate(row_locs):
+        lons, lats = transform([row] * len(col_locs), col_locs)
         for level in levels:
             h3_indices = vect.geo_to_h3(lats, lons, level)
             for j, h3ndx in enumerate(h3_indices):
-                if h3ndx in h3cnts:
-                    raster[i, j] = h3cnts[h3ndx]
+                if h3ndx in h3_data:
+                    raster[i, j] = h3_data[h3ndx]
     return raster

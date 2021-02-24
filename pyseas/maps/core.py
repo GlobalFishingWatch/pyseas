@@ -786,8 +786,7 @@ def add_minimap_aoi(from_ax, to_ax):
 
 
 def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
-                bg_color=None, hide_axes=True, colorbar=None, 
-                gridlines=False, **kwargs):
+                bg_color=None, hide_axes=True, **kwargs):
     """Draw a GFW themed map over a raster
 
     Parameters
@@ -798,6 +797,7 @@ def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
     bg_color : str or tuple, optional
     hide_axes : bool
         if `true`, hide x and y axes
+
     
     Other Parameters
     ----------------
@@ -816,8 +816,7 @@ def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
 
 
 def plot_h3_data(h3_data, subplot=(1, 1, 1), projection='global.default',
-                bg_color=None, hide_axes=True, colorbar=None, 
-                gridlines=False, **kwargs):
+                bg_color=None, hide_axes=True, **kwargs):
     """Draw a GFW themed map over a raster
 
     Parameters
