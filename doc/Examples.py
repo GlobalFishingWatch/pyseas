@@ -117,7 +117,7 @@ with plt.rc_context(styles.dark):
                               projection='country.indonesia',
                               cmap='presence',
                               norm=norm,
-                              origin='lower')
+                              origin='upper')
     maps.add_countries()
     maps.add_eezs()
     ax.set_title('Seismic Vessel Presence Near Indonesia')
@@ -129,22 +129,28 @@ with plt.rc_context(styles.dark):
                      )
     maps.add_logo(loc='lower left')
 
+# +
+pyseas._reload()
+
+
 # Display a raster along with aligned, labeled colorbar.
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=1, vmax=1000)
 with plt.rc_context(styles.dark):
-    ax, im, cb = maps.plot_raster_w_colorbar(seismic_raster * (60 * 60), 
-                                             r"seconds per $\mathregular{km^2}$ ",
-                                             projection='country.indonesia',
+    ax, im = maps.plot_raster(seismic_raster * (60 * 60), 
+                                             projection='global.default',
                                              cmap='presence',
                                              norm=norm,
-                                             cbformat='%.0f',
-                                             origin='lower',
-                                             loc='bottom')
+                                             origin='lower')
     maps.add_countries()
     maps.add_eezs()
     ax.set_title('Seismic Vessel Presence Near Indonesia')
     maps.add_logo(loc='lower left')
+# -
+
+im, rst = im
+
+plt.imshow((rst - rst.min()) / rst.max())
 
 # It's important to realize that normally one is not seeing the background of the map over water, 
 # but instead the zero value of the raster. Sometimes it's useful to make some portion of the 

@@ -172,7 +172,7 @@ def add_countries(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidt
 #                       'for `LogNorm`)')
 
 
-def add_raster(raster, ax=None, extent=(-180, 180, -90, 90), origin='upper', **kwargs):
+def add_raster(raster, ax=None, extent=None, origin='upper', **kwargs):
     """Add a raster to an existing map
 
     Parameters
@@ -194,6 +194,9 @@ def add_raster(raster, ax=None, extent=(-180, 180, -90, 90), origin='upper', **k
     """
     if ax is None:
         ax = plt.gca()
+    if extent is None:
+        plt.gcf().canvas.draw()
+        extent = (-180, 180, -90, 90)
     if 'cmap' in kwargs and isinstance(kwargs['cmap'], str):
         src = plt.rcParams['pyseas.map.cmapsrc']
         try:
@@ -834,7 +837,7 @@ def plot_h3_data(h3_data, subplot=(1, 1, 1), projection='global.default',
     -------
     (GeoAxes, AxesImage)
     """
-    extent = kwargs.pop('extent')
+    extent = kwargs.pop('extent', None)
     ax = create_map(subplot, projection, extent, bg_color, hide_axes)
     im = add_h3_data(h3_data, ax=ax, **kwargs)
     add_land(ax)
