@@ -183,8 +183,6 @@ group by h3_n
 fishing_h3_6 = pd.read_gbq(query_template.format(level=6), project_id='world-fishing-827')
 h3cnts_6_b = {np.uint64(int(x.h3, 16)) : x.cnt for x in fishing_h3_6.itertuples()}
 
-dir(im)
-
 # +
 pyseas._reload()
 

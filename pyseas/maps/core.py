@@ -197,8 +197,11 @@ def add_raster(raster, ax=None, extent=None, origin='upper', interpolation='near
         except AttributeError:
             pass
 
-    return ax.imshow(raster, transform=identity, 
-                        extent=extent, origin=origin, **kwargs)
+    return h3_dgg.raster_show(ax, raster, extent, origin, **kwargs)
+
+
+    # return ax.imshow(raster, transform=identity, 
+    #                     extent=extent, origin=origin, **kwargs)
 
 
 def add_h3_data(h3_data, ax=None, **kwargs):
