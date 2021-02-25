@@ -183,8 +183,13 @@ group by h3_n
 fishing_h3_6 = pd.read_gbq(query_template.format(level=6), project_id='world-fishing-827')
 h3cnts_6_b = {np.uint64(int(x.h3, 16)) : x.cnt for x in fishing_h3_6.itertuples()}
 
+dir(im)
+
+# +
+pyseas._reload()
+
 fig = plt.figure(figsize=(14, 7))
-norm = mpcolors.LogNorm(1, 400000)
+norm = mpcolors.LogNorm(1, 40000)
 with psm.context(psm.styles.dark):
     ax, im = psm.plot_h3_data(h3cnts_6_b, 
                               projection=cartopy.crs.LambertAzimuthalEqualArea
@@ -202,6 +207,10 @@ with psm.context(psm.styles.dark):
                       pad=0.04,
                      )
     psm.add_logo(loc='lower left')
+    
+# plt.savefig('/Users/timothyhochberg/Desktop/test_h3_600.png', dpi=600, 
+#             facecolor=plt.rcParams['pyseas.fig.background'])
+# -
 
 # ## Plotting Tracks
 
@@ -331,7 +340,7 @@ with psm.context(psm.styles.panel):
                 plots=[{'label' : 'lon', 'values' : df.lon},
                        {'label' : 'lat', 'values' : df.lat}],
                 gs=gs[1])
-    
+
 
 # The second panel type, `track_state_panel`, plots single tracks with multiple states. For instance,
 # fishing/non-fishing, loitering/non-loitering, etc.

@@ -49,7 +49,7 @@ from shapely import ops as shpops
 from skimage import io as skio
 import warnings
 from . import ticks
-from . import project_to_raster
+from . import h3_dgg
 
 
 monkey_patch_cartopy()
@@ -161,18 +161,8 @@ def add_countries(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidt
     return ax.add_feature(land)
 
 
-# TODO: remove
-# def _warn_if_has_nans(raster, norm):
-#     if norm is not None:
-#         raster = norm(raster)
-#     if np.isnan(raster).sum():
-#         warnings.warn('`norm(raster)` has `nan`s which may not render well. '
-#                       'Consider removing `nan`s and clipping values to prevent this '
-#                       '(.e.g., `raster[(raster <= 0) | np.isnan(raster)] = sys.float_info.min`'
-#                       'for `LogNorm`)')
-
-
-def add_raster(raster, ax=None, extent=None, origin='upper', **kwargs):
+def add_raster(raster, ax=None, extent=None, origin='upper', interpolation='nearest', 
+               **kwargs):
     """Add a raster to an existing map
 
     Parameters
@@ -183,6 +173,9 @@ def add_raster(raster, ax=None, extent=None, origin='upper', **kwargs):
         (lon_min, lon_max, lat_min, lat_max) of the raster
     origin : str, optional
         Location of the raster origin ['upper' or 'lowers']
+    interpolation : str, optional
+        Uses 'nearest' by default as the standard matplotlib default doesn't work
+        well with projected data at high resolution.
     
     Other Parameters
     ----------------
@@ -204,12 +197,9 @@ def add_raster(raster, ax=None, extent=None, origin='upper', **kwargs):
         except AttributeError:
             pass
 
-    projection = project_to_raster.project_raster(ax, raster, extent, origin=origin)
-    return ax.imshow(projection, extent=ax.get_extent(), origin='lower', **kwargs)
-    # TODO: remove
-    # _warn_if_has_nans(raster, kwargs.get('norm'))
-    # return ax.imshow(raster, transform=identity, 
-    #                     extent=extent, origin=origin, **kwargs)
+    return ax.imshow(raster, transform=identity, 
+                        extent=extent, origin=origin, **kwargs)
+
 
 def add_h3_data(h3_data, ax=None, **kwargs):
     """Add a raster to an existing map
@@ -241,8 +231,8 @@ def add_h3_data(h3_data, ax=None, **kwargs):
         except AttributeError:
             pass
 
-    projection = project_to_raster.project_h3(ax, h3_data)
-    return ax.imshow(projection, extent=ax.get_extent(), origin='lower', **kwargs)
+    return h3_dgg.h3_show(ax, h3_data, **kwargs)
+
 
 def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
     assert len(x) == len(y) == len(mask) , (len(x),  len(y), len(mask))
