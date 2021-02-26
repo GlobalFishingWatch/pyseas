@@ -1,4 +1,24 @@
 """Rasterize lat-lon rasters H3 DGG data in a way that works well for mapping.
+
+Plotting rasters using `imshow` on Cartopy maps does not work well with high
+resolution maps. Fine details can disappear or become coarse and blocky.
+Plotting using `interpolation="nearest"` helps some with this, but still
+results in loss of detail. The functions in this module plot to
+Cartopy GeoAxes with improved results.
+
+The two main entry points in the module are `raster_show` and `h3_show`. 
+`raster_show` has the same interface as `imshow`. `h3_show` is similar
+except it accepts H3 Discrete Global Grid data.
+
+In both cases, the strategy is to generate a raster in *display* coordinates
+the interpolate the data in the raster or DGG grid directly onto the new
+raster. In order to get the correct display coordinates, it is necessary
+to subclass `AxesImage` and have it do the interpolation when the map
+is actually drawn. Since the interpolated array is already in display
+coordinates, not projection is applied when it is drawn.
+
+Most of the hairy code is repurposed from the matplotlib sources.
+
 """
 from collections import Counter
 import numpy as np
@@ -12,6 +32,88 @@ import matplotlib.cbook as cbook
 import matplotlib.artist as martist
 
 from . import core
+
+
+def h3_show(ax, h3_data, cmap=None, norm=None, aspect=None, 
+            vmin=None, vmax=None, url=None, alpha=1.0, **kwargs):
+    """Plot H3 DGG data in a way friendly to projected maps.
+
+    This is derived from Axes.imshow.
+
+    Parameters
+    ----------
+    ax : matplotlib Axes
+    h3_data : dict mapping np.uint64 to int or float
+        The key is a H3 ID, while the value is either a count or density.
+    cmap, norm, aspect, vmin, vmax, url, alpha, kwargs : see Axes.imshow
+
+    Returns
+    -------
+    H3Image instance
+    """
+    aspect, norm = _setup_show(ax, aspect, norm, vmin, vmax)
+
+    im = H3Image(ax, cmap=cmap, norm=norm, extent=ax.get_extent(), interpolation='nearest', 
+                 origin='lower', **kwargs)
+    im.set_data(h3_data)
+
+    return _finalize_show(im, ax, alpha, url)
+
+
+def raster_show(ax, raster, extent, origin='upper', cmap=None, norm=None, aspect=None, 
+            vmin=None, vmax=None, url=None, alpha=1.0, **kwargs):
+    """
+    Plot raster data in a way friendly to projected maps.
+
+    This is derived from Axes.imshow.
+
+    Parameters
+    ----------
+    ax : matplotlib Axes
+    raster : 2D array of float
+    extent : 4-tuple of floats
+        The bounds of the raster as (lon0, lon1, lat0, lat1)
+    origin : 'upper' or 'lower'
+        Whether to place the y-origin at the top or bottom of the axes
+    cmap, norm, aspect, vmin, vmax, url, alpha, kwargs : see Axes.imshow
+
+    Returns
+    -------
+    RasterImage instance
+    """
+    aspect, norm = _setup_show(ax, aspect, norm, vmin, vmax)
+
+    im = RasterImage(ax, cmap=cmap, norm=norm, extent=ax.get_extent(), interpolation='nearest', 
+        origin='lower', **kwargs)
+    im.set_data(raster, extent, origin)
+
+    return _finalize_show(im, ax, alpha, url)
+
+
+def _setup_show(ax, aspect, norm, vmin, vmax):
+    """Common setup code for show_raster and show_h3"""
+    if aspect is None:
+        aspect = rcParams['image.aspect']
+    ax.set_aspect(aspect)
+    if norm is not None:
+        assert vmin is vmax is None
+    if norm is None:
+        norm = Normalize(vmin, vmax)
+    return aspect, norm
+
+
+def _finalize_show(im, ax, alpha, url):
+    """Common finalization code for show_raster and show_h3"""
+    im.set_alpha(alpha)
+    if im.get_clip_path() is None:
+        # image does not already have clipping set, clip to axes patch
+        im.set_clip_path(ax.patch)
+    im.set_url(url)
+    # update ax.dataLim, and, if autoscaling, set viewLim
+    # to tightly fit the image, regardless of dataLim.
+    im.set_extent(im.get_extent())
+    ax.add_image(im)
+    return im
 
 
 def h3cnts_to_raster(h3_data, row_locs, col_locs, transform):
@@ -94,142 +196,49 @@ def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='uppe
     return projected / counts
 
 
-class H3Image(AxesImage):
-    """Image that uses H3 data as its source and plots well on projected maps.
-
-    Typically used through `h3_show`.
-    """
+class InterpImage(AxesImage):
 
     def update_A(self):
+        """Update the array data"""
         rr, cc, tx, dext = setup_composite_tx(self._axes)
-        A = h3cnts_to_raster(self._h3_data, rr, cc, tx) 
+        A = self._get_updated_A(rr, cc, tx)
         cm.ScalarMappable.set_array(self, cbook.safe_masked_invalid(A, copy=True))
         self._scale_norm(self.norm, None, None)
         self.set_extent(dext)
 
     @martist.allow_rasterization
     def draw(self, renderer, *args, **kwargs):
+        """Draw the image, updating the array data if stale"""
         if self.stale:
             self.update_A()
         super().draw(renderer, *args, **kwargs)
 
+
+class H3Image(InterpImage):
+    """Image that uses H3 data as its source and plots well on projected maps.
+
+    Typically used through `h3_show`.
+    """
+    def _get_updated_A(self, rr, cc, tx):
+        return h3cnts_to_raster(self._h3_data, rr, cc, tx) 
 
     def set_data(self, h3_data):
         self._h3_data = h3_data
         self.stale = True
 
 
-class RasterImage(AxesImage):
+class RasterImage(InterpImage):
     """Image that uses raster data as its source and plots well on projected maps.
 
     Typically used through `raster_show`.
     """
-
-    def update_A(self):
-        rr, cc, tx, dext = setup_composite_tx(self._axes)
+    def _get_updated_A(self, rr, cc, tx):
         raster, extent, origin = self._raster_data
-        A = raster_to_raster(raster, extent, rr, cc, tx, origin=origin)
-        cm.ScalarMappable.set_array(self, cbook.safe_masked_invalid(A, copy=True))
-        self._scale_norm(self.norm, None, None)
-        self.set_extent(dext)
-
-    @martist.allow_rasterization
-    def draw(self, renderer, *args, **kwargs):
-        if self.stale:
-            self.update_A()
-        super().draw(renderer, *args, **kwargs)
+        return raster_to_raster(raster, extent, rr, cc, tx, origin=origin)
 
     def set_data(self, raster, extent, origin):
         self._raster_data = (raster, extent, origin)
         self.stale = True
-
-
-def h3_show(ax, h3_data, cmap=None, norm=None, aspect=None, 
-            vmin=None, vmax=None, url=None, alpha=1.0, **kwargs):
-    """Plot H3 DGG data in a way friendly to projected maps.
-
-    This is derived from Axes.imshow.
-
-    Parameters
-    ----------
-    ax : matplotlib Axes
-    h3_data : dict mapping np.uint64 to int or float
-        The key is a H3 ID, while the value is either a count or density.
-    cmap, norm, aspect, vmin, vmax, url, alpha, kwargs : see Axes.imshow
-
-    Returns
-    -------
-    H3Image instance
-    """
-    if aspect is None:
-        aspect = rcParams['image.aspect']
-    ax.set_aspect(aspect)
-    im = H3Image(ax, cmap=cmap, norm=norm, extent=ax.get_extent(), interpolation='nearest', 
-                 origin='lower', **kwargs)
-
-    im.set_data(h3_data)
-    im.set_alpha(alpha)
-    if im.get_clip_path() is None:
-        # image does not already have clipping set, clip to axes patch
-        im.set_clip_path(ax.patch)
-    if norm is not None:
-        assert vmin is vmax is None
-    if norm is None:
-        norm = Normalize(vmin, vmax)
-    im.set_url(url)
-
-    # update ax.dataLim, and, if autoscaling, set viewLim
-    # to tightly fit the image, regardless of dataLim.
-    im.set_extent(im.get_extent())
-
-    ax.add_image(im)
-    return im
-
-
-def raster_show(ax, raster, extent, origin='upper', cmap=None, norm=None, aspect=None, 
-            vmin=None, vmax=None, url=None, alpha=1.0, **kwargs):
-    """
-    Plot raster data in a way friendly to projected maps.
-
-    This is derived from Axes.imshow.
-
-    Parameters
-    ----------
-    ax : matplotlib Axes
-    raster : 2D array of float
-    extent : 4-tuple of floats
-        The bounds of the raster as (lon0, lon1, lat0, lat1)
-    origin : 'upper' or 'lower'
-        Whether to place the y-origin at the top or bottom of the axes
-    cmap, norm, aspect, vmin, vmax, url, alpha, kwargs : see Axes.imshow
-
-    Returns
-    -------
-    RasterImage instance
-    """
-    if aspect is None:
-        aspect = rcParams['image.aspect']
-    ax.set_aspect(aspect)
-    im = RasterImage(ax, cmap=cmap, norm=norm, extent=ax.get_extent(), interpolation='nearest', 
-        origin='lower', **kwargs)
-    im.set_data(raster, extent, origin)
-
-    im.set_alpha(alpha)
-    if im.get_clip_path() is None:
-        # image does not already have clipping set, clip to axes patch
-        im.set_clip_path(ax.patch)
-    if norm is not None:
-        assert vmin is vmax is None
-    if norm is None:
-        norm = Normalize(vmin, vmax)
-    im.set_url(url)
-
-    # update ax.dataLim, and, if autoscaling, set viewLim
-    # to tightly fit the image, regardless of dataLim.
-    im.set_extent(im.get_extent())
-
-    ax.add_image(im)
-    return im
 
 
 def setup_composite_tx(ax):
