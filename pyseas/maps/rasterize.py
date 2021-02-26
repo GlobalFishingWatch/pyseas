@@ -51,13 +51,12 @@ def h3_show(ax, h3_data, cmap=None, norm=None, aspect=None,
     -------
     H3Image instance
     """
-    aspect, norm = _setup_show(ax, aspect, norm, vmin, vmax)
+    norm = _setup_show(ax, aspect, norm, vmin, vmax)
 
     im = H3Image(ax, cmap=cmap, norm=norm, extent=ax.get_extent(), interpolation='nearest', 
                  origin='lower', **kwargs)
-    im.set_data(h3_data)
 
-    return _finalize_show(im, ax, alpha, url)
+    return _finalize_show(h3_data, im, ax, alpha, url)
 
 
 def raster_show(ax, raster, extent, origin='upper', cmap=None, norm=None, aspect=None, 
@@ -81,13 +80,12 @@ def raster_show(ax, raster, extent, origin='upper', cmap=None, norm=None, aspect
     -------
     RasterImage instance
     """
-    aspect, norm = _setup_show(ax, aspect, norm, vmin, vmax)
+    norm = _setup_show(ax, aspect, norm, vmin, vmax)
 
     im = RasterImage(ax, cmap=cmap, norm=norm, extent=ax.get_extent(), interpolation='nearest', 
         origin='lower', **kwargs)
-    im.set_data(raster, extent, origin)
 
-    return _finalize_show(im, ax, alpha, url)
+    return _finalize_show((raster, extent, origin), im, ax, alpha, url)
 
 
 def _setup_show(ax, aspect, norm, vmin, vmax):
@@ -99,11 +97,12 @@ def _setup_show(ax, aspect, norm, vmin, vmax):
         assert vmin is vmax is None
     if norm is None:
         norm = Normalize(vmin, vmax)
-    return aspect, norm
+    return norm
 
 
-def _finalize_show(im, ax, alpha, url):
+def _finalize_show(source_data, im, ax, alpha, url):
     """Common finalization code for show_raster and show_h3"""
+    im.set_data(source_data)
     im.set_alpha(alpha)
     if im.get_clip_path() is None:
         # image does not already have clipping set, clip to axes patch
@@ -213,6 +212,10 @@ class InterpImage(AxesImage):
             self.update_A()
         super().draw(renderer, *args, **kwargs)
 
+    def set_data(self, source_data):
+        self._source_data = source_data
+        self.stale = True
+
 
 class H3Image(InterpImage):
     """Image that uses H3 data as its source and plots well on projected maps.
@@ -220,11 +223,7 @@ class H3Image(InterpImage):
     Typically used through `h3_show`.
     """
     def _get_updated_A(self, rr, cc, tx):
-        return h3cnts_to_raster(self._h3_data, rr, cc, tx) 
-
-    def set_data(self, h3_data):
-        self._h3_data = h3_data
-        self.stale = True
+        return h3cnts_to_raster(self._source_data, rr, cc, tx) 
 
 
 class RasterImage(InterpImage):
@@ -233,12 +232,8 @@ class RasterImage(InterpImage):
     Typically used through `raster_show`.
     """
     def _get_updated_A(self, rr, cc, tx):
-        raster, extent, origin = self._raster_data
+        raster, extent, origin = self._source_data
         return raster_to_raster(raster, extent, rr, cc, tx, origin=origin)
-
-    def set_data(self, raster, extent, origin):
-        self._raster_data = (raster, extent, origin)
-        self.stale = True
 
 
 def setup_composite_tx(ax):
