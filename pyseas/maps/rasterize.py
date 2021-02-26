@@ -1,3 +1,5 @@
+"""Rasterize lat-lon rasters H3 DGG data in a way that works well for mapping.
+"""
 from collections import Counter
 import numpy as np
 import h3.api.numpy_int as h3
@@ -10,35 +12,6 @@ import matplotlib.cbook as cbook
 import matplotlib.artist as martist
 
 from . import core
-
-
-def locs_to_h3_cnts(lons, lats, level):
-    """Count occurrences per H3 grid cell
-
-    If you are pulling data from BigQuery, use the H3 functions
-    there to aggregate the data, since performance will be better
-    and that approach is more flexible.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Should have lat and lon columns.
-    level : int
-        H3 level as specified at https://h3geo.org/docs/core-library/restable.
-        Level 8 corresponds to 0.75 km2 and works for relatively fine scale features.
-    
-    Returns
-    -------
-    dict
-        Maps H3 index values to counts
-    """
-    counts = dict()
-    h3_indices = vect.geo_to_h3(lats.astype('double'), lons.astype('double'), level)
-    for ndx in h3_indices:
-        if ndx not in counts:
-            counts[ndx] = 0
-        counts[ndx] += 1
-    return counts
 
 
 def h3cnts_to_raster(h3_data, row_locs, col_locs, transform):
@@ -72,7 +45,60 @@ def h3cnts_to_raster(h3_data, row_locs, col_locs, transform):
     return raster
 
 
+def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='upper'):
+    """Convert raster defined in lat,lon space to raster in projected coords
+    
+    Parameters
+    ----------
+    raster : 2D array of float
+    extent : tuple of float
+        Borders of the raster as (lon0, lon1, lat0, lat1)
+    row_locs : array of float
+    col_locs : array of float
+    transform : function of (rows, columns) -> (lons, lats)
+    origin : 'upper' or 'lower', optional
+        Where the 0 point of the y-axis is located
+
+    Returns
+    -------
+    2D array of float
+    """
+    assert origin in ('upper', 'lower')
+    projected = np.zeros([len(row_locs), len(col_locs)])
+    counts = np.zeros([len(row_locs), len(col_locs)]) + 1e-10
+    lon0, lon1, lat0, lat1 = extent
+    if origin == 'upper':
+        lat0, lat1 = lat1, lat0
+    # TODO: Support second value > first, assuming rightward, but wrapped
+    dlat = (lat1 - lat0) / raster.shape[0]
+    dlon = (lon1 - lon0) / raster.shape[1]
+
+    ii = np.empty(len(col_locs), dtype=int)
+    jj = np.arange(len(col_locs), dtype=int)
+
+    for i, row in enumerate(row_locs):
+        lons, lats = transform([row] * len(col_locs), col_locs)
+        rr = ((lats - lat0) // dlat + 0.5).astype(int)
+        cc = ((lons - lon0) // dlon + 0.5).astype(int)
+
+        valid = (0 <= rr) 
+        valid &= (rr < raster.shape[0])
+        valid &= (0 <= cc)
+        valid &= (cc < raster.shape[1])
+
+        ii.fill(i) 
+
+        projected[ii[valid], jj[valid]] += raster[rr[valid], cc[valid]]
+        counts[ii[valid], jj[valid]] += 1
+
+    return projected / counts
+
+
 class H3Image(AxesImage):
+    """Image that uses H3 data as its source and plots well on projected maps.
+
+    Typically used through `h3_show`.
+    """
 
     def update_A(self):
         rr, cc, tx, dext = setup_composite_tx(self._axes)
@@ -94,6 +120,10 @@ class H3Image(AxesImage):
 
 
 class RasterImage(AxesImage):
+    """Image that uses raster data as its source and plots well on projected maps.
+
+    Typically used through `raster_show`.
+    """
 
     def update_A(self):
         rr, cc, tx, dext = setup_composite_tx(self._axes)
@@ -116,6 +146,21 @@ class RasterImage(AxesImage):
 
 def h3_show(ax, h3_data, cmap=None, norm=None, aspect=None, 
             vmin=None, vmax=None, url=None, alpha=1.0, **kwargs):
+    """Plot H3 DGG data in a way friendly to projected maps.
+
+    This is derived from Axes.imshow.
+
+    Parameters
+    ----------
+    ax : matplotlib Axes
+    h3_data : dict mapping np.uint64 to int or float
+        The key is a H3 ID, while the value is either a count or density.
+    cmap, norm, aspect, vmin, vmax, url, alpha, kwargs : see Axes.imshow
+
+    Returns
+    -------
+    H3Image instance
+    """
     if aspect is None:
         aspect = rcParams['image.aspect']
     ax.set_aspect(aspect)
@@ -143,6 +188,25 @@ def h3_show(ax, h3_data, cmap=None, norm=None, aspect=None,
 
 def raster_show(ax, raster, extent, origin='upper', cmap=None, norm=None, aspect=None, 
             vmin=None, vmax=None, url=None, alpha=1.0, **kwargs):
+    """
+    Plot raster data in a way friendly to projected maps.
+
+    This is derived from Axes.imshow.
+
+    Parameters
+    ----------
+    ax : matplotlib Axes
+    raster : 2D array of float
+    extent : 4-tuple of floats
+        The bounds of the raster as (lon0, lon1, lat0, lat1)
+    origin : 'upper' or 'lower'
+        Whether to place the y-origin at the top or bottom of the axes
+    cmap, norm, aspect, vmin, vmax, url, alpha, kwargs : see Axes.imshow
+
+    Returns
+    -------
+    RasterImage instance
+    """
     if aspect is None:
         aspect = rcParams['image.aspect']
     ax.set_aspect(aspect)
@@ -200,50 +264,3 @@ def setup_composite_tx(ax):
 
 
 
-def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='upper'):
-    """Convert raster defined in lat,lon space to raster in projected coords
-    
-    Parameters
-    ----------
-    raster : 2D array of float
-    extent : tuple of float
-        Borders of the raster as (lon0, lon1, lat0, lat1)
-    row_locs : array of float
-    col_locs : array of float
-    transform : function of (rows, columns) -> (lons, lats)
-    origin : 'upper' or 'lower', optional
-        Where the 0 point of the y-axis is located
-
-    Returns
-    -------
-    2D array of float
-    """
-    assert origin in ('upper', 'lower')
-    projected = np.zeros([len(row_locs), len(col_locs)])
-    counts = np.zeros([len(row_locs), len(col_locs)]) + 1e-10
-    lon0, lon1, lat0, lat1 = extent
-    if origin == 'upper':
-        lat0, lat1 = lat1, lat0
-    # TODO: Support second value > first, assuming rightward, but wrapped
-    dlat = (lat1 - lat0) / raster.shape[0]
-    dlon = (lon1 - lon0) / raster.shape[1]
-
-    ii = np.empty(len(col_locs), dtype=int)
-    jj = np.arange(len(col_locs), dtype=int)
-
-    for i, row in enumerate(row_locs):
-        lons, lats = transform([row] * len(col_locs), col_locs)
-        rr = ((lats - lat0) // dlat + 0.5).astype(int)
-        cc = ((lons - lon0) // dlon + 0.5).astype(int)
-
-        valid = (0 <= rr) 
-        valid &= (rr < raster.shape[0])
-        valid &= (0 <= cc)
-        valid &= (cc < raster.shape[1])
-
-        ii.fill(i) 
-
-        projected[ii[valid], jj[valid]] += raster[rr[valid], cc[valid]]
-        counts[ii[valid], jj[valid]] += 1
-
-    return projected / counts

@@ -49,7 +49,7 @@ from shapely import ops as shpops
 from skimage import io as skio
 import warnings
 from . import ticks
-from . import h3_dgg
+from . import rasterize
 
 
 monkey_patch_cartopy()
@@ -197,11 +197,7 @@ def add_raster(raster, ax=None, extent=None, origin='upper', interpolation='near
         except AttributeError:
             pass
 
-    return h3_dgg.raster_show(ax, raster, extent, origin, **kwargs)
-
-
-    # return ax.imshow(raster, transform=identity, 
-    #                     extent=extent, origin=origin, **kwargs)
+    return rasterize.raster_show(ax, raster, extent, origin, **kwargs)
 
 
 def add_h3_data(h3_data, ax=None, **kwargs):
@@ -234,7 +230,7 @@ def add_h3_data(h3_data, ax=None, **kwargs):
         except AttributeError:
             pass
 
-    return h3_dgg.h3_show(ax, h3_data, **kwargs)
+    return rasterize.h3_show(ax, h3_data, **kwargs)
 
 
 def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
