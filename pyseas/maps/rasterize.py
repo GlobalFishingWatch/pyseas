@@ -3,21 +3,23 @@
 Plotting rasters using `imshow` on Cartopy maps does not work well with high
 resolution maps. Fine details can disappear or become coarse and blocky.
 Plotting using `interpolation="nearest"` helps some with this, but still
-results in loss of detail. The functions in this module plot to
-Cartopy GeoAxes with improved results.
+results in loss of detail. The functions in this module render rasters and
+H3 data to Cartopy GeoAxes with improved results.
 
 The two main entry points in the module are `raster_show` and `h3_show`. 
 `raster_show` has the same interface as `imshow`. `h3_show` is similar
 except it accepts H3 Discrete Global Grid data.
 
-In both cases, the strategy is to generate a raster in *display* coordinates
-the interpolate the data in the raster or DGG grid directly onto the new
+In both cases, the strategy is to generate a raster in *display* coordinates,
+interpolating the data in the raster or DGG grid directly onto the new
 raster. In order to get the correct display coordinates, it is necessary
 to subclass `AxesImage` and have it do the interpolation when the map
-is actually drawn. Since the interpolated array is already in display
-coordinates, not projection is applied when it is drawn.
+is drawn. Since the interpolated array is already in display
+coordinates, no projection is applied when it is drawn and this removes
+the blockiness and loss of detail that plague rendering with `imshow`.
 
-Most of the hairy code is repurposed from the matplotlib sources.
+Much code here repurposed from the matplotlib sources for `Axes.imshow` and
+`AxesImage`.
 
 """
 from collections import Counter
@@ -213,6 +215,7 @@ class InterpImage(AxesImage):
         super().draw(renderer, *args, **kwargs)
 
     def set_data(self, source_data):
+        """Set the source data for the image"""
         self._source_data = source_data
         self.stale = True
 
@@ -237,7 +240,7 @@ class RasterImage(InterpImage):
 
 
 def setup_composite_tx(ax):
-    """Return the transform and it's range in x and y
+    """Return composite transform and auxiliary values
 
     Parameters
     ----------
