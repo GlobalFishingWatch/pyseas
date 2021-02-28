@@ -1,6 +1,6 @@
 # PySeas
 
-A library to help make GFW style map plots in Python.
+A library to make GFW style maps in Python.
 
 In the future this will likely be extended to other types of GFW plots.
 
@@ -19,8 +19,8 @@ In the future this will likely be extended to other types of GFW plots.
 Some of the dependencies are a headache to install via `pip`, so the recommended approach
 is to install using Conda. The following recipe works currently:
 
-    conda install -c conda-forge cartopy geopandas numpy matplotlib pandas \
-                     jupyter jupytext scikit-image cmocean gdal netcdf4 pandas-gbq
+    conda install -c conda-forge cartopy *geopandas numpy matplotlib *pandas \
+                     -jupyter -jupytext ?scikit-image cmocean gdal ?netcdf4 ?pandas-gbq
 
 Then `cd` to the directory that PySeas was cloned into, typically `pyseas`, and run:
 
