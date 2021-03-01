@@ -25,7 +25,6 @@ Much code here repurposed from the matplotlib sources for `Axes.imshow` and
 from collections import Counter
 import numpy as np
 import h3.api.numpy_int as h3
-from h3.unstable import vect
 
 from matplotlib.image import AxesImage
 from matplotlib import rcParams
@@ -136,6 +135,9 @@ def h3cnts_to_raster(h3_data, row_locs, col_locs, transform):
     -------
     2D array of float
     """
+    # Delay importation of vect, so only get the warning when actually used.
+    from h3.unstable import vect
+
     levels = sorted(set(h3.h3_get_resolution(h3id) for h3id in h3_data))
     raster = np.zeros([len(row_locs), len(col_locs)])
     for i, row in enumerate(row_locs):

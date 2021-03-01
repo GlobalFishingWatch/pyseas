@@ -67,7 +67,7 @@ _projections = {
 
 def load_projections():
 
-    path = os.path.join(root, 'data/projection_info.json')
+    path = os.path.join(root, 'pyseas/data/projection_info.json')
     with open(path) as f:
         info = json.load(f)
     for k, v in info.items():
@@ -356,14 +356,12 @@ def plot(*args, **kwargs):
 
 _eezs = {}
 
-def add_eezs(ax=None, use_boundaries=True, facecolor='none', edgecolor=None, linewidth=None, alpha=1):
+def add_eezs(ax=None, facecolor='none', edgecolor=None, linewidth=None, alpha=1):
     """Add EEZs to an existing map
 
     Parameters
     ----------
     ax : matplotlib axes object, optional
-    use_boundaries : bool, optional
-        use the boundaries version of EEZs which is smaller and faster, but not as detailed.
     facecolor : str, optional
     edgecolor: str or tuple, optional
         Can be styled with 'pyseas.eez.bordercolor'
@@ -378,15 +376,12 @@ def add_eezs(ax=None, use_boundaries=True, facecolor='none', edgecolor=None, lin
     """
     if ax is None:
         ax = plt.gca()
-    if use_boundaries:
-        path = os.path.join(root, 'untracked/data/eez_boundaries_v11.gpkg')
-    else:
-        path = os.path.join(root, 'untracked/data/eez_v11.gpkg')
+    path = os.path.join(root, 'pyseas/data/eezs/eez_boundaries_v11.gpkg')
     if path not in _eezs:
         try:
             _eezs[path] = gpd.read_file(path)
         except FileNotFoundError:
-            raise FileNotFoundError('Eezs must be installed into the `untracked/data/` directory')
+            raise FileNotFoundError('Eezs must be installed into the `pyseas/data/` directory')
 
     eezs = _eezs[path]
     edgecolor = edgecolor or plt.rcParams.get('pyseas.eez.bordercolor', props.dark.eez.color)
@@ -533,14 +528,14 @@ def create_map(subplot=(1, 1, 1),
     ax.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])
     return ax
 
-def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, hshift=0, vshift=0):
+def add_logo(ax=None, logo=None, scale=1, loc='upper left', alpha=None, hshift=0, vshift=0):
     """Add a logo to a plot
 
     Parameters
     ----------
     ax : Axes, optional
-    name : str, optional
-        Name of logo file located in `untracked/data/logos` default to value of 'pyseas.logo.name'
+    logo : array
+        2D or 3D array suitable for imshow
     scale : float, optional
         Additional scaling to apply to image in addition to value of 'pyseas.logo.base_scale'
     loc : str or (float, float), optional
@@ -559,8 +554,9 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, hshift=0
     -------
     OffsetBox
     """
-    if name is None:
-        name = plt.rcParams.get('pyseas.logo.name', 'logo.png')
+    if logo is None:
+        # TODO: protect
+        logo = plt.rcParams['pyseas.logo']
     is_global = isinstance(_last_projection, str) and _last_projection.startswith('global.')
     box_alignment = (0.5, 0.5)
     if is_global and isinstance(loc, str):
@@ -574,13 +570,14 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, hshift=0
                 box_alignment = (a1, a0)
                 loc = (l1, l0)
 
-    base_scale = plt.rcParams.get('pyseas.logo.base_scale', 1)
+    # TODO: scale by area here, not width
+
+    base_scale = 176.0 / logo.shape[1]
     if alpha is None:
         alpha = plt.rcParams.get('pyseas.logo.alpha', 1)
     if ax is None:
         ax = plt.gca()
 
-    logo = skio.imread(os.path.join(root, 'untracked/data/logos', name))
     imagebox = mplobox.OffsetImage(logo, zoom=scale * base_scale, alpha=alpha)
     if isinstance(loc, str):
         aob = mplobox.AnchoredOffsetbox(child=imagebox, loc=loc, frameon=False)

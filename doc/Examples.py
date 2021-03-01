@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.5.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -60,7 +60,7 @@ with psm.context(psm.styles.light):
     psm.add_eezs()
     psm.add_gridlines()
     psm.add_gridlabels()
-    psm.add_logo(loc='upper left')
+    psm.add_logo(loc='upper left', scale=0.5)
 
 # If not region is specified, you get the default global map as specified by the 
 # projection name `global.default`. Currently that's ExactEarth centered at 0 longitude.
@@ -124,6 +124,9 @@ with plt.rc_context(psm.styles.dark):
                       pad=0.04,
                      )
     psm.add_logo(loc='lower left')
+
+import matplotlib
+matplotlib.__version__
 
 # Display a raster along with aligned, labeled colorbar.
 fig = plt.figure(figsize=(14, 7))
@@ -402,3 +405,9 @@ with psm.context(psm.styles.dark):
 # import rendered
 # rendered.publish_to_github('./Examples.ipynb', 
 #                            'pyseas/doc', action='push')
+# -
+
+# EEZ boundaries are drawn using *World EEZ v11* from [Marine Regions](https://www.marineregions.org/) 
+#   licensed under [CC-BY](https://creativecommons.org/licenses/by/4.0/).
+
+

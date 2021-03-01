@@ -1,0 +1,66 @@
+{
+    "dark" : {
+        "land" : {"color" : "#374a6d"},
+        "ocean" : {"color" : "#0a1738"},
+        "border" : {"color" : "#222d4b", "width" : 0.4},
+        "background" : {"color" : "#f7f7f7"},
+        "highlight" : {"color" : "#0a1738"},
+        "title" : {"color" : "#363c4c"},
+        "eez" : {"color" : "#374a6d", "width" : 0.4},
+        "miniglobe" : {"overlaycolor" : [1, 1, 1, 0.05], "outer_width": 1, "inner_width": 1, "pts_per_side" : 100},
+        "scale" : {"color" : "#374a6d"},
+        "track" : {
+            "colors" : ["#00C1E7", "#F59E84", "#CC3A8E", "#99C945", "#DAA51B", "#24796C",
+                        "#764E9F", "#CA7400", "#5D69B1", "#BE2045", "#58E8C6", "#A5AA99"]},
+        "grid" : {"color" : "#b0b0b0", "width" : 0.4, "alpha" : 0.5, "style" : "solid"},
+        "tick" : {"color" : "#848b9b", "label_size" : 11},
+        "label" : {"color" : "#848b9b", "size" : 11, "weight" : "medium"},
+        "frame" : {"color" : "#848b9b"},
+        "logo" :  {"name" : "white_logo.png", "base_scale" : 0.025, "alpha" : 0.3},
+        "font" : {"family" : "Roboto", "weight" : "medium"},
+        "projection_label" : {"size" : 9}
+    },
+
+    "light" : {
+        "land" : {"color" : "#C9D2D3"},
+        "ocean" : {"color" : "#FFFFFF"},
+        "border" : {"color" : "#B4B4B4", "width" : 0.4},
+        "background" : {"color" : "#FFFFFF"},
+        "highlight" : {"color" : "#0a1738"},
+        "title" : {"color" : "#363c4c"},
+        "eez" : {"color" : "#C9D2D3", "width" : 0.4},
+        "miniglobe" : {"overlaycolor" : [0, 0, 0, 0.05], "outer_width": 1, "inner_width": 1, "pts_per_side" : 100},
+        "scale" : {"color" : "#C9D2D3"},
+        "track" : {
+            "colors" : ["#00C1E7", "#F59E84", "#CC3A8E", "#99C945", "#DAA51B", "#24796C",
+                        "#764E9F", "#CA7400", "#5D69B1", "#BE2045", "#58E8C6", "#A5AA99"]},
+        "grid" : {"color" : "#b0b0b0", "width" : 0.4, "alpha" : 0.5, "style" : "solid"},
+        "tick" : {"color" : "#848b9b", "label_size" : 11},
+        "label" : {"color" : "#848b9b", "size" : 11, "weight" : "medium"},
+        "frame" : {"color" : "#848b9b"},
+        "logo" :  {"name" : "black_logo.png", "base_scale" : 0.025, "alpha" : 0.3},
+        "font" : {"family" : "Roboto", "weight" : "medium"},
+        "projection_label" : {"size" : 9}
+    },
+
+
+    "fishing" : {
+        "fishing" : {"color" : "#DD2222", "width" : 1.0, "alpha" : 0.8},
+        "non_fishing" : {"color" : "#559999", "width" : 1.0, "alpha" : 0.8},
+        "undefined" : {"color" : "#888888", "width" : 0.1, "alpha" : 0.8}
+    },
+
+   "chart" : {
+
+        "nightshade" : {"color" : "#888888", "alpha" : 0.1},
+
+        "colors" :  
+           {"100_percent": ["#204280", "#ee6256", "#ad2176", "#f8ba47", "#742980", "#f68d4b", "#d73b68", "#ebe55d"], 
+             "80_percent": ["#4b5b91", "#f1816f", "#b9558a", "#f9c66d", "#875092", "#f8a26b", "#dd677e", "#eee981"], 
+             "60_percent": ["#7277a4", "#f59e8b", "#c77ca1", "#fbd38f", "#9d74a6", "#fbb78a", "#e48b97", "#f2eda0"], 
+             "40_percent": ["#989abc", "#f8bdad", "#d6a2bb", "#fde0b1", "#9d74a6", "#fdceac", "#e48b97", "#f5f3bf"], 
+             "20_percent": ["#c5c6d9", "#fcdcd1", "#e7cdda", "#feeed5", "#d6c7db", "#fee4d1", "#d73568", "#f9f8dd"]}
+     }
+
+}
+

@@ -1,9 +1,23 @@
 from matplotlib import pyplot as _plt
 from matplotlib import rcsetup as _rcsetup
+from matplotlib import font_manager
+import os
 from . import props as _props
 from . import cm as _cm
 from cycler import cycler
 from matplotlib.colors import to_rgba
+import skimage.io as skio
+
+# TODO: use Path
+root = os.path.dirname(os.path.dirname(__file__))
+data = os.path.join(os.path.dirname(__file__), 'data')
+
+
+font_dir_loc = os.listdir(os.path.join(data, 'fonts'))
+raw_font_dirs = [os.path.join(font_dir_loc, x) for x in font_dir_loc if os.path.isdir(x)]
+font_dirs = [x for x in raw_font_dirs if os.isdir(x)]
+for file in font_manager.findSystemFonts(fontpaths=font_dirs):
+    font_manager.fontManager.addfont(font_file)
 
 
 _light_track_cycler = cycler(color=_props.light.track.colors)
@@ -76,7 +90,10 @@ _annotationplotprops = dict(fontdict={'size' : 10, 'weight' : 'medium'})
 
 _colorbarlabelfont  = {'fontsize': 12}
 
-# TODO: swap 'pyseas.' for 'pyseas.'
+
+def load_default_logo(name):
+    return skio.imread(os.path.join(root, 'pyseas/data/logos', name))
+
 
 dark = {
         'text.usetex' : False,
@@ -113,8 +130,7 @@ dark = {
          'pyseas.map.annotationplotprops' : _annotationplotprops,
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
-         'pyseas.logo.name' : _props.dark.logo.name,
-         'pyseas.logo.base_scale' : _props.dark.logo.base_scale,
+         'pyseas.logo' : load_default_logo(_props.dark.logo.name),
          'pyseas.logo.alpha' : _props.dark.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.dark.miniglobe.overlaycolor,
          'pyseas.miniglobe.outerwidth' : _props.dark.miniglobe.outer_width,
@@ -157,8 +173,7 @@ light = {
          'pyseas.map.annotationplotprops' : _annotationplotprops,
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
-         'pyseas.logo.name' : _props.light.logo.name,
-         'pyseas.logo.base_scale' : _props.light.logo.base_scale,
+         'pyseas.logo' : load_default_logo(_props.light.logo.name),
          'pyseas.logo.alpha' : _props.light.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.light.miniglobe.overlaycolor,
          'pyseas.miniglobe.outerwidth' : _props.light.miniglobe.outer_width,

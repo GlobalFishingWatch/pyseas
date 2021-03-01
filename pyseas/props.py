@@ -21,7 +21,7 @@ class Props(object):
 
     __str__ = __repr__
 
-_root = _os.path.dirname(_os.path.dirname(__file__))
+_root = _os.path.dirname(__file__)
 
 def _load_props():
     path = _os.path.join(_root, 'data/props.json')
