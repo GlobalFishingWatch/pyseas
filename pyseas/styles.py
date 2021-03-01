@@ -131,6 +131,7 @@ dark = {
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
          'pyseas.logo' : load_default_logo(_props.dark.logo.name),
+         'pyseas.logo.scale_adj' : 0.5,
          'pyseas.logo.alpha' : _props.dark.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.dark.miniglobe.overlaycolor,
          'pyseas.miniglobe.outerwidth' : _props.dark.miniglobe.outer_width,
@@ -174,6 +175,7 @@ light = {
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
          'pyseas.logo' : load_default_logo(_props.light.logo.name),
+         'pyseas.logo.scale_adj' : 0.5,
          'pyseas.logo.alpha' : _props.light.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.light.miniglobe.overlaycolor,
          'pyseas.miniglobe.outerwidth' : _props.light.miniglobe.outer_width,
@@ -195,3 +197,19 @@ for k in panel:
         _plt.rcParams[k] = panel[k]
 del k
 
+
+
+def set_default_logos(light_logo=None, dark_logo=None, scale_adj=1, alpha=None):
+    """TODO: doc
+    TODO: implement scale_adj
+    """
+    if light_logo is not None:
+        light['pyseas.logo'] = light_logo
+        light['pyseas.logo.scale_adj'] = scale_adj
+        if alpha is not None:
+            light['pyseas.logo.alpha'] = alpha
+    if dark_logo is not None:
+        dark['pyseas.logo'] = dark_logo
+        dark['pyseas.logo.scale_adj'] = scale_adj
+        if alpha is not None:
+            dark['pyseas.logo.alpha'] = alpha

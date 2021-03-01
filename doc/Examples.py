@@ -50,7 +50,8 @@ with psm.context(psm.styles.dark):
     psm.add_land()
 
 # In addition to `add_land` there a number of other features that can be added to maps
-# including eezs, grid_lines, countries, logos, etc.
+# including eezs, grid_lines, countries, logos, etc. If you add a logo, without specifying
+# the image to use, you'll get the PySeas logo.
 
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(18, 6))
@@ -60,7 +61,39 @@ with psm.context(psm.styles.light):
     psm.add_eezs()
     psm.add_gridlines()
     psm.add_gridlabels()
-    psm.add_logo(loc='upper left', scale=0.5)
+    psm.add_logo(loc='upper left')
+
+# More commonly you'll want to either specify a custom logo as shown here, or set the default
+# logo as shown below.
+
+# +
+light_logo = skimage.io.imread('../pyseas/data/logos/pisces_black.png')
+
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    psm.create_map(projection='country.china')
+    psm.add_land()
+    psm.add_countries()
+    psm.add_eezs()
+    psm.add_gridlines()
+    psm.add_gridlabels()
+    psm.add_logo(light_logo, loc='lower right', scale=0.2, alpha=1)
+
+# +
+dark_logo = skimage.io.imread('../pyseas/data/logos/pisces_white.png')
+
+pyseas.styles.set_default_logos(light_logo=light_logo, dark_logo=dark_logo, scale_adj=0.2, alpha=1)
+
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    psm.create_map(projection='country.china')
+    psm.add_land()
+    psm.add_countries()
+    psm.add_eezs()
+    psm.add_gridlines()
+    psm.add_gridlabels()
+    psm.add_logo(loc='lower right')
+# -
 
 # If not region is specified, you get the default global map as specified by the 
 # projection name `global.default`. Currently that's ExactEarth centered at 0 longitude.
@@ -123,7 +156,7 @@ with plt.rc_context(psm.styles.dark):
                       aspect=40,
                       pad=0.04,
                      )
-    psm.add_logo(loc='lower left')
+    psm.add_logo(loc='lower left', scale=0.5, alpha=0.8)
 
 import matplotlib
 matplotlib.__version__
@@ -140,7 +173,7 @@ with plt.rc_context(psm.styles.dark):
     psm.add_countries()
     psm.add_eezs()
     ax.set_title('Seismic Vessel Presence Near Indonesia')
-    psm.add_logo(loc='lower left')
+    psm.add_logo(loc='lower left', scale=0.5)
 
 # It's important to realize that normally one is not seeing the background of the map over water, 
 # but instead the zero value of the raster. Sometimes it's useful to make some portion of the 
@@ -164,7 +197,7 @@ with plt.rc_context(psm.styles.dark):
     psm.add_countries()
     psm.add_eezs()
     ax.set_title('Seismic Vessel Presence Near Indonesia')
-    psm.add_logo(loc='lower left')
+    psm.add_logo(loc='lower left', scale=0.5)
 
 # ### H3 Discrete Global Grids
 #
@@ -207,7 +240,7 @@ with psm.context(psm.styles.dark):
                       aspect=40,
                       pad=0.04,
                      )
-    psm.add_logo(loc='lower left')
+    psm.add_logo(loc='lower left', scale=0.5)
     
 # plt.savefig('/Users/timothyhochberg/Desktop/test_h3_600.png', dpi=600, 
 #             facecolor=plt.rcParams['pyseas.fig.background'])

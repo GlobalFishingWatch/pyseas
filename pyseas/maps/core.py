@@ -528,7 +528,7 @@ def create_map(subplot=(1, 1, 1),
     ax.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])
     return ax
 
-def add_logo(ax=None, logo=None, scale=1, loc='upper left', alpha=None, hshift=0, vshift=0):
+def add_logo(logo=None,  scale=1,loc='upper left', alpha=None, hshift=0, vshift=0, ax=None):
     """Add a logo to a plot
 
     By default the image is scaled so that logos are rendered at a constant area. Additional
@@ -537,7 +537,6 @@ def add_logo(ax=None, logo=None, scale=1, loc='upper left', alpha=None, hshift=0
 
     Parameters
     ----------
-    ax : Axes, optional
     logo : array
         2D or 3D array suitable for imshow
     scale : float, optional
@@ -551,6 +550,7 @@ def add_logo(ax=None, logo=None, scale=1, loc='upper left', alpha=None, hshift=0
         Additional horizontal shift in axis coordinates
     vshift : float, optional
         Additional verticals shift in axis coordinates    
+    ax : Axes, optional
 
     Keyword args are passed on to add_raster.
 
@@ -560,6 +560,9 @@ def add_logo(ax=None, logo=None, scale=1, loc='upper left', alpha=None, hshift=0
     """
     if logo is None:
         logo = plt.rcParams.get('pyseas.logo', styles.dark['pyseas.logo'])
+        scale_adj = plt.rcParams.get('pyseas.logo.scale_adj', styles.dark['pyseas.logo.scale_adj'])
+    else:
+        scale_adj = 1
     is_global = isinstance(_last_projection, str) and _last_projection.startswith('global.')
     box_alignment = (0.5, 0.5)
     if is_global and isinstance(loc, str):
@@ -574,8 +577,8 @@ def add_logo(ax=None, logo=None, scale=1, loc='upper left', alpha=None, hshift=0
                 loc = (l1, l0)
 
     # This number keeps the scaling compatible with earlier versions where the base scale was
-    # set explicitly.
-    base_scale = 324368.0 / (logo.shape[0] * logo.shape[1])
+    # set explicitly, while assuring that a scale of 1 isn't crazy. scale_adj should be two for GFW logo
+    base_scale = scale_adj * 324368.0 / (logo.shape[0] * logo.shape[1])
     if alpha is None:
         alpha = plt.rcParams.get('pyseas.logo.alpha', 1)
     if ax is None:
