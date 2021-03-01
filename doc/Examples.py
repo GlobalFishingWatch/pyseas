@@ -409,5 +409,3 @@ with psm.context(psm.styles.dark):
 
 # EEZ boundaries are drawn using *World EEZ v11* from [Marine Regions](https://www.marineregions.org/) 
 #   licensed under [CC-BY](https://creativecommons.org/licenses/by/4.0/).
-
-

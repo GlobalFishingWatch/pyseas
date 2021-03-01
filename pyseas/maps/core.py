@@ -531,13 +531,17 @@ def create_map(subplot=(1, 1, 1),
 def add_logo(ax=None, logo=None, scale=1, loc='upper left', alpha=None, hshift=0, vshift=0):
     """Add a logo to a plot
 
+    By default the image is scaled so that logos are rendered at a constant area. Additional
+    scaling can be applied by setting *scale*. It may be useful to define a large logo since
+    it will render nicely across a wide range of plot sizes.
+
     Parameters
     ----------
     ax : Axes, optional
     logo : array
         2D or 3D array suitable for imshow
     scale : float, optional
-        Additional scaling to apply to image in addition to value of 'pyseas.logo.base_scale'
+        Additional scaling to apply to image.
     loc : str or (float, float), optional
         Location to place logo. 'upper left', 'center right' etc. Or pair of floats in axes coords.
         Similar to matplotlib Legend.
@@ -555,8 +559,7 @@ def add_logo(ax=None, logo=None, scale=1, loc='upper left', alpha=None, hshift=0
     OffsetBox
     """
     if logo is None:
-        # TODO: protect
-        logo = plt.rcParams['pyseas.logo']
+        logo = plt.rcParams.get('pyseas.logo', styles.dark['pyseas.logo'])
     is_global = isinstance(_last_projection, str) and _last_projection.startswith('global.')
     box_alignment = (0.5, 0.5)
     if is_global and isinstance(loc, str):
@@ -570,9 +573,9 @@ def add_logo(ax=None, logo=None, scale=1, loc='upper left', alpha=None, hshift=0
                 box_alignment = (a1, a0)
                 loc = (l1, l0)
 
-    # TODO: scale by area here, not width
-
-    base_scale = 176.0 / logo.shape[1]
+    # This number keeps the scaling compatible with earlier versions where the base scale was
+    # set explicitly.
+    base_scale = 324368.0 / (logo.shape[0] * logo.shape[1])
     if alpha is None:
         alpha = plt.rcParams.get('pyseas.logo.alpha', 1)
     if ax is None:
