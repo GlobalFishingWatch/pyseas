@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.0
+#       jupytext_version: 1.10.2
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -53,6 +53,21 @@ with psm.context(psm.styles.dark):
 # including eezs, grid_lines, countries, logos, etc. If you add a logo, without specifying
 # the image to use, you'll get the PySeas logo.
 
+# +
+# import pyseas_logos
+# pyseas_logos.set_gfw_logos_as_default()
+
+# with psm.context(psm.styles.light):
+#     fig = plt.figure(figsize=(18, 6))
+#     psm.create_map(projection='country.china')
+#     psm.add_land()
+#     psm.add_countries()
+#     psm.add_eezs()
+#     psm.add_gridlines()
+#     psm.add_gridlabels()
+#     psm.add_logo(loc='upper left')
+# -
+
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(18, 6))
     psm.create_map(projection='country.china')
@@ -62,6 +77,7 @@ with psm.context(psm.styles.light):
     psm.add_gridlines()
     psm.add_gridlabels()
     psm.add_logo(loc='upper left')
+plt.savefig('/Users/timothyhochberg/Desktop/pyseas_logo_test.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
 
 # More commonly you'll want to either specify a custom logo as shown here, or set the default
 # logo as shown below.
@@ -77,12 +93,12 @@ with psm.context(psm.styles.light):
     psm.add_eezs()
     psm.add_gridlines()
     psm.add_gridlabels()
-    psm.add_logo(light_logo, loc='lower right', scale=0.2, alpha=1)
+    psm.add_logo(light_logo, loc='lower right', scale=0.2)
 
 # +
 dark_logo = skimage.io.imread('../pyseas/data/logos/pisces_white.png')
 
-pyseas.styles.set_default_logos(light_logo=light_logo, dark_logo=dark_logo, scale_adj=0.2, alpha=1)
+pyseas.styles.set_default_logos(light_logo=light_logo, dark_logo=dark_logo, scale_adj=0.2, alpha=0.5)
 
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(18, 6))
@@ -202,6 +218,8 @@ with plt.rc_context(psm.styles.dark):
 # ### H3 Discrete Global Grids
 #
 # There is also support for rendering data defined in terms of H3 DGG as rasters
+#
+# N.B. this relies on `h3.unstable`, so might require modification to work in the future.
 
 query_template = """
 with h3_fishing as (
@@ -218,9 +236,6 @@ group by h3_n
 """
 fishing_h3_6 = pd.read_gbq(query_template.format(level=6), project_id='world-fishing-827')
 h3cnts_6_b = {np.uint64(int(x.h3, 16)) : x.cnt for x in fishing_h3_6.itertuples()}
-
-# +
-pyseas._reload()
 
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(1, 40000)
@@ -241,10 +256,6 @@ with psm.context(psm.styles.dark):
                       pad=0.04,
                      )
     psm.add_logo(loc='lower left', scale=0.5)
-    
-# plt.savefig('/Users/timothyhochberg/Desktop/test_h3_600.png', dpi=600, 
-#             facecolor=plt.rcParams['pyseas.fig.background'])
-# -
 
 # ## Plotting Tracks
 

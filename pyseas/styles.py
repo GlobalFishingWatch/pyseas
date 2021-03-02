@@ -131,6 +131,7 @@ dark = {
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
          'pyseas.logo' : load_default_logo(_props.dark.logo.name),
+         # TODO: replace base_scale in props.json with this and load from there
          'pyseas.logo.scale_adj' : 0.5,
          'pyseas.logo.alpha' : _props.dark.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.dark.miniglobe.overlaycolor,

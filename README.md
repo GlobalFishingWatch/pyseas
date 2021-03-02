@@ -1,4 +1,4 @@
-<img src="pyseas/data/logos/black_logo.png" alt="PySeas Logo" width="400"/>
+<img src="pyseas/data/logos/logo_black.png" alt="PySeas Logo" width="400"/>
 
 A library to make GFW style maps in Python.
 
@@ -6,7 +6,7 @@ A library to make GFW style maps in Python.
 ## Installation
 
 Some of the dependencies due not install cleanly via `pip`, so the recommended approach
-is to install using Conda. The following recipes is currently preferred:
+is to install them using Conda. The following recipes is currently preferred:
 
     git clone https://github.com/GlobalFishingWatch/pyseas.git
     cd pyseas

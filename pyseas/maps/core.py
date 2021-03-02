@@ -379,7 +379,10 @@ def add_eezs(ax=None, facecolor='none', edgecolor=None, linewidth=None, alpha=1)
     path = os.path.join(root, 'pyseas/data/eezs/eez_boundaries_v11.gpkg')
     if path not in _eezs:
         try:
-            _eezs[path] = gpd.read_file(path)
+            with warnings.catch_warnings():
+                # Suppress useless RuntimeWarning from geopandas when reading EEZs
+                warnings.simplefilter("ignore")            
+                _eezs[path] = gpd.read_file(path)
         except FileNotFoundError:
             raise FileNotFoundError('Eezs must be installed into the `pyseas/data/` directory')
 

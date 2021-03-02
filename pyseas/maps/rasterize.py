@@ -31,6 +31,7 @@ from matplotlib import rcParams
 from matplotlib import cm
 import matplotlib.cbook as cbook
 import matplotlib.artist as martist
+import warnings
 
 from . import core
 
@@ -122,6 +123,9 @@ def h3cnts_to_raster(h3_data, row_locs, col_locs, transform):
     If multiple resolutions of cells are present in h3_data they
     are plotted from lowest resolution to highest resolution,
     putting the high resolution cells on top.
+
+    Note that this relies on `h3.unstable`, so might require
+    modification to work in the future.
     
     Parameters
     ----------
@@ -136,7 +140,10 @@ def h3cnts_to_raster(h3_data, row_locs, col_locs, transform):
     2D array of float
     """
     # Delay importation of vect, so only get the warning when actually used.
-    from h3.unstable import vect
+    with warnings.catch_warnings():
+        # Suppress useless UserWarning about unstable
+        warnings.simplefilter("ignore")            
+        from h3.unstable import vect
 
     levels = sorted(set(h3.h3_get_resolution(h3id) for h3id in h3_data))
     raster = np.zeros([len(row_locs), len(col_locs)])
