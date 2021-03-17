@@ -91,7 +91,22 @@ def raster_show(ax, raster, extent, origin='upper', cmap=None, norm=None, aspect
 
 
 def _setup_show(ax, aspect, norm, vmin, vmax):
-    """Common setup code for show_raster and show_h3"""
+    """Common setup code for show_raster and show_h3
+    
+    This does some error checking, then sets the aspect ratio 
+    and create a Normalize instance if one is not provided.
+
+    Parameters
+    ----------
+    aspect : float or None
+    norm : matplotlib.Normalize or None
+    vmin, vmax : float
+        At most one of `norm` and (`vmin`, `vmax`) should be set.
+
+    Returns
+    -------
+    matplotlib.Normalize 
+    """
     if aspect is None:
         aspect = rcParams['image.aspect']
     ax.set_aspect(aspect)
@@ -103,7 +118,24 @@ def _setup_show(ax, aspect, norm, vmin, vmax):
 
 
 def _finalize_show(source_data, im, ax, alpha, url):
-    """Common finalization code for show_raster and show_h3"""
+    """Common finalization code for show_raster and show_h3
+
+    This sets the data source for the image, then sets up 
+    clipping, sets a url for the image, sets up the image
+    extent correctly, and adds the image to the Axes object.
+
+    Parameters
+    ----------
+    source_data : varies
+    im : InterpImage
+    ax : matplotlib.Axes
+    alpha : float
+    url : str
+
+    Returns
+    -------
+    InterpImage
+    """
     im.set_data(source_data)
     im.set_alpha(alpha)
     if im.get_clip_path() is None:
@@ -130,7 +162,7 @@ def h3cnts_to_raster(h3_data, row_locs, col_locs, transform):
         Key is an H3 id, while value is the count or density at that id
     row_locs : array of float
     col_locs : array of float
-    transform : function of (rows, columns) -> (lons, lats)
+    transform : function mapping (rows, columns) to (lons, lats)
 
     Returns
     -------
@@ -150,6 +182,10 @@ def h3cnts_to_raster(h3_data, row_locs, col_locs, transform):
 
 def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='upper'):
     """Convert raster defined in lat,lon space to raster in projected coords
+
+    Note: the extent cannot cross the dateline. If you have a raster that extends
+    across the dateline, it needs to be cut at the dateline and pieces plotted
+    separately.
     
     Parameters
     ----------
@@ -158,7 +194,7 @@ def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='uppe
         Borders of the raster as (lon0, lon1, lat0, lat1)
     row_locs : array of float
     col_locs : array of float
-    transform : function of (rows, columns) -> (lons, lats)
+    transform : function mapping (rows, columns) to (lons, lats)
     origin : 'upper' or 'lower', optional
         Where the 0 point of the y-axis is located
 
@@ -198,6 +234,16 @@ def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='uppe
 
 
 class InterpImage(AxesImage):
+    """Subclass for classes that do their interpolation at draw time.
+
+    The default matplotlib / cartopy machinery doesn't do a great job
+    rendering detail on projected rasters. This class provides the
+    basis for working around that by projecting to display coordinates
+    directly at drawing time. See the module description for more detail.
+
+    Typically `_get_updated_A` must be overridden in a subclass. See
+    `H3Image` and `RasterImage` for examples.
+    """
 
     def update_A(self):
         """Update the array data"""
@@ -219,14 +265,31 @@ class InterpImage(AxesImage):
         self._source_data = source_data
         self.stale = True
 
+    def _get_updated_A(self, row_locs, col_locs, transform):
+        """Get an updated raster by re-rasterizing to display coordinates
+
+        Parameters
+        ----------
+        row_locs, col_locs: array of float
+            Locations of rendered pixels in display coordinates. Note that 
+            the final grid is `len(row_locs)` by `len(col_locs)` in size; 
+            these care not coordinate pairs such as are used in skimage.draw.
+        transform : function mapping (rows, columns) to (lons, lats)
+
+        See `h3cnts_to_raster` and `raster_to_raster` for more details on the 
+        the arguments.
+
+        """
+        raise NotImplemented()
+
 
 class H3Image(InterpImage):
     """Image that uses H3 data as its source and plots well on projected maps.
 
     Typically used through `h3_show`.
     """
-    def _get_updated_A(self, rr, cc, tx):
-        return h3cnts_to_raster(self._source_data, rr, cc, tx) 
+    def _get_updated_A(self, row_locs, col_locs, transform):
+        return h3cnts_to_raster(self._source_data, row_locs, col_locs, transform) 
 
 
 class RasterImage(InterpImage):
@@ -234,9 +297,10 @@ class RasterImage(InterpImage):
 
     Typically used through `raster_show`.
     """
-    def _get_updated_A(self, rr, cc, tx):
+    def _get_updated_A(self, row_locs, col_locs, transform):
         raster, extent, origin = self._source_data
-        return raster_to_raster(raster, extent, rr, cc, tx, origin=origin)
+        return raster_to_raster(raster, extent, row_locs, col_locs, transform, 
+                                origin=origin)
 
 
 def setup_composite_tx(ax):
