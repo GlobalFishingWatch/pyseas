@@ -167,8 +167,8 @@ def add_raster(raster, ax=None, extent=None, origin='upper', interpolation='near
 
     Parameters
     ----------
-    ax : matplotlib axes object, optional
     raster : 2D array
+    ax : matplotlib axes object, optional
     extent : tuple of int, optional
         (lon_min, lon_max, lat_min, lat_max) of the raster
     origin : str, optional
@@ -201,7 +201,7 @@ def add_raster(raster, ax=None, extent=None, origin='upper', interpolation='near
 
 
 def add_h3_data(h3_data, ax=None, **kwargs):
-    """Add a raster to an existing map
+    """Add an H3 data layer to an existing map
 
     Parameters
     ----------
@@ -812,7 +812,7 @@ def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
 
 def plot_h3_data(h3_data, subplot=(1, 1, 1), projection='global.default',
                 bg_color=None, hide_axes=True, **kwargs):
-    """Draw a GFW themed map over a raster
+    """Draw a GFW themed map over an H3 data layer
 
     Parameters
     ----------

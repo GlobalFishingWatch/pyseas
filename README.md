@@ -27,18 +27,6 @@ If you'd like to skip installing `jupyter` and `jupytext`, which are not strictl
 necessary to use `pyseas`, replace `".[nb]"` with `.` 
 to omit the *notebook* dependencies.
 
-
-<!-- Some of the dependencies are a headache to install via `pip`, so the recommended approach
-is to install using Conda. The following recipe works currently:
-
-    conda install -c conda-forge cartopy geopandas numpy matplotlib pandas \
-                     jupyter jupytext scikit-image cmocean gdal pandas-gbq
-
-    conda install -c conda-forge cartopy
-
-
- -->
-
 ## Acknowledgments
 
 * EEZ boundaries are drawn using *World EEZ v11* from [Marine Regions](https://www.marineregions.org/) 
