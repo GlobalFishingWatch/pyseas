@@ -49,6 +49,7 @@ from shapely import ops as shpops
 from skimage import io as skio
 import warnings
 from . import ticks
+from . import rasterize
 
 
 monkey_patch_cartopy()
@@ -160,23 +161,53 @@ def add_countries(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidt
     return ax.add_feature(land)
 
 
-def _warn_if_has_nans(raster, norm):
-    if norm is not None:
-        raster = norm(raster)
-    if np.isnan(raster).sum():
-        warnings.warn('`norm(raster)` has `nan`s which may not render well. '
-                      'Consider removing `nan`s and clipping values to prevent this '
-                      '(.e.g., `raster[(raster <= 0) | np.isnan(raster)] = sys.float_info.min`'
-                      'for `LogNorm`)')
-
-
-def add_raster(raster, ax=None, extent=(-180, 180, -90, 90), origin='upper', **kwargs):
+def add_raster(raster, ax=None, extent=None, origin='upper', interpolation='nearest', 
+               **kwargs):
     """Add a raster to an existing map
 
     Parameters
     ----------
-    ax : matplotlib axes object, optional
     raster : 2D array
+    ax : matplotlib axes object, optional
+    extent : tuple of int, optional
+        (lon_min, lon_max, lat_min, lat_max) of the raster
+    origin : str, optional
+        Location of the raster origin ['upper' or 'lowers']
+    interpolation : str, optional
+        Uses 'nearest' by default as the standard matplotlib default doesn't work
+        well with projected data at high resolution.
+    
+    Other Parameters
+    ----------------
+    Keyword args are passed on to imshow.
+
+    Returns
+    -------
+    AxesImage
+    """
+    if ax is None:
+        ax = plt.gca()
+    if extent is None:
+        plt.gcf().canvas.draw()
+        extent = (-180, 180, -90, 90)
+    if 'cmap' in kwargs and isinstance(kwargs['cmap'], str):
+        src = plt.rcParams['pyseas.map.cmapsrc']
+        try:
+            kwargs['cmap'] = getattr(src, kwargs['cmap'])
+        except AttributeError:
+            pass
+
+    return rasterize.raster_show(ax, raster, extent, origin, **kwargs)
+
+
+def add_h3_data(h3_data, ax=None, **kwargs):
+    """Add an H3 data layer to an existing map
+
+    Parameters
+    ----------
+    h3_data : dict mapping H3 ids to values
+        The values typically represent a count or density of some kind.
+    ax : matplotlib axes object, optional
     extent : tuple of int, optional
         (lon_min, lon_max, lat_min, lat_max) of the raster
     origin : str, optional
@@ -198,10 +229,8 @@ def add_raster(raster, ax=None, extent=(-180, 180, -90, 90), origin='upper', **k
             kwargs['cmap'] = getattr(src, kwargs['cmap'])
         except AttributeError:
             pass
-    _warn_if_has_nans(raster, kwargs.get('norm'))
-    return ax.imshow(raster, transform=identity, 
-                        extent=extent, origin=origin, **kwargs)
 
+    return rasterize.h3_show(ax, h3_data, **kwargs)
 
 
 def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
@@ -746,13 +775,42 @@ def add_minimap_aoi(from_ax, to_ax):
 
 
 def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
-                bg_color=None, hide_axes=True, colorbar=None, 
-                gridlines=False, **kwargs):
+                bg_color=None, hide_axes=True, **kwargs):
     """Draw a GFW themed map over a raster
 
     Parameters
     ----------
     raster : 2D array
+    subplot : tuple or GridSpec
+    projection : cartopy.crs.Projection, optional
+    bg_color : str or tuple, optional
+    hide_axes : bool
+        if `true`, hide x and y axes
+
+    
+    Other Parameters
+    ----------------
+    Keyword args are passed on to add_raster.
+
+    Returns
+    -------
+    (GeoAxes, AxesImage)
+    """
+    extent = kwargs.get('extent')
+    ax = create_map(subplot, projection, extent, bg_color, hide_axes)
+    im = add_raster(raster, ax=ax, **kwargs)
+    add_land(ax)
+    return  ax, im
+
+
+
+def plot_h3_data(h3_data, subplot=(1, 1, 1), projection='global.default',
+                bg_color=None, hide_axes=True, **kwargs):
+    """Draw a GFW themed map over an H3 data layer
+
+    Parameters
+    ----------
+    h3_data : dict mapping H3 ids to values
     subplot : tuple or GridSpec
     projection : cartopy.crs.Projection, optional
     bg_color : str or tuple, optional
@@ -767,9 +825,9 @@ def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
     -------
     (GeoAxes, AxesImage)
     """
-    extent = kwargs.get('extent')
+    extent = kwargs.pop('extent', None)
     ax = create_map(subplot, projection, extent, bg_color, hide_axes)
-    im = add_raster(raster, ax=ax, **kwargs)
+    im = add_h3_data(h3_data, ax=ax, **kwargs)
     add_land(ax)
     return  ax, im
 

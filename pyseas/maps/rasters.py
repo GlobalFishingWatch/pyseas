@@ -95,3 +95,32 @@ def df2raster(df, x_label, y_label, v_label, xyscale,
             grid[yi, xi] += scaler(row[x_ndx], row[y_ndx], row[v_ndx])
 
     return grid 
+
+
+def locs_to_h3_cnts(lons, lats, level):
+    """Count occurrences per H3 grid cell
+
+    If you are pulling data from BigQuery, use the H3 functions
+    there to aggregate the data, since performance will be better
+    and that approach is more flexible.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Should have lat and lon columns.
+    level : int
+        H3 level as specified at https://h3geo.org/docs/core-library/restable.
+        Level 8 corresponds to 0.75 km2 and works for relatively fine scale features.
+    
+    Returns
+    -------
+    dict
+        Maps H3 index values to counts
+    """
+    counts = dict()
+    h3_indices = vect.geo_to_h3(lats.astype('double'), lons.astype('double'), level)
+    for ndx in h3_indices:
+        if ndx not in counts:
+            counts[ndx] = 0
+        counts[ndx] += 1
+    return counts
