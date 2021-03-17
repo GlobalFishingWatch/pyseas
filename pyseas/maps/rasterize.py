@@ -20,7 +20,6 @@ the blockiness and loss of detail that plague rendering with `imshow`.
 
 Much code here repurposed from the matplotlib sources for `Axes.imshow` and
 `AxesImage`.
-
 """
 from collections import Counter
 import numpy as np
@@ -278,7 +277,6 @@ class InterpImage(AxesImage):
 
         See `h3cnts_to_raster` and `raster_to_raster` for more details on the 
         the arguments.
-
         """
         raise NotImplemented()
 
