@@ -18,6 +18,10 @@ import matplotlib as mpl
 import pyseas
 import pyseas.maps as psm
 
+# # Use case #1: change global styling
+#
+# Using this option, all charts will keep that style, so all charts will keep this style.
+
 # +
 # Set the global style for the notebook to the GFW chart style
 psm.styles.set_chart_style()
@@ -31,10 +35,7 @@ plt.title("Title")
 plt.suptitle("Sup Title")
 plt.show()
 
-# Using this option, all charts will keep that style,
-# so all charts will keep this style.
-
-# Plot another figure
+# Plot another figure to see that it keeps the same styling.
 plt.figure(figsize=(10, 6))
 plt.bar([1,2,3], [3,2,1])
 plt.xlabel("X Label")
@@ -42,9 +43,14 @@ plt.ylabel("Y Label")
 plt.title("Title")
 plt.suptitle("Sup Title")
 plt.show()
+# -
+
+# # Use case #1: change local styling only
+#
+# This option allows styling to only applying within a `with` statement. Outside of the `with` statement, global styling will apply.
 
 # +
-# Or, you can set the style for just a single figure to not mess
+# You can set the style for just a single figure to not mess
 # with the rest of your visualization code.
 plt.style.use(['default'])
 with mpl.rc_context(rc=psm.styles.chart_style):
