@@ -5,7 +5,12 @@ from . import cm as _cm
 from cycler import cycler
 from matplotlib.colors import to_rgba
 
+"""
+This chart style was developed on a 10 by 6 figure size. 
+Fonts will likely need to be changed for different image sizes.
 
+The chart style is a light theme but could create a dark version in the future.
+"""
 chart_style = {
     'font.family': 'sans-serif',
     'font.sans-serif': ['Roboto', 'Arial'],
