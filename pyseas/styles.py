@@ -34,7 +34,7 @@ chart_style = {
     'axes.titlecolor': '#363C4C',
 
     ### Legend
-    'legend.fontsize': 8,
+    'legend.fontsize': 14,
     # how to make legend text a 848B9B???
 
     'figure.subplot.hspace': 0.4,
