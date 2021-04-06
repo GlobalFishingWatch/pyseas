@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.5.2
+#       jupytext_version: 1.6.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -24,7 +24,7 @@ import pyseas.maps as psm
 
 # +
 # Set the global style for the notebook to the GFW chart style
-psm.styles.set_chart_style()
+psm.use(psm.styles.chart_style)
 
 # Plot a figure
 plt.figure(figsize=(10, 6))
@@ -45,15 +45,17 @@ plt.suptitle("Sup Title")
 plt.show()
 # -
 
-# # Use case #1: change local styling only
+# # Use case #2: change local styling only
 #
 # This option allows styling to only applying within a `with` statement. Outside of the `with` statement, global styling will apply.
 
 # +
 # You can set the style for just a single figure to not mess
 # with the rest of your visualization code.
-plt.style.use(['default'])
-with mpl.rc_context(rc=psm.styles.chart_style):
+
+psm.use('default')
+
+with psm.context(psm.styles.chart_style):
     plt.figure(figsize=(10, 6))
     plt.bar([1,2,3], [1,2,3])
     plt.xlabel("X Label")

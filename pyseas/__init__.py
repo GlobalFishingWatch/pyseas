@@ -1,4 +1,4 @@
-from matplotlib.pyplot import rc_context as context
+from matplotlib.style import context, use
 __version__ = "0.1.0"
 
 

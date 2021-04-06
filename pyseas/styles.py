@@ -39,19 +39,6 @@ chart_style = {
 
     'figure.subplot.hspace': 0.4,
 }
-def set_chart_style():
-    """Update the matplotlib styles to the GFW chart parameters.
-
-    Could have additional styles like a light and dark version in the 
-    future to pass in as a parameter.
-
-    Notes
-    -----
-    This sets global styles so it needs to be tested to see if it messes with mapping.
-    This was developed on a 10 by 6 figure size. Fonts will likely need to be changed
-    for different image sizes.
-    """
-    _plt.rcParams.update(chart_style)
 
 
 _light_track_cycler = cycler(color=_props.light.track.colors)
