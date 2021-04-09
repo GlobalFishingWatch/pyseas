@@ -5,6 +5,46 @@ from . import cm as _cm
 from cycler import cycler
 from matplotlib.colors import to_rgba
 
+"""
+This chart style was developed on a 10 by 6 figure size. 
+Fonts will likely need to be changed for different image sizes.
+
+The chart style is a light theme but could create a dark version in the future.
+"""
+chart_style = {
+    'font.family': 'sans-serif',
+    'font.sans-serif': ['Roboto', 'Arial'],
+    'figure.facecolor': '#F7F7F7',
+
+    ### Axes
+    'axes.grid': True, #Turns on grid
+    'axes.linewidth': 0, #Turns off axis lines
+    'axes.axisbelow': True, #Makes grid go behind data
+    'grid.color': '#E6E7EB',
+    'axes.facecolor': '#F7F7F7',
+    'axes.labelweight': 'bold',
+    'axes.labelsize': 14,
+    'axes.labelcolor': '#848B9B',
+    'xtick.color': '#848B9B',
+    'xtick.labelsize': 12,
+    'ytick.color': '#848B9B',
+    'ytick.labelsize': 12,
+
+    ### Titles/Labels
+    'figure.titleweight': 'bold',
+    'figure.titlesize': 20,
+    'text.color': '#363C4C',
+    'axes.titleweight': 'normal',
+    'axes.titlesize': 20,
+    'axes.titlecolor': '#363C4C',
+
+    ### Legend
+    'legend.fontsize': 14,
+    # how to make legend text a 848B9B???
+
+    'figure.subplot.hspace': 0.4,
+}
+
 
 _light_track_cycler = cycler(color=_props.light.track.colors)
 _light_artist_cycler = cycler(edgecolor=_props.light.track.colors, 
@@ -179,4 +219,7 @@ for k in panel:
         _plt.rcParams.validate[k] = _rcsetup.validate_any # No validation for now
         _plt.rcParams[k] = panel[k]
 del k
+
+
+
 
