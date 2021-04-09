@@ -1,4 +1,5 @@
 from .. import context
+from .. import use
 from .. import styles
 
 from .core import create_map
