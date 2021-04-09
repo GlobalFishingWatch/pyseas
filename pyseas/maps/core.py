@@ -307,9 +307,10 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, tr
         points with different `kind` value are looked up under `None`.
         If `None` is missing, these points are not plotted.
     ax : matplotlib axes object, optional
-    break_on_change : bool, optional
+    break_on_change : bool or color value, optional
         Whether to create a new segment when kind changes. Generally True for fishing plots
-        and False for vessel plots.
+        and False for vessel plots. If set to a color values, this value is used for connecting
+        points where the kind changes.
     transform : cartopy.crs.Projection, optional
 
     Returns
@@ -328,7 +329,12 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, tr
 
     if props is None:
         kinds = sorted(set(kind))
-        props = {(k, k) : p for (k, p) in zip(kinds, _plot_cycler)}       
+        props = {}
+        for k1, p in zip(kinds, _plot_cycler):
+            props[k1, k1] = p
+            for k2 in kinds:
+                if not isinstance(break_on_change, bool):
+                    props[k1, k2] = {'edgecolor' : (0.5, 0.5, 0.5, 1), 'facecolor' : (0, 0, 0, 0)}
 
     handles = {}
     for k1, k2 in sorted(props.keys()):
@@ -337,9 +343,13 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, tr
             ml_coords = _build_multiline_string_coords(lon, lat, mask, break_on_change)   
             mls = MultiLineString(ml_coords)
             p = props[k1, k2]
+            if 'legend' in p:
+                key = p.pop('legend')
+            else:
+                key = k1 if (k1 == k2) else f'{k1}-{k2}'
             ax.add_geometries([mls], crs=transform, **p)
-            key = k1 if (k1 == k2) else k2
-            handles[key] = Line2D([0], [0], color=p['edgecolor'], lw=p.get('linewidth', 1))
+            if key:
+                handles[key] = Line2D([0], [0], color=p['edgecolor'], lw=p.get('linewidth', 1))
 
     return handles
 
