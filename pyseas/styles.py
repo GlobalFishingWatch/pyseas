@@ -47,10 +47,10 @@ chart_style = {
 
 
 _light_track_cycler = _cycler(color=_props.light.track.colors)
-_light_artist_cycler = _cycler(edgecolor=_props.light.track.colors, 
+_light_artist_cycler = _cycler(edgecolor=_props.light.track.colors,
         facecolor=[(0, 0, 0, 0)]*len(_props.light.track.colors))
 _dark_track_cycler = _cycler(color=_props.dark.track.colors)
-_dark_artist_cycler = _cycler(edgecolor=_props.dark.track.colors, 
+_dark_artist_cycler = _cycler(edgecolor=_props.dark.track.colors,
     facecolor=[(0, 0, 0, 0)]*len(_props.dark.track.colors))
 
 _chart_colors = []
@@ -61,8 +61,8 @@ _chart_cycler = _cycler(color=_chart_colors, linewidth=[2]*len(_chart_colors))
 del _chart_colors, clr
 
 
-def create_prop_map(kinds, colors=None, intersticial_color=(0.5, 0.5, 0.5, 1)):
-    """Create a prop map suitable for track plots.
+def create_props(kinds, colors=None, intersticial_color=(0.5, 0.5, 0.5, 1)):
+    """Create props suitable for track plots.
 
     Parameters
     ----------
@@ -74,7 +74,7 @@ def create_prop_map(kinds, colors=None, intersticial_color=(0.5, 0.5, 0.5, 1)):
         If a Cycler, then the cycler should supply `edgecolor` and `facecolor` values (facecolor
         should be transparent). By default, pulls the cycler from trackprops.
     intersticial_color : matplotlib color value, optional
-        Color to apply to segments between points with different kind values. 
+        Color to apply to segments between points with different kind values.
 
     Returns
     -------
@@ -87,10 +87,10 @@ def create_prop_map(kinds, colors=None, intersticial_color=(0.5, 0.5, 0.5, 1)):
     prop_cycle = prop_cycle()
     props = {}
     for k1 in kinds:
-        props[(k1, k1)] = next(prop_cycle) 
+        props[(k1, k1)] = next(prop_cycle)
         for k2 in kinds:
             if k1 != k2:
-                props[(k1, k2)] = {'edgecolor' : (0.5, 0.5, 0.5, 1), 
+                props[(k1, k2)] = {'edgecolor' : intersticial_color,
                                    'facecolor' : (0, 0, 0, 0),
                                    'legend' : None}
     return props

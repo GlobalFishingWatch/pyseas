@@ -53,7 +53,7 @@ def _add_subpanel(gs, timestamp, values, kind, label, prop_map, break_on_change,
     for (k1, k2) in prop_map:
         mask = _build_mask(kind, k1, k2, break_on_change)
         ml_coords = maps._build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=False)  
-        p = prop_map[k1, k2]
+        p = prop_map[k1, k2].copy()
         p.pop('legend', None)
         mls = LineCollection(ml_coords, **p)
         ax.add_collection(mls)
@@ -255,11 +255,11 @@ def plot_fishing_panel(timestamp, lon, lat, is_fishing, plots=(), prop_map=None,
                       annotation_y_loc=1.0, annotation_y_align='bottom',
                       annotation_axes_ndx=0, add_night_shades=False,
                       projection_info=None, shift_by_cent_lon={'longitude'},
-                      label_angle=30, gs=None, intersitial_color=(0.5, 0.5, 0.5, 1)):    
+                      label_angle=30, gs=None):    
     if prop_map is None:
         prop_map = plt.rcParams.get('pyseas.map.fishingprops', styles._fishing_props)
     return plot_panel(timestamp, lon, lat, is_fishing, plots, prop_map,
-                      break_on_change=intersitial_color, map_ratio=map_ratio, annotations=annotations, 
+                      break_on_change=True, map_ratio=map_ratio, annotations=annotations, 
                       annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
                       annotation_axes_ndx=annotation_axes_ndx, add_night_shades=add_night_shades,
                       projection_info=projection_info, shift_by_cent_lon=shift_by_cent_lon,
