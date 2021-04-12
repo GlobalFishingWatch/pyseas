@@ -12,8 +12,10 @@ def _reload():
     from pyseas.contrib import plot_tracks
     from pyseas.maps import (scalebar, core, rasters, ticks, projection, overlays,
                              rasterize)
+    from pyseas import contrib
     import imp
 
+    imp.reload(pyseas)
     imp.reload(util)
     imp.reload(ticks)
     imp.reload(scalebar)
@@ -28,5 +30,7 @@ def _reload():
     imp.reload(pyseas)
     imp.reload(projection)
     imp.reload(overlays)
+    contrib._reload()
+
 
 
