@@ -198,6 +198,9 @@ def plot_panel(timestamp, lon, lat, kind, plots,
     if projection_info is None:
         projection_info = find_projection(lon, lat)
 
+    if prop_map is None:
+        prop_map = styles.create_props(np.unique(kind))
+
     gs = _get_gs(gs, len(plots), map_ratio)
 
     ax1 = maps.create_map(gs[0], projection=projection_info.projection, 
@@ -239,8 +242,8 @@ def track_state_panel(timestamp, lon, lat, state, plots=(), prop_map=None,
                       annotation_axes_ndx=0, add_night_shades=False,
                       projection_info=None, shift_by_cent_lon={'longitude'},
                       label_angle=30, gs=None):
-    if prop_map is None:
-        prop_map = plt.rcParams.get('pyseas.map.fishingprops', styles._fishing_props)
+    if isinstance(prop_map, str):
+        prop_map = plt.rcParams.get(prop_map)
     return plot_panel(timestamp, lon, lat, state, plots, prop_map,
                       break_on_change=True, map_ratio=map_ratio, annotations=annotations, 
                       annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
