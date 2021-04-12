@@ -1,6 +1,6 @@
 from matplotlib import pyplot as _plt
 from matplotlib import rcsetup as _rcsetup
-from cycler import cycler as _cycler
+from cycler import cycler as _cycler, Cycler as _Cycler
 from . import props as _props
 from . import cm as _cm
 from matplotlib.colors import to_rgba
@@ -82,8 +82,12 @@ def create_props(kinds, colors=None, intersticial_color=(0.5, 0.5, 0.5, 1)):
     """
     if colors is None:
         prop_cycle = _plt.rcParams.get('pyseas.map.trackprops', _dark_artist_cycler)
-    if isinstance(colors, (list, int)):
+    elif isinstance(colors, (list, int)):
         prop_cycle = _cycler(edgecolor=colors, facecolor=[(0, 0, 0, 0)] * len(colors))
+    elif isinstance(colors, _Cycler):
+        prop_cycle = colors
+    else:
+        raise ValueError(f"don't know how to handle props of type {type(props)}")
     prop_cycle = prop_cycle()
     props = {}
     for k1 in kinds:
@@ -94,6 +98,7 @@ def create_props(kinds, colors=None, intersticial_color=(0.5, 0.5, 0.5, 1)):
                                    'facecolor' : (0, 0, 0, 0),
                                    'legend' : None}
     return props
+
 
 
 def create_plot_panel_props(prop_map):
@@ -123,9 +128,12 @@ def create_plot_panel_props(prop_map):
 
 
 _fishing_props = create_plot_panel_props({
-    -1 : {'color' : _props.fishing.undefined.color, 'width' : _props.fishing.undefined.width, 'alpha' : _props.fishing.undefined.alpha},
-     0 : {'color' : _props.fishing.non_fishing.color, 'width' : _props.fishing.non_fishing.width, 'alpha' : _props.fishing.non_fishing.alpha},
-     1 : {'color' : _props.fishing.fishing.color, 'width' : _props.fishing.fishing.width, 'alpha' : _props.fishing.fishing.alpha}
+    -1 : {'color' : _props.fishing.undefined.color, 'width' : _props.fishing.undefined.width, 
+          'alpha' : _props.fishing.undefined.alpha},
+     0 : {'color' : _props.fishing.non_fishing.color, 'width' : _props.fishing.non_fishing.width, 
+          'alpha' : _props.fishing.non_fishing.alpha},
+     1 : {'color' : _props.fishing.fishing.color, 'width' : _props.fishing.fishing.width, 
+          'alpha' : _props.fishing.fishing.alpha}
      })
 
 

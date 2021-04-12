@@ -7,7 +7,7 @@ import pandas as pd
 import datetime as DT
 from collections import Counter
 from collections import namedtuple
-from cycler import cycler
+from cycler import cycler, Cycler
 from matplotlib.collections import LineCollection
 from matplotlib.colors import to_rgba
 import matplotlib.dates as mdates
@@ -198,8 +198,8 @@ def plot_panel(timestamp, lon, lat, kind, plots,
     if projection_info is None:
         projection_info = find_projection(lon, lat)
 
-    if prop_map is None:
-        prop_map = styles.create_props(np.unique(kind))
+    if prop_map is None or isinstance(prop_map, Cycler):
+        prop_map = styles.create_props(np.unique(kind), prop_map)
 
     gs = _get_gs(gs, len(plots), map_ratio)
 
@@ -278,8 +278,10 @@ def multi_track_panel(timestamp, lon, lat, track_id=None, plots=(), prop_map=Non
     if track_id is None:
         track_id = np.ones(len(lon))
     if prop_map is None:
-        prop_cycle = plt.rcParams.get('pyseas.map.trackprops', styles._dark_artist_cycler)()
-        prop_map = {(k, k) : next(prop_cycle) for k in set(track_id)}
+        if isinstance(prop_map, str):
+            prop_map = plt.rcParams.get(prop_map)
+            if isinstance(prop_map, Cycler):
+                prop_map = styles.get_props(prop_map, interstitial_color=None)
     return plot_panel(timestamp, lon, lat, track_id, plots, prop_map,
                       break_on_change=False, map_ratio=map_ratio, annotations=annotations, 
                       annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
