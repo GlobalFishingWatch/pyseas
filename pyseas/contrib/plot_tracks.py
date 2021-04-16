@@ -157,7 +157,7 @@ def plot_panel(timestamp, lon, lat, kind, plots,
             Optional fixed range for y-axis
     prop_map : dict of (kind, kind) to matplotlib props
         Defines the props of the line segments drawn between points
-        with the given kind values on either end.
+        with the given kind values on either end. See `styles.create_props`.
     break_on_change : bool
         Controls how plots are segmented. `True` is suitable for fishing
         and other state change plots, while `False` is suitable for tracks.
