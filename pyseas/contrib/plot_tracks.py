@@ -7,7 +7,7 @@ import pandas as pd
 import datetime as DT
 from collections import Counter
 from collections import namedtuple
-from cycler import cycler
+from cycler import cycler, Cycler
 from matplotlib.collections import LineCollection
 from matplotlib.colors import to_rgba
 import matplotlib.dates as mdates
@@ -53,7 +53,9 @@ def _add_subpanel(gs, timestamp, values, kind, label, prop_map, break_on_change,
     for (k1, k2) in prop_map:
         mask = _build_mask(kind, k1, k2, break_on_change)
         ml_coords = maps._build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=False)  
-        mls = LineCollection(ml_coords, **prop_map[k1, k2])
+        p = prop_map[k1, k2].copy()
+        p.pop('legend', None)
+        mls = LineCollection(ml_coords, **p)
         ax.add_collection(mls)
 
     min_y, max_y = _find_y_range(y, min_y, max_y)
@@ -155,7 +157,7 @@ def plot_panel(timestamp, lon, lat, kind, plots,
             Optional fixed range for y-axis
     prop_map : dict of (kind, kind) to matplotlib props
         Defines the props of the line segments drawn between points
-        with the given kind values on either end.
+        with the given kind values on either end. See `styles.create_props`.
     break_on_change : bool
         Controls how plots are segmented. `True` is suitable for fishing
         and other state change plots, while `False` is suitable for tracks.
@@ -195,6 +197,9 @@ def plot_panel(timestamp, lon, lat, kind, plots,
         
     if projection_info is None:
         projection_info = find_projection(lon, lat)
+
+    if prop_map is None or isinstance(prop_map, Cycler):
+        prop_map = styles.create_props(np.unique(kind), prop_map)
 
     gs = _get_gs(gs, len(plots), map_ratio)
 
@@ -237,8 +242,8 @@ def track_state_panel(timestamp, lon, lat, state, plots=(), prop_map=None,
                       annotation_axes_ndx=0, add_night_shades=False,
                       projection_info=None, shift_by_cent_lon={'longitude'},
                       label_angle=30, gs=None):
-    if prop_map is None:
-        prop_map = plt.rcParams.get('pyseas.map.fishingprops', styles._fishing_props)
+    if isinstance(prop_map, str):
+        prop_map = plt.rcParams.get(prop_map)
     return plot_panel(timestamp, lon, lat, state, plots, prop_map,
                       break_on_change=True, map_ratio=map_ratio, annotations=annotations, 
                       annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
@@ -273,8 +278,10 @@ def multi_track_panel(timestamp, lon, lat, track_id=None, plots=(), prop_map=Non
     if track_id is None:
         track_id = np.ones(len(lon))
     if prop_map is None:
-        prop_cycle = plt.rcParams.get('pyseas.map.trackprops', styles._dark_artist_cycler)()
-        prop_map = {(k, k) : next(prop_cycle) for k in set(track_id)}
+        if isinstance(prop_map, str):
+            prop_map = plt.rcParams.get(prop_map)
+            if isinstance(prop_map, Cycler):
+                prop_map = styles.get_props(prop_map, interstitial_color=None)
     return plot_panel(timestamp, lon, lat, track_id, plots, prop_map,
                       break_on_change=False, map_ratio=map_ratio, annotations=annotations, 
                       annotation_y_loc=annotation_y_loc, annotation_y_align=annotation_y_align,
