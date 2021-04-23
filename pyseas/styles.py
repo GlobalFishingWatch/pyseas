@@ -61,7 +61,7 @@ _chart_cycler = _cycler(color=_chart_colors, linewidth=[2]*len(_chart_colors))
 del _chart_colors, clr
 
 
-def create_props(kinds, colors=None, intersticial_color=(0.5, 0.5, 0.5, 1)):
+def create_props(kinds, colors=None, interstitial_color=(0.5, 0.5, 0.5, 1)):
     """Create props suitable for track plots.
 
     Parameters
@@ -73,7 +73,7 @@ def create_props(kinds, colors=None, intersticial_color=(0.5, 0.5, 0.5, 1)):
         supplied above and added to the output dict under `(k, k)`
         If a Cycler, then the cycler should supply `edgecolor` and `facecolor` values (facecolor
         should be transparent). By default, pulls the cycler from trackprops.
-    intersticial_color : matplotlib color value, optional
+    interstitial_color : matplotlib color value, optional
         Color to apply to segments between points with different kind values.
 
     Returns
@@ -94,7 +94,7 @@ def create_props(kinds, colors=None, intersticial_color=(0.5, 0.5, 0.5, 1)):
         props[(k1, k1)] = next(prop_cycle)
         for k2 in kinds:
             if k1 != k2:
-                props[(k1, k2)] = {'edgecolor' : intersticial_color,
+                props[(k1, k2)] = {'edgecolor' : interstitial_color,
                                    'facecolor' : (0, 0, 0, 0),
                                    'legend' : None}
     return props
