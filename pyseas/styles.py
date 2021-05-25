@@ -3,19 +3,16 @@ from matplotlib import pyplot as _plt
 from matplotlib import rcsetup as _rcsetup
 from matplotlib import font_manager
 import os
+from pathlib import Path
 from . import props as _props
 from . import cm as _cm
 from matplotlib.colors import to_rgba
 import skimage.io as skio
 
-# TODO: use Path
-root = os.path.dirname(os.path.dirname(__file__))
-data = os.path.join(os.path.dirname(__file__), 'data')
+root = Path(__file__).parents[1]
+data = Path(__file__).parents[0] / 'data'
 
-
-font_dir_loc = os.listdir(os.path.join(data, 'fonts'))
-raw_font_dirs = [os.path.join(font_dir_loc, x) for x in font_dir_loc if os.path.isdir(x)]
-font_dirs = [x for x in raw_font_dirs if os.isdir(x)]
+font_dirs = [os.path.join(font_dir_loc, x) for x in (data / 'fonts').iterdir() if x.is_dir()]
 for file in font_manager.findSystemFonts(fontpaths=font_dirs):
     font_manager.fontManager.addfont(font_file)
 
@@ -199,8 +196,7 @@ dark = {
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
          'pyseas.logo' : load_default_logo(_props.dark.logo.name),
-         # TODO: replace base_scale in props.json with this and load from there
-         'pyseas.logo.scale_adj' : 0.5,
+         'pyseas.logo.scale_adj' : _props.dark.scale_adj,
          'pyseas.logo.alpha' : _props.dark.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.dark.miniglobe.overlaycolor,
          'pyseas.miniglobe.outerwidth' : _props.dark.miniglobe.outer_width,
@@ -244,7 +240,7 @@ light = {
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
          'pyseas.logo' : load_default_logo(_props.light.logo.name),
-         'pyseas.logo.scale_adj' : 0.5,
+         'pyseas.logo.scale_adj' : _props.light.scale_adj,
          'pyseas.logo.alpha' : _props.light.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.light.miniglobe.overlaycolor,
          'pyseas.miniglobe.outerwidth' : _props.light.miniglobe.outer_width,
@@ -268,8 +264,21 @@ del k
 
 
 def set_default_logos(light_logo=None, dark_logo=None, scale_adj=1, alpha=None):
-    """TODO: doc
-    TODO: implement scale_adj
+    """Set the default logos to use with add_logo
+
+    Either the light logo, the dark logo, or both may be specified. If both,
+    then scale_adj and alpha applies to both. If neither is specified, nothing
+    is done.
+
+    Parameters
+    ----------
+    light_logo, dark_logo : array, optional
+        Must be in a format that matplotlib understands.
+    scale_adj : float, optional
+        The default image scale is multiplied by this amount.
+    alpha : float or None, optional
+        Set the image alpha. If not specified, the image alpha is inherited from previous
+        logos.
     """
     if light_logo is not None:
         light['pyseas.logo'] = light_logo
