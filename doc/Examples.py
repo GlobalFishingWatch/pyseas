@@ -7,14 +7,14 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.11.2
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
 
-# # Examples of Plotting with `pyseas`
+# # Examples of Plotting with *pyseas*
 
 # +
 import numpy as np
@@ -55,21 +55,6 @@ with psm.context(psm.styles.dark):
 # In addition to `add_land` there a number of other features that can be added to maps
 # including eezs, grid_lines, countries, logos, etc. If you add a logo, without specifying
 # the image to use, you'll get the PySeas logo.
-
-# +
-# import pyseas_logos
-# pyseas_logos.set_gfw_logos_as_default()
-
-# with psm.context(psm.styles.light):
-#     fig = plt.figure(figsize=(18, 6))
-#     psm.create_map(projection='country.china')
-#     psm.add_land()
-#     psm.add_countries()
-#     psm.add_eezs()
-#     psm.add_gridlines()
-#     psm.add_gridlabels()
-#     psm.add_logo(loc='upper left')
-# -
 
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(18, 6))
@@ -234,7 +219,7 @@ with psm.context(psm.styles.dark):
 # of manual intervention.
 
 position_msgs = pd.read_csv(data_dir / 'position_messages.csv.zip')
-position_msgs['timestamp'] = pd.to_datetime(position_messages.timestamp)
+position_msgs['timestamp'] = pd.to_datetime(position_msgs.timestamp)
 
 # Note the use of `maps.find_projection` to find an appropriate projection and extents
 # based on lat/lon data.

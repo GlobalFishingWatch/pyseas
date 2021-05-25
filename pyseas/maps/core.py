@@ -327,8 +327,7 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, tr
         assert len(kind) == len(lon)
 
     if props is None:
-        kinds = sorted(set(kind))
-        props = {(k, k) : p for (k, p) in zip(kinds, _plot_cycler)}       
+        props = styles.create_props(np.unique(kind))
 
     handles = {}
     for k1, k2 in sorted(props.keys()):
@@ -336,10 +335,14 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, tr
         if mask.sum():
             ml_coords = _build_multiline_string_coords(lon, lat, mask, break_on_change)   
             mls = MultiLineString(ml_coords)
-            p = props[k1, k2]
+            p = props[k1, k2].copy()
+            if 'legend' in p:
+                key = p.pop('legend')
+            else:
+                key = k1 if (k1 == k2) else f'{k1}-{k2}'
             ax.add_geometries([mls], crs=transform, **p)
-            key = k1 if (k1 == k2) else k2
-            handles[key] = Line2D([0], [0], color=p['edgecolor'], lw=p.get('linewidth', 1))
+            if key:
+                handles[key] = Line2D([0], [0], color=p['edgecolor'], lw=p.get('linewidth', 1))
 
     return handles
 

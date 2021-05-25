@@ -16,7 +16,7 @@
         "tick" : {"color" : "#848b9b", "label_size" : 11},
         "label" : {"color" : "#848b9b", "size" : 11, "weight" : "medium"},
         "frame" : {"color" : "#848b9b"},
-        "logo" :  {"name" : "logo_white.png", "base_scale" : 0.025, "alpha" : 0.3},
+        "logo" :  {"name" : "logo_white.png", "scale_adj" : 0.5, "alpha" : 0.3},
         "font" : {"family" : "Roboto", "weight" : "medium"},
         "projection_label" : {"size" : 9}
     },
@@ -38,7 +38,7 @@
         "tick" : {"color" : "#848b9b", "label_size" : 11},
         "label" : {"color" : "#848b9b", "size" : 11, "weight" : "medium"},
         "frame" : {"color" : "#848b9b"},
-        "logo" :  {"name" : "logo_black.png", "base_scale" : 0.025, "alpha" : 0.3},
+        "logo" :  {"name" : "logo_black.png", "scale_adj" : 0.5, "alpha" : 0.3},
         "font" : {"family" : "Roboto", "weight" : "medium"},
         "projection_label" : {"size" : 9}
     },
