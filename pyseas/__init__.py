@@ -1,5 +1,5 @@
-from matplotlib.pyplot import rc_context as context
-__version__ = "0.1.0"
+from matplotlib.style import context, use
+__version__ = "0.2.0"
 
 
 def _reload():
@@ -12,8 +12,10 @@ def _reload():
     from pyseas.contrib import plot_tracks
     from pyseas.maps import (scalebar, core, rasters, ticks, projection, overlays,
                              rasterize)
+    from pyseas import contrib
     import imp
 
+    imp.reload(pyseas)
     imp.reload(util)
     imp.reload(ticks)
     imp.reload(scalebar)
@@ -28,5 +30,7 @@ def _reload():
     imp.reload(pyseas)
     imp.reload(projection)
     imp.reload(overlays)
+    contrib._reload()
+
 
 
