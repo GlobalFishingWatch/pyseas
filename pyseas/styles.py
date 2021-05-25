@@ -12,8 +12,8 @@ import skimage.io as skio
 root = Path(__file__).parents[1]
 data = Path(__file__).parents[0] / 'data'
 
-font_dirs = [os.path.join(font_dir_loc, x) for x in (data / 'fonts').iterdir() if x.is_dir()]
-for file in font_manager.findSystemFonts(fontpaths=font_dirs):
+font_dirs = [x for x in (data / 'fonts').iterdir() if x.is_dir()]
+for font_file in font_manager.findSystemFonts(fontpaths=font_dirs):
     font_manager.fontManager.addfont(font_file)
 
 """
@@ -196,7 +196,7 @@ dark = {
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
          'pyseas.logo' : load_default_logo(_props.dark.logo.name),
-         'pyseas.logo.scale_adj' : _props.dark.scale_adj,
+         'pyseas.logo.scale_adj' : _props.dark.logo.scale_adj,
          'pyseas.logo.alpha' : _props.dark.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.dark.miniglobe.overlaycolor,
          'pyseas.miniglobe.outerwidth' : _props.dark.miniglobe.outer_width,
@@ -240,7 +240,7 @@ light = {
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
          'pyseas.logo' : load_default_logo(_props.light.logo.name),
-         'pyseas.logo.scale_adj' : _props.light.scale_adj,
+         'pyseas.logo.scale_adj' : _props.light.logo.scale_adj,
          'pyseas.logo.alpha' : _props.light.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.light.miniglobe.overlaycolor,
          'pyseas.miniglobe.outerwidth' : _props.light.miniglobe.outer_width,

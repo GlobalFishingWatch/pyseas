@@ -57,18 +57,18 @@ with psm.context(psm.styles.dark):
 # the image to use, you'll get the PySeas logo.
 
 # +
-# import pyseas_logos
-# pyseas_logos.set_gfw_logos_as_default()
+import pyseas_logos
+pyseas_logos.set_gfw_logos_as_default()
 
-# with psm.context(psm.styles.light):
-#     fig = plt.figure(figsize=(18, 6))
-#     psm.create_map(projection='country.china')
-#     psm.add_land()
-#     psm.add_countries()
-#     psm.add_eezs()
-#     psm.add_gridlines()
-#     psm.add_gridlabels()
-#     psm.add_logo(loc='upper left')
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    psm.create_map(projection='country.china')
+    psm.add_land()
+    psm.add_countries()
+    psm.add_eezs()
+    psm.add_gridlines()
+    psm.add_gridlabels()
+    psm.add_logo(loc='upper left')
 # -
 
 with psm.context(psm.styles.light):
@@ -234,7 +234,7 @@ with psm.context(psm.styles.dark):
 # of manual intervention.
 
 position_msgs = pd.read_csv(data_dir / 'position_messages.csv.zip')
-position_msgs['timestamp'] = pd.to_datetime(position_messages.timestamp)
+position_msgs['timestamp'] = pd.to_datetime(position_msgs.timestamp)
 
 # Note the use of `maps.find_projection` to find an appropriate projection and extents
 # based on lat/lon data.
