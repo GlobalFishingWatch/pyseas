@@ -15,17 +15,18 @@ Then, to install in new Conda environment:
 
     conda create -y -n CONDA-ENV-NAME python=3.8 cartopy gdal
     conda activate CONDA-ENV-NAME
-    pip install ".[nb]"
+    pip install -e ".[nb]"
 
 Or, to install in an existing Conda environment:
 
     conda activate CONDA-ENV-NAME
     conda install -y -n CONDA-ENV-NAME python=3.8 cartopy gdal
-    pip install ".[nb]"
+    pip install -e ".[nb]"
 
 If you'd like to skip installing `jupyter` and `jupytext`, which are not strictly
 necessary to use `pyseas`, replace `".[nb]"` with `.` 
-to omit the *notebook* dependencies.
+to omit the *notebook* dependencies. If you are not interested in the `Examples`
+notebooks, you may omit `-e` and avoid the in-place install.
 
 ## Acknowledgments
 
