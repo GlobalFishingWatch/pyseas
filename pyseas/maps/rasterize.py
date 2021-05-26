@@ -26,6 +26,7 @@ import numpy as np
 import h3.api.numpy_int as h3
 from h3.unstable import vect
 
+from matplotlib.colors import Normalize 
 from matplotlib.image import AxesImage
 from matplotlib import rcParams
 from matplotlib import cm
