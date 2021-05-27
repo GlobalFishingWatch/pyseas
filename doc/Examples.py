@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.11.2
+#       jupytext_version: 1.6.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -161,13 +161,14 @@ with plt.rc_context(psm.styles.dark):
 # is shown below, where normally using a light colormap with a dark background would result in
 # a bizzare light background, but this is prevented by making the background transparent.
 
+import pyseas; pyseas._reload()
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 raster = seismic_raster.copy()
 raster[raster == 0] = np.nan
 with plt.rc_context(psm.styles.dark):
     ax, im, cb = psm.plot_raster_w_colorbar(raster, 
-                                             r"hours per $\mathregular{km^2}$ ",
+                                             label=r"hours per $\mathregular{km^2}$ ",
                                              projection='country.indonesia',
                                              cmap=pyseas.cm.light.presence,
                                              norm=norm,
@@ -178,6 +179,30 @@ with plt.rc_context(psm.styles.dark):
     psm.add_eezs()
     ax.set_title('Seismic Vessel Presence Near Indonesia')
     psm.add_logo(loc='lower left', scale=0.5)
+
+# `plot_raster_w_colorbar` can now be used with gridspecs. Here we just plot th
+
+import pyseas; pyseas._reload()
+fig = plt.figure(figsize=(14, 14))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+raster = seismic_raster.copy()
+raster[raster == 0] = np.nan
+gs = gridspec.GridSpec(2, 1)
+with plt.rc_context(psm.styles.dark):
+    for i in range(2):
+        ax, im, cb = psm.plot_raster_w_colorbar(raster, 
+                                                subplot=gs[i], # or (2, 1, i)
+                                                 label=r"hours per $\mathregular{km^2}$ ",
+                                                 projection='country.indonesia',
+                                                 cmap=pyseas.cm.light.presence,
+                                                 norm=norm,
+                                                 cbformat='%.0f',
+                                                 origin='lower',
+                                                 loc='bottom')
+        psm.add_countries()
+        psm.add_eezs()
+        ax.set_title('Seismic Vessel Presence Near Indonesia - 1')
+        psm.add_logo(loc='lower left', scale=0.5)
 
 # ### H3 Discrete Global Grids
 #

@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt
 import matplotlib.offsetbox as mplobox
 import matplotlib.colors as mplcolors
 from matplotlib.lines import Line2D
+from matplotlib import gridspec
 from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 import cartopy
 import cartopy.feature as cfeature
@@ -841,7 +842,7 @@ def plot_h3_data(h3_data, subplot=(1, 1, 1), projection='global.default',
     return  ax, im
 
 
-def plot_raster_w_colorbar(raster, label='', loc='bottom',
+def plot_raster_w_colorbar(raster, subplot=(1, 1, 1), label='', loc='bottom',
                 projection='global.default', hspace=0.05, wspace=0.016,
                 bg_color=None, hide_axes=True, cbformat=None, **kwargs):
     """Draw a GFW themed map over a raster with a colorbar
@@ -849,6 +850,7 @@ def plot_raster_w_colorbar(raster, label='', loc='bottom',
     Parameters
     ----------
     raster : 2D array
+    subplot : tuple or gridspec
     label : str, optional
     loc : str, optional
     projection : cartopy.crs.Projection, optional
@@ -869,6 +871,10 @@ def plot_raster_w_colorbar(raster, label='', loc='bottom',
     -------
     (GeoAxes, AxesImage)
     """
+    if isinstance(subplot, str) and label == '':
+        warnings.warn('`label` parameter has moved, please use keyword arg instead of positional args')
+        label = subplot
+        subplot = (1, 1, 1)
     assert loc in ('top', 'bottom')
     is_global = isinstance(projection, str) and projection.startswith('global.')
     if is_global:
@@ -884,7 +890,13 @@ def plot_raster_w_colorbar(raster, label='', loc='bottom',
         cb_ind, pl_ind = 1, 0
         anchor = 'SE'
 
-    gs = plt.GridSpec(2, 4, height_ratios=hratios, width_ratios=wratios, hspace=hspace, wspace=wspace)
+    if isinstance(subplot, tuple):
+        nr, nc, ndx = subplot
+        subplot = plt.GridSpec(nr, nc)[(ndx - 1) // nc, (ndx - 1) % nc]
+
+
+    gs = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=subplot,
+                        height_ratios=hratios, width_ratios=wratios, hspace=hspace, wspace=wspace)
     ax, im = plot_raster(raster, gs[pl_ind, :], projection=projection, **kwargs)
     ax.set_anchor(anchor)
     cb_ax = plt.subplot(gs[cb_ind, 2])
