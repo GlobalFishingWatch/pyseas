@@ -26,6 +26,8 @@ def add_colorbar(img, *, ax=None, fig=None, label='', loc='bottom', width=0.33, 
     label : str, optional
     loc : str, optional
         'top' or 'bottom'
+    width, height : float
+        Size of colorbar in Axes coordinates
     hspace : float, optional
         Space between colorbar and axis
     wspace : float, optional
@@ -51,7 +53,6 @@ def add_colorbar(img, *, ax=None, fig=None, label='', loc='bottom', width=0.33, 
 
     is_global = isinstance(core._last_projection, str) and core._last_projection.startswith('global.')
     right_edge = 0.78 if is_global else 1.0
-    height = 0.015
     padded_height = height + hspace
     cbloc = right_edge - width
     hloc = 1 + padded_height if (loc == 'top') else -padded_height
@@ -61,7 +62,7 @@ def add_colorbar(img, *, ax=None, fig=None, label='', loc='bottom', width=0.33, 
     cb = plt.colorbar(img, ax=ax, cax=cb_ax, orientation='horizontal', ticklocation=loc, format=format)
 
     offset = figwidth - 1
-    leg_ax = ax.inset_axes([-offset, hloc, max(offset + cbloc - wspace, 0), 0.015], transform=ax.transAxes, frameon=False)
+    leg_ax = ax.inset_axes([-offset, hloc, max(offset + cbloc - wspace, 0), height], transform=ax.transAxes, frameon=False)
     leg_ax.text(1, 0.5, label, 
         fontdict=plt.rcParams.get('pyseas.map.colorbarlabelfont', styles._colorbarlabelfont),
                     horizontalalignment='right', verticalalignment='center')
