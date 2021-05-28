@@ -20,6 +20,8 @@ from .core import plot_raster
 from .core import plot_raster_w_colorbar
 from .core import identity
 
+from .colorbar import add_colorbar
+
 from .projection import find_projection
 
 from .scalebar import add_scalebar
