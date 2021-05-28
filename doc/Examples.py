@@ -123,6 +123,7 @@ seismic_raster = psm.rasters.df2raster(seismic_presence, 'lon_index', 'lat_index
                                          xyscale=10, origin='lower', per_km2=True)
 
 # Display a raster along with standard colorbar.
+pyseas._reload()
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with psm.context(psm.styles.dark):
@@ -132,7 +133,8 @@ with psm.context(psm.styles.dark):
                                   cmap='presence',
                                   norm=norm,
                                   origin='lower')
-        psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$ ")
+        psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$",
+                        width = .5)
 
 # Display a raster along with standard colorbar.
 fig = plt.figure(figsize=(14, 7))
@@ -196,6 +198,23 @@ with plt.rc_context(psm.styles.dark):
             ax.set_title(f'Seismic Vessel Presence Near Indonesia - {i + 1}')
             psm.add_logo(loc='lower left', scale=0.5)
         psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$ ")
+
+import pyseas; pyseas._reload()
+fig = plt.figure(figsize=(14.5, 8))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+gs = gridspec.GridSpec(2, 2, hspace=0, wspace=0.05)
+with plt.rc_context(psm.styles.dark):
+    with psm.context({'text.color' : 'white'}):
+        for i in range(2):
+            for j in range(2):
+                ax, im = psm.plot_raster(seismic_raster, 
+                                         subplot=gs[i, j],
+                                          projection='country.indonesia',
+                                          cmap='presence',
+                                          norm=norm,
+                                          origin='lower')
+        psm.add_colorbar(im, ax=ax, label=r"hours per $\mathregular{km^2}$", 
+                         width=1.7)
 
 # ### H3 Discrete Global Grids
 #

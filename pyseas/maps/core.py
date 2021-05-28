@@ -878,42 +878,4 @@ def plot_raster_w_colorbar(raster, label='', loc='bottom',
     ax, im = plot_raster(raster, **kwargs)
     cb = colorbar.add_colorbar(im, label=label, loc=loc, hspace=hspace, wspace=wspace, format=cbformat)
 
-
-
-
-    # assert loc in ('top', 'bottom')
-    # is_global = isinstance(projection, str) and projection.startswith('global.')
-    # if is_global:
-    #     wratios = [1, 1, 1, 0.85]
-    # else:
-    #     wratios = [1, 1, 1, 0.01]
-    # if loc == 'top':
-    #     hratios = [.015, 1]
-    #     cb_ind, pl_ind = 0, 1
-    #     anchor = 'NE'
-    # else:
-    #     hratios = [1, 0.015]
-    #     cb_ind, pl_ind = 1, 0
-    #     anchor = 'SE'
-
-    # if isinstance(subplot, tuple):
-    #     nr, nc, ndx = subplot
-    #     subplot = plt.GridSpec(nr, nc)[(ndx - 1) // nc, (ndx - 1) % nc]
-
-
-    # gs = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=subplot,
-    #                     height_ratios=hratios, width_ratios=wratios, hspace=hspace, wspace=wspace)
-    # ax, im = plot_raster(raster, gs[pl_ind, :], projection=projection, **kwargs)
-    # ax.set_anchor(anchor)
-    # cb_ax = plt.subplot(gs[cb_ind, 2])
-    # cb = plt.colorbar(im, cb_ax, orientation='horizontal', shrink=0.8, format=cbformat)
-    # leg_ax = plt.subplot(gs[cb_ind, 1], frame_on=False)
-    # leg_ax.axes.get_xaxis().set_visible(False)
-    # leg_ax.axes.get_yaxis().set_visible(False)
-    # leg_ax.text(1, 0.5, label, 
-    #     fontdict=plt.rcParams.get('pyseas.map.colorbarlabelfont', styles._colorbarlabelfont),
-    #                 horizontalalignment='right', verticalalignment='center')
-    # if loc == 'top':
-    #     cb_ax.xaxis.tick_top()
-    # plt.sca(ax)
     return ax, im, cb
