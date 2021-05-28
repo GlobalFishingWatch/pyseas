@@ -1,4 +1,4 @@
-<img src="pyseas/data/logos/logo_grey.png" alt="PySeas Logo" width="400"/>
+<img src="gfw_logo.png" alt="PySeas Logo" width="400"/>
 
 A library to make GFW style maps in Python.
 

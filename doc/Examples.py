@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.11.2
+#       jupytext_version: 1.6.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -72,7 +72,7 @@ with psm.context(psm.styles.light):
 # logo as shown below.
 
 # +
-light_logo = skimage.io.imread('../pyseas/data/logos/pisces_black.png')
+light_logo = skimage.io.imread('../pyseas/data/logos/picc_black.png')
 
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(18, 6))
@@ -83,24 +83,15 @@ with psm.context(psm.styles.light):
     psm.add_gridlines()
     psm.add_gridlabels()
     psm.add_logo(light_logo, loc='lower right', scale=0.2)
-
-# +
-dark_logo = skimage.io.imread('../pyseas/data/logos/pisces_white.png')
-
-pyseas.styles.set_default_logos(light_logo=light_logo, dark_logo=dark_logo, scale_adj=0.2, alpha=0.5)
-
-with psm.context(psm.styles.light):
-    fig = plt.figure(figsize=(18, 6))
-    psm.create_map(projection='country.china')
-    psm.add_land()
-    psm.add_countries()
-    psm.add_eezs()
-    psm.add_gridlines()
-    psm.add_gridlabels()
-    psm.add_logo(loc='lower right')
 # -
 
-# If not region is specified, you get the default global map as specified by the 
+# The default logos can be set using the following syntax:
+#
+#     pyseas.styles.set_default_logos(light_logo=light_logo, 
+#                                     dark_logo=dark_logo, 
+#                                     scale_adj=0.2, alpha=0.5)
+
+# If region is not specified, you get the default global map as specified by the 
 # projection name `global.default`. Currently that's ExactEarth centered at 0 longitude.
 
 with psm.context(psm.styles.light):
