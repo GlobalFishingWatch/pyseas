@@ -204,7 +204,7 @@ fig = plt.figure(figsize=(14.7, 8))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 2, hspace=0, wspace=0.05)
 with plt.rc_context(psm.styles.dark):
-    with psm.context({'text.color' : 'white'}):
+    with psm.context({'text.color' : (0.5, 0.5, 0.5)}):
         for i in range(2):
             for j in range(2):
                 ax, im = psm.plot_raster(seismic_raster, 
@@ -214,7 +214,7 @@ with plt.rc_context(psm.styles.dark):
                                           norm=norm,
                                           origin='lower')
         psm.add_colorbar(im, ax=ax, label=r"hours per $\mathregular{km^2}$", 
-                         width=1.7)
+                         width=1.7, height=0.035)
 
 # ### H3 Discrete Global Grids
 #
