@@ -214,7 +214,20 @@ with plt.rc_context(psm.styles.dark):
                                           norm=norm,
                                           origin='lower')
         psm.add_colorbar(im, ax=ax, label=r"hours per $\mathregular{km^2}$", 
-                         width=1.7, height=0.035)
+                 width=1.7, height=0.035, wspace=0.0025, valign=0.2)
+
+# Display a raster along with standard colorbar.
+pyseas._reload()
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+with psm.context(psm.styles.dark):
+    with psm.context({'text.color' : 'white'}):
+        ax, im = psm.plot_raster(seismic_raster, 
+                                          projection='global.default',
+                                  cmap='presence',
+                                  norm=norm,
+                                  origin='lower')
+        psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", loc='bottom')
 
 # ### H3 Discrete Global Grids
 #
