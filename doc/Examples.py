@@ -200,9 +200,9 @@ with plt.rc_context(psm.styles.dark):
         psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$ ")
 
 import pyseas; pyseas._reload()
-fig = plt.figure(figsize=(14.7, 8))
+fig = plt.figure(figsize=(14.7, 7.6))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
-gs = gridspec.GridSpec(2, 2, hspace=0, wspace=0.05)
+gs = gridspec.GridSpec(2, 2, hspace=0, wspace=0.02)
 with plt.rc_context(psm.styles.dark):
     with psm.context({'text.color' : (0.5, 0.5, 0.5)}):
         for i in range(2):
