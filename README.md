@@ -1,12 +1,8 @@
-<h1>
-<img src="gfw_logo.png" alt="GFW Logo" height="60"  valign="middle"/>
-PySeas
-</h1>
 
-<h2>
-<img src="gfw_logo.png" alt="GFW Logo" height="60"  valign="middle"/>
+<h4>
+<img src="gfw_logo.png" alt="GFW Logo" height="40"  valign="middle"/>
 Global Fishing Watch
-</h2>
+</h4>
 
 # PySeas
 
