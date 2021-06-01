@@ -1,4 +1,10 @@
-<img src="gfw_logo.png" alt="PySeas Logo" width="400"/>
+<div clear="both">
+    <h1 align="top"><img src="gfw_logo.png" alt="GFW Logo" height="60" />
+    PySeas</h1>
+</div>
+
+
+
 
 A library to make GFW style maps in Python.
 
