@@ -8,7 +8,7 @@ PySeas
 Global Fishing Watch
 </h2>
 
-#PySeas
+# PySeas
 
 A library to make GFW style maps in Python.
 
