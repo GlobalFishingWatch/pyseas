@@ -14,7 +14,7 @@ is to install them using Conda. The following recipes is currently preferred:
 Then, to install in new Conda environment:
 
     conda create -c conda-forge -y -n CONDA-ENV-NAME python=3.8 cartopy gdal
-    conda activate CONDA-ENV-NAME
+    conda activate pyseas
     pip install -e ".[nb]"
 
 Or, to install in an existing Conda environment:
