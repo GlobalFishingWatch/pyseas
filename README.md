@@ -13,14 +13,14 @@ is to install them using Conda. The following recipes is currently preferred:
 
 Then, to install in new Conda environment:
 
-    conda create -y -n CONDA-ENV-NAME python=3.8 cartopy gdal
+    conda create -c conda-forge -y -n CONDA-ENV-NAME python=3.8 cartopy gdal
     conda activate CONDA-ENV-NAME
     pip install -e ".[nb]"
 
 Or, to install in an existing Conda environment:
 
     conda activate CONDA-ENV-NAME
-    conda install -y -n CONDA-ENV-NAME python=3.8 cartopy gdal
+    conda install -c conda-forge -y -n CONDA-ENV-NAME python=3.8 cartopy gdal
     pip install -e ".[nb]"
 
 If you'd like to skip installing `jupyter` and `jupytext`, which are not strictly
