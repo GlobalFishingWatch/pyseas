@@ -161,29 +161,6 @@ with plt.rc_context(psm.styles.dark):
                      )
     psm.add_logo(loc='lower left', scale=0.5, alpha=0.8)
 
-# It's important to realize that normally one is not seeing the background of the map over water, 
-# but instead the zero value of the raster. Sometimes it's useful to make some portion of the 
-# raster transparent, which can be done by setting values to np.nan. A somewhat contrived example
-# is shown below, where normally using a light colormap with a dark background would result in
-# a bizzare light background, but this is prevented by making the background transparent.
-
-fig = plt.figure(figsize=(14, 7))
-norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
-raster = seismic_raster.copy()
-raster[raster == 0] = np.nan
-with plt.rc_context(psm.styles.dark):
-    ax, im, cb = psm.plot_raster_w_colorbar(raster, 
-                                             projection='country.indonesia',
-                                             cmap=pyseas.cm.light.presence,
-                                             norm=norm,
-                                             origin='lower')
-
-    psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$ ")
-    psm.add_countries()
-    psm.add_eezs()
-    ax.set_title('Seismic Vessel Presence Near Indonesia')
-    psm.add_logo(loc='lower left', scale=0.5)
-
 # `add_colorbar` can be used with subplots. Here we just plot the same 
 # thing twice and add a colorbar to the last plot.
 
