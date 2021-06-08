@@ -83,6 +83,21 @@ with psm.context(psm.styles.light):
     psm.add_gridlines()
     psm.add_gridlabels()
     psm.add_logo(light_logo, loc='lower right', scale=0.2)
+# +
+dark_logo = skimage.io.imread('../pyseas/data/logos/picc_white.png')
+
+pyseas.styles.set_default_logos(light_logo=light_logo,
+                                dark_logo=dark_logo, scale_adj=0.2, alpha=0.5)
+
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    psm.create_map(projection='country.china')
+    psm.add_land()
+    psm.add_countries()
+    psm.add_eezs()
+    psm.add_gridlines()
+    psm.add_gridlabels()
+    psm.add_logo(loc='lower right')
 # -
 
 # The default logos can be set using the following syntax:
@@ -113,6 +128,20 @@ seismic_raster = psm.rasters.df2raster(seismic_presence, 'lon_index', 'lat_index
                                          xyscale=10, origin='lower', per_km2=True)
 
 # Display a raster along with standard colorbar.
+pyseas._reload()
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+with psm.context(psm.styles.dark):
+    with psm.context({'text.color' : 'white'}):
+        ax, im = psm.plot_raster(seismic_raster, 
+                                  projection='country.indonesia',
+                                  cmap='presence',
+                                  norm=norm,
+                                  origin='lower')
+        psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$",
+                        width = .5)
+
+# Display a raster along with standard colorbar.
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with plt.rc_context(psm.styles.dark):
@@ -132,20 +161,6 @@ with plt.rc_context(psm.styles.dark):
                      )
     psm.add_logo(loc='lower left', scale=0.5, alpha=0.8)
 
-# Display a raster along with aligned, labeled colorbar.
-fig = plt.figure(figsize=(14, 7))
-norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
-with plt.rc_context(psm.styles.dark):
-    ax, im = psm.plot_raster(seismic_raster, 
-                             projection='country.indonesia',
-                             cmap='presence',
-                             norm=norm,
-                             origin='lower')
-    psm.add_countries()
-    psm.add_eezs()
-    ax.set_title('Seismic Vessel Presence Near Indonesia')
-    psm.add_logo(loc='lower left', scale=0.5)
-
 # It's important to realize that normally one is not seeing the background of the map over water, 
 # but instead the zero value of the raster. Sometimes it's useful to make some portion of the 
 # raster transparent, which can be done by setting values to np.nan. A somewhat contrived example
@@ -158,17 +173,66 @@ raster = seismic_raster.copy()
 raster[raster == 0] = np.nan
 with plt.rc_context(psm.styles.dark):
     ax, im, cb = psm.plot_raster_w_colorbar(raster, 
-                                             r"hours per $\mathregular{km^2}$ ",
                                              projection='country.indonesia',
                                              cmap=pyseas.cm.light.presence,
                                              norm=norm,
-                                             cbformat='%.0f',
-                                             origin='lower',
-                                             loc='bottom')
+                                             origin='lower')
+
+    psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$ ")
     psm.add_countries()
     psm.add_eezs()
     ax.set_title('Seismic Vessel Presence Near Indonesia')
     psm.add_logo(loc='lower left', scale=0.5)
+
+# `add_colorbar` can be used with subplots. Here we just plot the same 
+# thing twice and add a colorbar to the last plot.
+
+import pyseas; pyseas._reload()
+fig = plt.figure(figsize=(14, 14))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+gs = gridspec.GridSpec(2, 1)
+with plt.rc_context(psm.styles.dark):
+    with psm.context({'text.color' : 'white'}):
+        for i in range(2):
+            ax, im = psm.plot_raster(seismic_raster, 
+                                     subplot=gs[i, 0],
+                                      projection='country.indonesia',
+                                      cmap='presence',
+                                      norm=norm,
+                                      origin='lower')
+            ax.set_title(f'Seismic Vessel Presence Near Indonesia - {i + 1}')
+            psm.add_logo(loc='lower left', scale=0.5)
+        psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$ ")
+
+import pyseas; pyseas._reload()
+fig = plt.figure(figsize=(14.7, 7.6))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+gs = gridspec.GridSpec(2, 2, hspace=0, wspace=0.02)
+with plt.rc_context(psm.styles.dark):
+    with psm.context({'text.color' : (0.5, 0.5, 0.5)}):
+        for i in range(2):
+            for j in range(2):
+                ax, im = psm.plot_raster(seismic_raster, 
+                                         subplot=gs[i, j],
+                                          projection='country.indonesia',
+                                          cmap='presence',
+                                          norm=norm,
+                                          origin='lower')
+        psm.add_colorbar(im, ax=ax, label=r"hours per $\mathregular{km^2}$", 
+                 width=1.7, height=0.035, wspace=0.0025, valign=0.2)
+
+# Display a raster along with standard colorbar.
+pyseas._reload()
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+with psm.context(psm.styles.dark):
+    with psm.context({'text.color' : 'white'}):
+        ax, im = psm.plot_raster(seismic_raster, 
+                                          projection='global.default',
+                                  cmap='presence',
+                                  norm=norm,
+                                  origin='lower')
+        psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", loc='bottom')
 
 # ### H3 Discrete Global Grids
 #

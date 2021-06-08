@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt
 import matplotlib.offsetbox as mplobox
 import matplotlib.colors as mplcolors
 from matplotlib.lines import Line2D
+from matplotlib import gridspec
 from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 import cartopy
 import cartopy.feature as cfeature
@@ -37,8 +38,7 @@ import cartopy.mpl.gridliner
 import json
 import os
 import uuid
-from .. import props
-from .. import styles
+
 import geopandas as gpd
 import numpy as np
 from cartopy.feature import ShapelyFeature
@@ -48,8 +48,11 @@ from shapely.errors import TopologicalError
 from shapely import ops as shpops
 from skimage import io as skio
 import warnings
+from .. import props
+from .. import styles
 from . import ticks
 from . import rasterize
+from . import colorbar
 
 
 monkey_patch_cartopy()
@@ -842,13 +845,14 @@ def plot_h3_data(h3_data, subplot=(1, 1, 1), projection='global.default',
 
 
 def plot_raster_w_colorbar(raster, label='', loc='bottom',
-                projection='global.default', hspace=0.05, wspace=0.016,
-                bg_color=None, hide_axes=True, cbformat=None, **kwargs):
+                hspace=0.05, wspace=0.016,
+                cbformat=None, **kwargs):
     """Draw a GFW themed map over a raster with a colorbar
 
     Parameters
     ----------
     raster : 2D array
+    subplot : tuple or gridspec
     label : str, optional
     loc : str, optional
     projection : cartopy.crs.Projection, optional
@@ -856,9 +860,6 @@ def plot_raster_w_colorbar(raster, label='', loc='bottom',
         space between colorbar and axis
     wspace : float, optional
         horizontal space adjustment
-    bg_color : str or tuple, optional
-    hide_axes : bool
-        if `true`, hide x and y axes
     cbformat : formatter
     
     Other Parameters
@@ -869,33 +870,12 @@ def plot_raster_w_colorbar(raster, label='', loc='bottom',
     -------
     (GeoAxes, AxesImage)
     """
-    assert loc in ('top', 'bottom')
-    is_global = isinstance(projection, str) and projection.startswith('global.')
-    if is_global:
-        wratios = [1, 1, 1, 0.85]
-    else:
-        wratios = [1, 1, 1, 0.01]
-    if loc == 'top':
-        hratios = [.015, 1]
-        cb_ind, pl_ind = 0, 1
-        anchor = 'NE'
-    else:
-        hratios = [1, 0.015]
-        cb_ind, pl_ind = 1, 0
-        anchor = 'SE'
+    warnings.warn(
+        "plot_raster_w_colorbar is deprecated, use plot_raster with add_colorbar instead",
+        DeprecationWarning
+    )    
 
-    gs = plt.GridSpec(2, 4, height_ratios=hratios, width_ratios=wratios, hspace=hspace, wspace=wspace)
-    ax, im = plot_raster(raster, gs[pl_ind, :], projection=projection, **kwargs)
-    ax.set_anchor(anchor)
-    cb_ax = plt.subplot(gs[cb_ind, 2])
-    cb = plt.colorbar(im, cb_ax, orientation='horizontal', shrink=0.8, format=cbformat)
-    leg_ax = plt.subplot(gs[cb_ind, 1], frame_on=False)
-    leg_ax.axes.get_xaxis().set_visible(False)
-    leg_ax.axes.get_yaxis().set_visible(False)
-    leg_ax.text(1, 0.5, label, 
-        fontdict=plt.rcParams.get('pyseas.map.colorbarlabelfont', styles._colorbarlabelfont),
-                    horizontalalignment='right', verticalalignment='center')
-    if loc == 'top':
-        cb_ax.xaxis.tick_top()
-    plt.sca(ax)
+    ax, im = plot_raster(raster, **kwargs)
+    cb = colorbar.add_colorbar(im, label=label, loc=loc, hspace=hspace, wspace=wspace, format=cbformat)
+
     return ax, im, cb

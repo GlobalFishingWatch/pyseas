@@ -17,16 +17,16 @@ is to install them using Conda. The following recipes is currently preferred:
     git clone https://github.com/GlobalFishingWatch/pyseas.git
     cd pyseas
 
-Then, to install in new Conda environment:
+Then, to install in new Conda environment named `pyseas`:
 
-    conda create -c conda-forge -y -n CONDA-ENV-NAME python=3.8 cartopy gdal
-    conda activate CONDA-ENV-NAME
+    conda create -c conda-forge -y -n pyseas python=3.8 cartopy gdal
+    conda activate pyseas
     pip install -e ".[nb]"
 
 Or, to install in an existing Conda environment:
 
     conda activate CONDA-ENV-NAME
-    conda install  -c conda-forge -y -n CONDA-ENV-NAME python=3.8 cartopy gdal
+    conda install -c conda-forge -y -n CONDA-ENV-NAME python=3.8 cartopy gdal
     pip install -e ".[nb]"
 
 If you'd like to skip installing `jupyter` and `jupytext`, which are not strictly
