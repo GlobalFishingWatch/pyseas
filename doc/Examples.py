@@ -98,6 +98,38 @@ with psm.context(psm.styles.light):
     psm.add_gridlines()
     psm.add_gridlabels()
     psm.add_logo(loc='lower right')
+
+# +
+dark_logo = skimage.io.imread('../pyseas/data/logos/picc_white.png')
+
+pyseas.styles.set_default_logos(light_logo=light_logo,
+                                dark_logo=dark_logo, scale_adj=0.2, alpha=0.5)
+
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    psm.create_map(projection='country.china')
+    psm.add_land()
+    psm.add_countries()
+    psm.add_eezs()
+    psm.add_gridlines()
+    psm.add_gridlabels()
+    psm.add_logo(loc='lower right')
+
+# +
+pyseas._reload()
+pyseas.styles.set_default_logos(light_logo='gs://pyseas/logos/logo_black.png', 
+                                dark_logo='gs://pyseas/logos/logo_white.png', 
+                                scale_adj=1.0, alpha=0.5)
+
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    psm.create_map(projection='country.china')
+    psm.add_land()
+    psm.add_countries()
+    psm.add_eezs()
+    psm.add_gridlines()
+    psm.add_gridlabels()
+    psm.add_logo(loc='lower right')
 # -
 
 # The default logos can be set using the following syntax:
@@ -159,7 +191,6 @@ with plt.rc_context(psm.styles.dark):
                       aspect=40,
                       pad=0.04,
                      )
-    psm.add_logo(loc='lower left', scale=0.5, alpha=0.8)
 
 # `add_colorbar` can be used with subplots. Here we just plot the same 
 # thing twice and add a colorbar to the last plot.
@@ -178,7 +209,6 @@ with plt.rc_context(psm.styles.dark):
                                       norm=norm,
                                       origin='lower')
             ax.set_title(f'Seismic Vessel Presence Near Indonesia - {i + 1}')
-            psm.add_logo(loc='lower left', scale=0.5)
         psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$ ")
 
 import pyseas; pyseas._reload()
@@ -238,7 +268,6 @@ with psm.context(psm.styles.dark):
                       aspect=40,
                       pad=0.04,
                      )
-    psm.add_logo(loc='lower left', scale=0.5)
 
 # ## Plotting Tracks
 

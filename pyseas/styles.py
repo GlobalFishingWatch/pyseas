@@ -7,7 +7,9 @@ from pathlib import Path
 from . import props as _props
 from . import cm as _cm
 from matplotlib.colors import to_rgba
+import numpy as np
 import skimage.io as skio
+import gcsfs
 
 root = Path(__file__).parents[1]
 data = Path(__file__).parents[0] / 'data'
@@ -155,9 +157,36 @@ _annotationplotprops = dict(fontdict={'size' : 10, 'weight' : 'medium'})
 
 _colorbarlabelfont  = {'fontsize': 12}
 
+logo_dir = data / 'logos'
 
-def load_default_logo(name):
-    return skio.imread(os.path.join(root, 'pyseas/data/logos', name))
+def get_logo(img_or_path):
+    """Retrieve a logo from a local or GCS path
+
+    Parameters
+    ----------
+    img_or_path : array or str
+
+    Returns
+    -------
+    array
+    """
+    if not isinstance(img_or_path, str):
+        return np.asarray(img_or_path)
+    path = img_or_path
+    if path.startswith('gs://') or path.startswith('gcs://'):
+        _, path = path.split('//', 1)
+        local_path = logo_dir / os.path.basename(path)
+        if not local_path.exists():
+            fs = gcsfs.gcsfs.GCSFileSystem()
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+            fs.get_file(local_path, )
+            # subprocess.check_call(['gsutil', 'cp', path, str(local_path)])
+        path = Path(local_path)
+    else:
+        path = Path(path)
+        if not path.is_absolute():
+            path = logo_dir / path
+    return skio.imread(path)
 
 
 dark = {
@@ -195,7 +224,7 @@ dark = {
          'pyseas.map.annotationplotprops' : _annotationplotprops,
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
-         'pyseas.logo' : load_default_logo(_props.dark.logo.name),
+         'pyseas.logo' : get_logo(_props.dark.logo.name),
          'pyseas.logo.scale_adj' : _props.dark.logo.scale_adj,
          'pyseas.logo.alpha' : _props.dark.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.dark.miniglobe.overlaycolor,
@@ -239,7 +268,7 @@ light = {
          'pyseas.map.annotationplotprops' : _annotationplotprops,
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
-         'pyseas.logo' : load_default_logo(_props.light.logo.name),
+         'pyseas.logo' : get_logo(_props.light.logo.name),
          'pyseas.logo.scale_adj' : _props.light.logo.scale_adj,
          'pyseas.logo.alpha' : _props.light.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.light.miniglobe.overlaycolor,
@@ -263,6 +292,9 @@ for k in panel:
 del k
 
 
+
+
+
 def set_default_logos(light_logo=None, dark_logo=None, scale_adj=1, alpha=None):
     """Set the default logos to use with add_logo
 
@@ -281,13 +313,14 @@ def set_default_logos(light_logo=None, dark_logo=None, scale_adj=1, alpha=None):
         logos.
     """
     if light_logo is not None:
-        light['pyseas.logo'] = light_logo
+        light['pyseas.logo'] = get_logo(light_logo)
         light['pyseas.logo.scale_adj'] = scale_adj
         if alpha is not None:
             light['pyseas.logo.alpha'] = alpha
     if dark_logo is not None:
-        dark['pyseas.logo'] = dark_logo
+        dark['pyseas.logo'] = get_logo(dark_logo)
         dark['pyseas.logo.scale_adj'] = scale_adj
         if alpha is not None:
             dark['pyseas.logo.alpha'] = alpha
+
 
