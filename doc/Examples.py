@@ -92,7 +92,7 @@ pyseas.styles.set_default_logos(light_logo='gs://pyseas/logos/logo_black.png',
                                 dark_logo='gs://pyseas/logos/logo_white.png', 
                                 scale_adj=1.0, alpha=0.5)
 
-with psm.context(psm.styles.light):
+with psm.context(psm.styles.dark):
     fig = plt.figure(figsize=(18, 6))
     psm.create_map(projection='country.china')
     psm.add_land()
@@ -102,12 +102,6 @@ with psm.context(psm.styles.light):
     psm.add_gridlabels()
     psm.add_logo(loc='lower right')
 # -
-
-# The default logos can be set using the following syntax:
-#
-#     pyseas.styles.set_default_logos(light_logo=light_logo, 
-#                                     dark_logo=dark_logo, 
-#                                     scale_adj=0.2, alpha=0.5)
 
 # If region is not specified, you get the default global map as specified by the 
 # projection name `global.default`. Currently that's ExactEarth centered at 0 longitude.
