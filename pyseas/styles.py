@@ -177,16 +177,14 @@ def get_logo(img_or_path):
         _, path = path.split('//', 1)
         local_path = logo_dir / os.path.basename(path)
         if not local_path.exists():
-            fs = gcsfs.gcsfs.GCSFileSystem()
+            fs = gcsfs.GCSFileSystem()
             local_path.parent.mkdir(parents=True, exist_ok=True)
-            fs.get_file(local_path, )
-            # subprocess.check_call(['gsutil', 'cp', path, str(local_path)])
-        path = Path(local_path)
+            fs.get_file(path, local_path)
     else:
-        path = Path(path)
-        if not path.is_absolute():
-            path = logo_dir / path
-    return skio.imread(path)
+        local_path = Path(path)
+        if not local_path.is_absolute():
+            local_path = logo_dir / path
+    return skio.imread(local_path)
 
 
 dark = {

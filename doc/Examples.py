@@ -83,40 +83,11 @@ with psm.context(psm.styles.light):
     psm.add_gridlines()
     psm.add_gridlabels()
     psm.add_logo(light_logo, loc='lower right', scale=0.2)
-# +
-dark_logo = skimage.io.imread('../pyseas/data/logos/picc_white.png')
-
-pyseas.styles.set_default_logos(light_logo=light_logo,
-                                dark_logo=dark_logo, scale_adj=0.2, alpha=0.5)
-
-with psm.context(psm.styles.light):
-    fig = plt.figure(figsize=(18, 6))
-    psm.create_map(projection='country.china')
-    psm.add_land()
-    psm.add_countries()
-    psm.add_eezs()
-    psm.add_gridlines()
-    psm.add_gridlabels()
-    psm.add_logo(loc='lower right')
+# -
+# `set_default_logos` accepts Google Cloud Storage paths prefixed with 
+# either `gs://` or `gcs://`. Logos loaded this way are locally cached.
 
 # +
-dark_logo = skimage.io.imread('../pyseas/data/logos/picc_white.png')
-
-pyseas.styles.set_default_logos(light_logo=light_logo,
-                                dark_logo=dark_logo, scale_adj=0.2, alpha=0.5)
-
-with psm.context(psm.styles.light):
-    fig = plt.figure(figsize=(18, 6))
-    psm.create_map(projection='country.china')
-    psm.add_land()
-    psm.add_countries()
-    psm.add_eezs()
-    psm.add_gridlines()
-    psm.add_gridlabels()
-    psm.add_logo(loc='lower right')
-
-# +
-pyseas._reload()
 pyseas.styles.set_default_logos(light_logo='gs://pyseas/logos/logo_black.png', 
                                 dark_logo='gs://pyseas/logos/logo_white.png', 
                                 scale_adj=1.0, alpha=0.5)
