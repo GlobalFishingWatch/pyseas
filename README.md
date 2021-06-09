@@ -11,7 +11,7 @@ A library to make GFW style maps in Python.
 
 ## Installation
 
-Some of the dependencies due not install cleanly via `pip`, so the recommended approach
+Some of the dependencies do not install cleanly via `pip`, so the recommended approach
 is to install them using Conda. The following recipes is currently preferred:
 
     git clone https://github.com/GlobalFishingWatch/pyseas.git

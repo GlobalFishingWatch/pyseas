@@ -88,9 +88,9 @@ with psm.context(psm.styles.light):
 # either `gs://` or `gcs://`. Logos loaded this way are locally cached.
 
 # +
-pyseas.styles.set_default_logos(light_logo='gs://pyseas/logos/logo_black.png', 
-                                dark_logo='gs://pyseas/logos/logo_white.png', 
-                                scale_adj=1.0, alpha=0.5)
+psm.styles.set_default_logos(light_logo='gs://pyseas/logos/logo_black.png', 
+                             dark_logo='gs://pyseas/logos/logo_white.png', 
+                             scale_adj=1.0, alpha=0.5)
 
 with psm.context(psm.styles.dark):
     fig = plt.figure(figsize=(18, 6))
