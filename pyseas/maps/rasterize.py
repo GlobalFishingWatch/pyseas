@@ -175,9 +175,7 @@ def h3_to_raster(h3_data, row_locs, col_locs, transform, fill=0.0):
     -------
     2D array of float
     """
-    print(h3_data, fill)
-
-    # Delay importation of vect, so only get the warning when actually used.
+    # Delay importation of vect to avoid warning.
     with warnings.catch_warnings():
         # Suppress useless UserWarning about unstable
         warnings.simplefilter("ignore")            
@@ -201,7 +199,7 @@ def h3cnts_to_raster(*args, **kwargs):
             "h3cnts_to_raster is deprecated, use h3_to_raster instead",
             DeprecationWarning
         )
-    h3_to_raster(*args, **kwargs)
+    return h3_to_raster(*args, **kwargs)
 
 
 def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='upper'):
@@ -300,7 +298,7 @@ class InterpImage(AxesImage):
             these care not coordinate pairs such as are used in skimage.draw.
         transform : function mapping (rows, columns) to (lons, lats)
 
-        See `h3cnts_to_raster` and `raster_to_raster` for more details on the 
+        See `h3_to_raster` and `raster_to_raster` for more details on the 
         the arguments.
         """
         raise NotImplemented()
@@ -313,8 +311,7 @@ class H3Image(InterpImage):
     """
     def _get_updated_A(self, row_locs, col_locs, transform):
         h3data, fill = self._source_data
-        print(h3data, fill)
-        return h3cnts_to_raster(h3data, row_locs, col_locs, transform, fill=fill) 
+        return h3_to_raster(h3data, row_locs, col_locs, transform, fill=fill) 
 
 
 class RasterImage(InterpImage):
