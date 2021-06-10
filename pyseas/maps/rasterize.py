@@ -37,7 +37,7 @@ from . import core
 
 
 def h3_show(ax, h3_data, cmap=None, norm=None, aspect=None, 
-            vmin=None, vmax=None, url=None, alpha=1.0, fill=0, **kwargs):
+            vmin=None, vmax=None, url=None, alpha=1.0, fill=0.0, **kwargs):
     """Plot H3 DGG data in a way friendly to projected maps.
 
     This is derived from Axes.imshow.
@@ -60,7 +60,7 @@ def h3_show(ax, h3_data, cmap=None, norm=None, aspect=None,
     im = H3Image(ax, cmap=cmap, norm=norm, extent=ax.get_extent(), interpolation='nearest', 
                  origin='lower', **kwargs)
 
-    return _finalize_show((h3_data, fill), im, ax, alpha, url,)
+    return _finalize_show((h3_data, fill), im, ax, alpha, url)
 
 
 def raster_show(ax, raster, extent, origin='upper', cmap=None, norm=None, aspect=None, 
@@ -175,6 +175,8 @@ def h3_to_raster(h3_data, row_locs, col_locs, transform, fill=0.0):
     -------
     2D array of float
     """
+    print(h3_data, fill)
+
     # Delay importation of vect, so only get the warning when actually used.
     with warnings.catch_warnings():
         # Suppress useless UserWarning about unstable
@@ -311,7 +313,8 @@ class H3Image(InterpImage):
     """
     def _get_updated_A(self, row_locs, col_locs, transform):
         h3data, fill = self._source_data
-        return h3cnts_to_raster(self._source_data, row_locs, col_locs, transform, fill=fill) 
+        print(h3data, fill)
+        return h3cnts_to_raster(h3data, row_locs, col_locs, transform, fill=fill) 
 
 
 class RasterImage(InterpImage):
