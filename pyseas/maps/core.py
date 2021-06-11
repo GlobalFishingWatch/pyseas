@@ -161,6 +161,231 @@ def add_countries(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidt
     return ax.add_feature(land)
 
 
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+
+def colorFromBivariateData(Z1,Z2,cmap1 = plt.cm.viridis, cmap2 = plt.cm.RdYlBu):
+    # Rescale values to fit into colormap range (0->255)
+    Z1 = np.log10(Z1,
+                  out=np.ones_like(Z1) *
+                  np.log10(np.min(Z1[np.nonzero(Z1)])),
+                  where=(Z1 != 0))
+    z1min_cap = Z1.min() + 3.
+    z1max_cap = Z1.max() - 2.
+    Z1 = np.clip(Z1, z1min_cap, z1max_cap)
+    Z1_plot = np.array((Z1 - z1min_cap) / (z1max_cap - z1min_cap))#, dtype=np.int)
+    Z2_plot = np.array(255*(Z2-Z2.min())/(Z2.max()-Z2.min()), dtype=np.int)
+
+    colors = [(255/255.,69/255.,115/255.), (1,1,1), (0,255/255.,195/255.)]
+    cm = LinearSegmentedColormap.from_list(
+        'contrast', colors, N=256)
+    Z2_color = cm(Z2_plot)
+    background = (10/255., 23/255., 56/255.) #"#0a1738"
+    Z_color = np.zeros_like(Z2_color)
+    Z2_color[:, :, 0] * Z1_plot
+    # background * (1 - Z1_plot)
+    Z_color[:, :, 0] = Z2_color[:, :, 0] * Z1_plot + background[0] * (1 - Z1_plot)
+    Z_color[:, :, 1] = Z2_color[:, :, 1] * Z1_plot + background[1] * (1 - Z1_plot)
+    Z_color[:, :, 2] = Z2_color[:, :, 2] * Z1_plot + background[2] * (1 - Z1_plot)
+    # Z2_color[:, :, 3] *= Z1_plot # * 0.5 + 0.5
+    # print(Z1_color.min(), Z1_color.max())
+    # Color for each point
+    # Z_color = np.sum([Z1_color, Z2_color], axis=0)/2.0
+    # Z_color = Z2_color #(Z1_color + Z2_color*2)/3.0
+
+    return Z_color
+
+
+def add_raster_bv(raster1, raster2, ax=None, extent=(-180, 180, -90, 90), origin='upper', **kwargs):
+    """Add a raster to an existing map
+
+    Parameters
+    ----------
+    ax : matplotlib axes object, optional
+    raster : 2D array
+    extent : tuple of int, optional
+        (lon_min, lon_max, lat_min, lat_max) of the raster
+    origin : str, optional
+        Location of the raster origin ['upper' or 'lowers']
+
+    Other Parameters
+    ----------------
+    Keyword args are passed on to imshow.
+
+    Returns
+    -------
+    AxesImage
+    """
+    if ax is None:
+        ax = plt.gca()
+
+    raster = colorFromBivariateData(raster1, raster2)
+    #
+    # Take RGB space (a seemingly simpler way of taking the entire raster including alpha value
+    # doen't work due to an apparently known issue in matplotlib)
+    raster = raster[:, :, 0:3]
+    return ax.imshow(raster, transform=identity,
+                     extent=extent, origin=origin, **kwargs)
+
+def plot_raster_bv(raster1, raster2, subplot=(1, 1, 1), projection='global.default',
+                bg_color=None, hide_axes=True, colorbar=None,
+                gridlines=False, **kwargs):
+    """Draw a GFW themed map over a raster
+
+    Parameters
+    ----------
+    raster : 2D array
+    subplot : tuple or GridSpec
+    projection : cartopy.crs.Projection, optional
+    bg_color : str or tuple, optional
+    hide_axes : bool
+        if `true`, hide x and y axes
+
+    Other Parameters
+    ----------------
+    Keyword args are passed on to add_raster.
+
+    Returns
+    -------
+    (GeoAxes, AxesImage)
+    """
+    extent = kwargs.get('extent')
+    ax = create_map(subplot, projection, extent, bg_color, hide_axes)
+    im = add_raster_bv(raster1, raster2, ax=ax, **kwargs)
+    add_land(ax)
+    return ax, im
+
+
+def plot_raster_w_colorbar_bv(raster1, raster2, label='', loc='bottom',
+                           projection='global.default', hspace=0.03, wspace=0.1, #hspace=0.05, wspace=0.016,
+                           bg_color=None, hide_axes=True, cbformat=None, **kwargs):
+    """Draw a GFW themed map over a raster with a colorbar
+
+    Parameters
+    ----------
+    raster : 2D array
+    label : str, optional
+    loc : str, optional
+    projection : cartopy.crs.Projection, optional
+    hspace : float, optional
+        space between colorbar and axis
+    wspace : float, optional
+        horizontal space adjustment
+    bg_color : str or tuple, optional
+    hide_axes : bool
+        if `true`, hide x and y axes
+    cbformat : formatter
+
+    Other Parameters
+    ----------------
+    Keyword args are passed on to plot_raster.
+
+    Returns
+    -------
+    (GeoAxes, AxesImage)
+    """
+    assert loc in ('top', 'bottom')
+    is_global = isinstance(projection, str) and projection.startswith('global.')
+    if is_global:
+        wratios = [1, 1, 1, 0.85]
+    else:
+        wratios = [1, 1, 1, 0.01]
+    if loc == 'top':
+        hratios = [.015, 1]
+        cb_ind, pl_ind = 0, 1
+        anchor = 'NE'
+    else:
+        hratios = [1, 0.08] #0.015]
+        cb_ind, pl_ind = 1, 0
+        anchor = 'SE'
+
+    gs = plt.GridSpec(2, 4, height_ratios=hratios, width_ratios=wratios, hspace=hspace, wspace=wspace)
+    ax, im = plot_raster_bv(raster1, raster2, gs[pl_ind, :], projection=projection, **kwargs)
+    ax.set_anchor(anchor)
+    cb_ax = plt.subplot(gs[cb_ind, 2])
+
+    #
+    # Get log of each grid cell in raster 1
+    # (if zero, then replace it with the minimum so that log doesn't raise an error)
+    Z1 = np.log10(raster1,
+                  out=np.ones_like(raster1) * np.log10(np.min(raster1[np.nonzero(raster1)])),
+                  where=(raster1 != 0))
+    z1min_cap = Z1.min() + 3.
+    z1max_cap = Z1.max() - 2.
+    # xx = np.clip(Z1, z1min_cap, z1max_cap)
+
+    #
+    # Create an empty matrix for color matrix
+    xx, yy = np.mgrid[0:100, 0:101]
+
+    #
+    # For horizontal axis, it represents the ratio dimension, 0 to 1
+    # For vertical axis, it represents the intensity dimension, 0 to 255
+    Z1_plot = np.array((xx-xx.min())/(xx.max()-xx.min()))
+    Z2_plot = np.array(255*(yy-yy.min())/(yy.max()-yy.min()), dtype=np.int)
+
+    #
+    # Two color RGBs for row ratio and high ratio
+    crow = (255, 69, 115)  # redish
+    cmid = (255, 255, 255)  # white
+    chigh = (0, 255, 195)  # greenish
+    n = 255.
+    colors = [(crow[0] / n, crow[1] / n, crow[2] / n),
+              (cmid[0] / n, cmid[1] / n, cmid[2] / n),
+              (chigh[0] / n, chigh[1] / n, chigh[2] / n)]
+    #
+    # Create a custom linear colormap using the colors above
+    cm = LinearSegmentedColormap.from_list(
+        'contrast', colors, N=256)
+    Z2_color = cm(Z2_plot)
+
+    #
+    # For minimum intensity, the background map color is used
+    cbg = (10, 23, 56)  # dark bluish
+    cmin = (cbg[0] / n, cbg[1] / n, cbg[2] / n)  # In hex: "#0a1738"
+    Z_color = np.zeros_like(Z2_color)
+
+    #
+    # Generate the final color matrix
+    Z_color[:, :, 0] = Z2_color[:, :, 0] * Z1_plot + cmin[0] * (1 - Z1_plot)
+    Z_color[:, :, 1] = Z2_color[:, :, 1] * Z1_plot + cmin[1] * (1 - Z1_plot)
+    Z_color[:, :, 2] = Z2_color[:, :, 2] * Z1_plot + cmin[2] * (1 - Z1_plot)
+
+    #
+    # Plot the color matrix in the designated subplot
+    cb_ax.imshow(Z_color[:, :, 0:3], origin='lower')
+    cb_ax.set_yscale('log')
+    # cb_ax.set_ylim(10, pow(10, Z1.max()))
+    cb_ax.spines['top'].set_visible(False)
+    cb_ax.spines['right'].set_visible(False)
+    cb_ax.set_xlabel('Ratio of Fishing Hours by Matched Vessels to Those by All', fontsize=8)
+    # cb_ax.set_ylabel('Total Fishing Hours', fontsize=8)
+    cb_ax.tick_params(labelsize=8)
+    cb_ax.set_xticklabels(cb_ax.get_xticks())
+    cb_ax.set_yticklabels(cb_ax.get_yticks())
+    labels = [str(int(float(item.get_text()))) + "%" for item in cb_ax.get_xticklabels()]
+    cb_ax.set_xticklabels(labels)
+    labels = ["", "",
+              str(round(pow(10, (z1min_cap + 1)), 1)),
+              str(round(pow(10, (z1max_cap)), 1)),
+              "", ""]
+    cb_ax.set_yticklabels(labels)
+    cb_ax.tick_params(axis="x", direction="in", pad=1)
+
+    leg_ax = plt.subplot(gs[cb_ind, 1], frame_on=False)
+    leg_ax.axes.get_xaxis().set_visible(False)
+    leg_ax.axes.get_yaxis().set_visible(False)
+    leg_ax.text(0.8, 0.5, label,
+        fontdict=plt.rcParams.get('pyseas.map.colorbarlabelfont', styles._colorbarlabelfont),
+                    horizontalalignment='right', verticalalignment='center', fontsize=10)
+    if loc == 'top':
+        cb_ax.xaxis.tick_top()
+    plt.sca(ax)
+
+    return ax, im, cb_ax
+
+
 def add_raster(raster, ax=None, extent=None, origin='upper', interpolation='nearest', 
                **kwargs):
     """Add a raster to an existing map
@@ -530,7 +755,7 @@ def create_map(subplot=(1, 1, 1),
     if hide_axes:
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
-    ax.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])
+    # ax.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])
     return ax
 
 def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, hshift=0, vshift=0):
