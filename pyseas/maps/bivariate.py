@@ -96,10 +96,8 @@ def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None,
         cb_ax.set_yscale('log')
 
     if xformat is not None:
-        print(xformat)
         cb_ax.xaxis.set_major_formatter(xformat)
     if yformat is not None:
-        print(yformat)
         cb_ax.yaxis.set_major_formatter(yformat)
 
 
