@@ -1,9 +1,22 @@
+from cycler import cycler as _cycler, Cycler as _Cycler
 from matplotlib import pyplot as _plt
 from matplotlib import rcsetup as _rcsetup
-from cycler import cycler as _cycler, Cycler as _Cycler
+from matplotlib import font_manager
+import os
+from pathlib import Path
 from . import props as _props
 from . import cm as _cm
 from matplotlib.colors import to_rgba
+import numpy as np
+import skimage.io as skio
+import gcsfs
+
+root = Path(__file__).parents[1]
+data = Path(__file__).parents[0] / 'data'
+
+font_dirs = [x for x in (data / 'fonts').iterdir() if x.is_dir()]
+for font_file in font_manager.findSystemFonts(fontpaths=font_dirs):
+    font_manager.fontManager.addfont(font_file)
 
 """
 This chart style was developed on a 10 by 6 figure size. 
@@ -144,6 +157,35 @@ _annotationplotprops = dict(fontdict={'size' : 10, 'weight' : 'medium'})
 
 _colorbarlabelfont  = {'fontsize': 12}
 
+logo_dir = data / 'logos'
+
+def get_logo(img_or_path):
+    """Retrieve a logo from a local or GCS path
+
+    Parameters
+    ----------
+    img_or_path : array or str
+
+    Returns
+    -------
+    array
+    """
+    if not isinstance(img_or_path, str):
+        return np.asarray(img_or_path)
+    path = img_or_path
+    if path.startswith('gs://') or path.startswith('gcs://'):
+        _, path = path.split('//', 1)
+        local_path = logo_dir / os.path.basename(path)
+        if not local_path.exists():
+            fs = gcsfs.GCSFileSystem()
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+            fs.get_file(path, local_path)
+    else:
+        local_path = Path(path)
+        if not local_path.is_absolute():
+            local_path = logo_dir / path
+    return skio.imread(local_path)
+
 
 dark = {
         'text.usetex' : False,
@@ -180,8 +222,8 @@ dark = {
          'pyseas.map.annotationplotprops' : _annotationplotprops,
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
-         'pyseas.logo.name' : _props.dark.logo.name,
-         'pyseas.logo.base_scale' : _props.dark.logo.base_scale,
+         'pyseas.logo' : get_logo(_props.dark.logo.name),
+         'pyseas.logo.scale_adj' : _props.dark.logo.scale_adj,
          'pyseas.logo.alpha' : _props.dark.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.dark.miniglobe.overlaycolor,
          'pyseas.miniglobe.outerwidth' : _props.dark.miniglobe.outer_width,
@@ -224,8 +266,8 @@ light = {
          'pyseas.map.annotationplotprops' : _annotationplotprops,
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
-         'pyseas.logo.name' : _props.light.logo.name,
-         'pyseas.logo.base_scale' : _props.light.logo.base_scale,
+         'pyseas.logo' : get_logo(_props.light.logo.name),
+         'pyseas.logo.scale_adj' : _props.light.logo.scale_adj,
          'pyseas.logo.alpha' : _props.light.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.light.miniglobe.overlaycolor,
          'pyseas.miniglobe.outerwidth' : _props.light.miniglobe.outer_width,
@@ -248,5 +290,35 @@ for k in panel:
 del k
 
 
+
+
+
+def set_default_logos(light_logo=None, dark_logo=None, scale_adj=1, alpha=None):
+    """Set the default logos to use with add_logo
+
+    Either the light logo, the dark logo, or both may be specified. If both,
+    then scale_adj and alpha applies to both. If neither is specified, nothing
+    is done.
+
+    Parameters
+    ----------
+    light_logo, dark_logo : array, optional
+        Must be in a format that matplotlib understands.
+    scale_adj : float, optional
+        The default image scale is multiplied by this amount.
+    alpha : float or None, optional
+        Set the image alpha. If not specified, the image alpha is inherited from previous
+        logos.
+    """
+    if light_logo is not None:
+        light['pyseas.logo'] = get_logo(light_logo)
+        light['pyseas.logo.scale_adj'] = scale_adj
+        if alpha is not None:
+            light['pyseas.logo.alpha'] = alpha
+    if dark_logo is not None:
+        dark['pyseas.logo'] = get_logo(dark_logo)
+        dark['pyseas.logo.scale_adj'] = scale_adj
+        if alpha is not None:
+            dark['pyseas.logo.alpha'] = alpha
 
 

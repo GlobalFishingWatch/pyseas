@@ -67,8 +67,8 @@ def _add_subpanel(gs, timestamp, values, kind, label, prop_map, break_on_change,
     else:
         ax.xaxis_date()
         ticks = ax.get_xticks()
-        stamps = [DT.datetime.fromtimestamp(x * S_PER_DAY) for x in ticks]
-        lbls = ['{x:%Y-%m-%d}'.format(x=x) for x in stamps]
+        stamps = [mdates.num2date(x) for x in ticks]
+        lbls = ['{x:%Y-%m-%d:%H:%M}'.format(x=x.replace(tzinfo=None)) for x in stamps]
         ax.set_xticks(ticks)
         label_angle = label_angle % 360
         if label_angle == 0:

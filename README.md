@@ -1,55 +1,43 @@
+
+<h4>
+<img src="gfw_logo.png" alt="GFW Logo" height="40"  valign="middle"/>
+Global Fishing Watch
+</h4>
+
 # PySeas
 
-A library to help make GFW style map plots in Python.
+A library to make GFW style maps in Python.
 
-In the future this will likely be extended to other types of GFW plots.
-
-*Please note all interfaces are still in flux and not guaranteed to be stable!*
-
-## To Do
-
-* Bulletproof Scalebar
 
 ## Installation
 
-## Pyseas
+Some of the dependencies do not install cleanly via `pip`, so the recommended approach
+is to install them using Conda. The following recipes is currently preferred:
 
-#### Mac
+    git clone https://github.com/GlobalFishingWatch/pyseas.git
+    cd pyseas
 
-Some of the dependencies are a headache to install via `pip`, so the recommended approach
-is to install using Conda. The following recipe works currently:
+Then, to install in new Conda environment named `pyseas`:
 
-    conda install -c conda-forge cartopy geopandas numpy matplotlib pandas h3-py \
-                     jupyter jupytext scikit-image cmocean gdal netcdf4 pandas-gbq
+    conda create -c conda-forge -y -n pyseas python=3.8 cartopy gdal
+    conda activate pyseas
+    pip install -e ".[nb]"
 
-Then `cd` to the directory that PySeas was cloned into, typically `pyseas`, and run:
+Or, to install in an existing Conda environment:
 
-    pip install -e .
+    conda activate CONDA-ENV-NAME
+    conda install -c conda-forge -y -n CONDA-ENV-NAME python=3.8 cartopy gdal
+    pip install -e ".[nb]"
 
-This install PySeas into whatever Conda environment is active at the time it is run.
-We use the `-e` option so that EEZ data and logo data can be easily installed afterwards
-as described below.
+If you'd like to skip installing `jupyter` and `jupytext`, which are not strictly
+necessary to use `pyseas`, replace `".[nb]"` with `.` 
+to omit the *notebook* dependencies. If you are not interested in the `Examples`
+notebooks, you may omit `-e` and avoid the in-place install.
 
-### Installing EEZ data
+## Acknowledgments
 
-* Download the World EEZ v11 GeoPackage from https://www.marineregions.org/downloads.php
-* Unpack the zip file 
-* Copy `eez_boundaries_v11.gpkg` and `eez_v11.gpkg` to `untracked/data/`
+* EEZ boundaries are drawn using *World EEZ v11* from [Marine Regions](https://www.marineregions.org/) 
+  licensed under [CC-BY](https://creativecommons.org/licenses/by/4.0/).
 
-### Installing the Roboto Font
-
-* Download Roboto from https://fonts.google.com/specimen/Roboto?selection.family=Roboto
-* On OsX install using FontBook, On Linux???
-* You may need to update the font-cache, it worked for me without this, but see https://scentellegher.github.io/visualization/2018/05/02/custom-fonts-matplotlib.html
-* Remove the matplotlib cache dir, For me this was `~/.matplotlib`
-* Restart Jupyter
-
-### Installing Logos
-
-* Logos should be copied to `untracked\data\logos\`
-* The default logo names in styles are `black_logo.png` and `white_logo.png` for
-  the light and dark styles respectively. You should either rename your logos to match
-  or adjust the logo names in `data/props.json`.
-* Logo style information defined in `data/props.json` should be adjusted appropriately.
-   - Note that the default value for `base_scale` assumes a very large logo that 
-     is downscaled.
+* The *Roboto* fonts from [Google](https://fonts.google.com/specimen/Roboto) licensed under
+  [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)

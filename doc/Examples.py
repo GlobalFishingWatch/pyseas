@@ -14,13 +14,14 @@
 #     name: python3
 # ---
 
-# # Examples of Plotting with `pyseas`
+# # Examples of Plotting with *pyseas*
 
 # +
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpcolors
 import matplotlib.gridspec as gridspec
+from pathlib import Path
 import skimage.io
 import pandas as pd
 import cartopy
@@ -32,6 +33,8 @@ import pyseas.contrib as psc
 import pyseas.cm
 
 # %matplotlib inline
+
+data_dir = Path(pyseas.__file__).parents[1] / 'doc' / 'data'
 # -
 
 # ## Recomended Style
@@ -50,7 +53,8 @@ with psm.context(psm.styles.dark):
     psm.add_land()
 
 # In addition to `add_land` there a number of other features that can be added to maps
-# including eezs, grid_lines, countries, logos, etc.
+# including eezs, grid_lines, countries, logos, etc. If you add a logo, without specifying
+# the image to use, you'll get the PySeas logo.
 
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(18, 6))
@@ -61,8 +65,45 @@ with psm.context(psm.styles.light):
     psm.add_gridlines()
     psm.add_gridlabels()
     psm.add_logo(loc='upper left')
+# plt.savefig('/Users/timothyhochberg/Desktop/pyseas_logo_test.png', dpi=300, 
+# facecolor=plt.rcParams['pyseas.fig.background'])
 
-# If not region is specified, you get the default global map as specified by the 
+# More commonly you'll want to either specify a custom logo as shown here, or set the default
+# logo as shown below.
+
+# +
+light_logo = skimage.io.imread('../pyseas/data/logos/picc_black.png')
+
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    psm.create_map(projection='country.china')
+    psm.add_land()
+    psm.add_countries()
+    psm.add_eezs()
+    psm.add_gridlines()
+    psm.add_gridlabels()
+    psm.add_logo(light_logo, loc='lower right', scale=0.2)
+# -
+# `set_default_logos` accepts Google Cloud Storage paths prefixed with 
+# either `gs://` or `gcs://`. Logos loaded this way are locally cached.
+
+# +
+psm.styles.set_default_logos(light_logo='gs://pyseas/logos/logo_black.png', 
+                             dark_logo='gs://pyseas/logos/logo_white.png', 
+                             scale_adj=1.0, alpha=0.5)
+
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(18, 6))
+    psm.create_map(projection='country.china')
+    psm.add_land()
+    psm.add_countries()
+    psm.add_eezs()
+    psm.add_gridlines()
+    psm.add_gridlabels()
+    psm.add_logo(loc='lower right')
+# -
+
+# If region is not specified, you get the default global map as specified by the 
 # projection name `global.default`. Currently that's ExactEarth centered at 0 longitude.
 
 with psm.context(psm.styles.light):
@@ -78,38 +119,30 @@ with psm.context(psm.styles.light):
 #
 # There are facilities for creating and displaying rasters.
 
-# Grab some data and create a raster
-query = """
-with seismic as 
-(select distinct ssvid from (
-select ssvid, v  from `gfw_research.vi_ssvid_v20200312` cross join
-unnest(registry_info.best_known_vessel_class) v
- ) where v = 'seismic_vessel'
- ),
- good_segs as (select seg_id from `gfw_research.pipe_v20190502_segs`  where 
- good_seg and not overlapping_and_short
- and positions > 20)
- select 
- floor(lat*10) lat_bin,
- floor(lon*10) lon_bin,
- sum(hours) hours,
- sum(if(nnet_score>.5,1,0)) fishing_hours
- from `gfw_research.pipe_v20190502` 
- join seismic
- using(ssvid)
- where date between timestamp("2019-01-01") and timestamp("2019-12-31")
- and seg_id in (select seg_id from good_segs)
- group by lat_bin, lon_bin
- """
-seismic_presence = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard') 
-seismic_raster = psm.rasters.df2raster(seismic_presence, 'lon_bin', 'lat_bin', 'hours', 
+# # Grab some data and create a raster
+seismic_presence = pd.read_csv(data_dir / 'seismic_presence_tenth_degree.csv.zip')
+seismic_raster = psm.rasters.df2raster(seismic_presence, 'lon_index', 'lat_index', 'hours', 
                                          xyscale=10, origin='lower', per_km2=True)
 
 # Display a raster along with standard colorbar.
+pyseas._reload()
 fig = plt.figure(figsize=(14, 7))
-norm = mpcolors.LogNorm(vmin=1, vmax=1000)
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+with psm.context(psm.styles.dark):
+    with psm.context({'text.color' : 'white'}):
+        ax, im = psm.plot_raster(seismic_raster, 
+                                  projection='country.indonesia',
+                                  cmap='presence',
+                                  norm=norm,
+                                  origin='lower')
+        psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$",
+                        width = .5)
+
+# Display a raster along with standard colorbar.
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with plt.rc_context(psm.styles.dark):
-    ax, im = psm.plot_raster(seismic_raster * (60 * 60), 
+    ax, im = psm.plot_raster(seismic_raster, 
                               projection='country.indonesia',
                               cmap='presence',
                               norm=norm,
@@ -123,68 +156,64 @@ with plt.rc_context(psm.styles.dark):
                       aspect=40,
                       pad=0.04,
                      )
-    psm.add_logo(loc='lower left')
 
-# Display a raster along with aligned, labeled colorbar.
-fig = plt.figure(figsize=(14, 7))
-norm = mpcolors.LogNorm(vmin=1, vmax=1000)
+# `add_colorbar` can be used with subplots. Here we just plot the same 
+# thing twice and add a colorbar to the last plot.
+
+import pyseas; pyseas._reload()
+fig = plt.figure(figsize=(14, 14))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+gs = gridspec.GridSpec(2, 1)
 with plt.rc_context(psm.styles.dark):
-    ax, im = psm.plot_raster(seismic_raster * (60 * 60), 
-                                             projection='country.indonesia',
-                                             cmap='presence',
-                                             norm=norm,
-                                             origin='lower')
-    psm.add_countries()
-    psm.add_eezs()
-    ax.set_title('Seismic Vessel Presence Near Indonesia')
-    psm.add_logo(loc='lower left')
+    with psm.context({'text.color' : 'white'}):
+        for i in range(2):
+            ax, im = psm.plot_raster(seismic_raster, 
+                                     subplot=gs[i, 0],
+                                      projection='country.indonesia',
+                                      cmap='presence',
+                                      norm=norm,
+                                      origin='lower')
+            ax.set_title(f'Seismic Vessel Presence Near Indonesia - {i + 1}')
+        psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$ ")
 
-# It's important to realize that normally one is not seeing the background of the map over water, 
-# but instead the zero value of the raster. Sometimes it's useful to make some portion of the 
-# raster transparent, which can be done by setting values to np.nan. A somewhat contrived example
-# is shown below, where normally using a light colormap with a dark background would result in
-# a bizzare light background, but this is prevented by making the background transparent.
-
-fig = plt.figure(figsize=(14, 7))
-norm = mpcolors.LogNorm(vmin=1, vmax=1000)
-raster = seismic_raster.copy()
-raster[raster == 0] = np.nan
+import pyseas; pyseas._reload()
+fig = plt.figure(figsize=(14.7, 7.6))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+gs = gridspec.GridSpec(2, 2, hspace=0, wspace=0.02)
 with plt.rc_context(psm.styles.dark):
-    ax, im, cb = psm.plot_raster_w_colorbar(raster * (60 * 60), 
-                                             r"seconds per $\mathregular{km^2}$ ",
-                                             projection='country.indonesia',
-                                             cmap=pyseas.cm.light.presence,
-                                             norm=norm,
-                                             cbformat='%.0f',
-                                             origin='lower',
-                                             loc='bottom')
-    psm.add_countries()
-    psm.add_eezs()
-    ax.set_title('Seismic Vessel Presence Near Indonesia')
-    psm.add_logo(loc='lower left')
+    with psm.context({'text.color' : (0.5, 0.5, 0.5)}):
+        for i in range(2):
+            for j in range(2):
+                ax, im = psm.plot_raster(seismic_raster, 
+                                         subplot=gs[i, j],
+                                          projection='country.indonesia',
+                                          cmap='presence',
+                                          norm=norm,
+                                          origin='lower')
+        psm.add_colorbar(im, ax=ax, label=r"hours per $\mathregular{km^2}$", 
+                 width=1.7, height=0.035, wspace=0.0025, valign=0.2)
+
+# Display a raster along with standard colorbar.
+pyseas._reload()
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+with psm.context(psm.styles.dark):
+    with psm.context({'text.color' : 'white'}):
+        ax, im = psm.plot_raster(seismic_raster, 
+                                          projection='global.default',
+                                  cmap='presence',
+                                  norm=norm,
+                                  origin='lower')
+        psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", loc='bottom')
 
 # ### H3 Discrete Global Grids
 #
 # There is also support for rendering data defined in terms of H3 DGG as rasters
+#
+# N.B. this relies on `h3.unstable`, so might require modification to work in the future.
 
-query_template = """
-with h3_fishing as (
-  select jslibs.h3.ST_H3(ST_GEOGPOINT(lon, lat), {level}) h3_n 
-  from gfw_research.pipe_v20190502_fishing
-  where lon between 3.8 and 65.2 and lat between 48.6 and 75.4
-  and date(date) between "2019-05-01" and "2019-10-31"
-  and nnet_score > .5
-)
-
-select h3_n as h3, count(*) as cnt
-from h3_fishing
-group by h3_n
-"""
-fishing_h3_6 = pd.read_gbq(query_template.format(level=6), project_id='world-fishing-827')
+fishing_h3_6 = pd.read_csv(data_dir / 'fishing_h3_lvl6.csv.zip')
 h3cnts_6_b = {np.uint64(int(x.h3, 16)) : x.cnt for x in fishing_h3_6.itertuples()}
-
-# +
-pyseas._reload()
 
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(1, 40000)
@@ -204,11 +233,6 @@ with psm.context(psm.styles.dark):
                       aspect=40,
                       pad=0.04,
                      )
-    psm.add_logo(loc='lower left')
-    
-# plt.savefig('/Users/timothyhochberg/Desktop/test_h3_600.png', dpi=600, 
-#             facecolor=plt.rcParams['pyseas.fig.background'])
-# -
 
 # ## Plotting Tracks
 
@@ -220,15 +244,8 @@ with psm.context(psm.styles.dark):
 # Both of these support creation of legends. However, the second requires a bit
 # of manual intervention.
 
-query = """
-    select ssvid, lat, lon, timestamp, seg_id, speed
-    from `world-fishing-827.pipe_production_v20200203.messages_scored_2018*`
-    where _TABLE_SUFFIX between "0101" and "0131"
-    and ssvid in ("413461490", "249014000", "220413000")
-    and seg_id is not null
-    order by timestamp
-    """
-position_msgs = pd.read_gbq(query, project_id='world-fishing-827', dialect='standard')  
+position_msgs = pd.read_csv(data_dir / 'position_messages.csv.zip')
+position_msgs['timestamp'] = pd.to_datetime(position_msgs.timestamp)
 
 # Note the use of `maps.find_projection` to find an appropriate projection and extents
 # based on lat/lon data.
@@ -256,7 +273,7 @@ with psm.context(psm.styles.light):
 # Use add plot, to display multiple tracks at once.
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(8, 8))
-    df = position_msgs[position_msgs.ssvid != '220413000']
+    df = position_msgs[position_msgs.ssvid != 220413000]
     projinfo = psm.find_projection(df.lon, df.lat)
     psm.create_map(projection=projinfo.projection, extent=projinfo.extent)
     psm.add_land()
@@ -269,7 +286,7 @@ with psm.context(psm.styles.light):
 # here we use the built in fishing props.
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(8, 8))
-    df = position_msgs[position_msgs.ssvid == '413461490']
+    df = position_msgs[position_msgs.ssvid == 413461490]
     projinfo = psm.find_projection(df.lon, df.lat)
     psm.create_map(projection=projinfo.projection, extent=projinfo.extent)
     psm.add_land()
@@ -289,7 +306,7 @@ with psm.context(psm.styles.light):
 # tracks at once.
 
 # +
-df = position_msgs[(position_msgs.ssvid == "413461490")]
+df = position_msgs[(position_msgs.ssvid == 413461490)]
 with psm.context(psm.styles.panel):
     fig = plt.figure(figsize=(12, 12))
     info = psc.multi_track_panel(df.timestamp, df.lon, df.lat, df.seg_id,
@@ -301,7 +318,7 @@ with psm.context(psm.styles.panel):
 # There is some basic functionality for combining multiple panels as shown below.
 # -
 
-df = position_msgs[(position_msgs.ssvid == "413461490")]
+df = position_msgs[(position_msgs.ssvid == 413461490)]
 with psm.context(psm.styles.panel):
     fig = plt.figure(figsize=(18, 18))
     gs = gridspec.GridSpec(2, 2)
@@ -324,7 +341,7 @@ with psm.context(psm.styles.panel):
                 plots=[{'label' : 'lon', 'values' : df.speed}],
                 gs=gs[1, 1], label_angle=30)
 
-df = position_msgs[(position_msgs.ssvid == "413461490")]
+df = position_msgs[(position_msgs.ssvid == 413461490)]
 with psm.context(psm.styles.panel):
     fig = plt.figure(figsize=(18, 18))
     gs = gridspec.GridSpec(1, 2, figure=fig)
@@ -343,7 +360,7 @@ with psm.context(psm.styles.panel):
 # The second panel type, `track_state_panel`, plots single tracks with multiple states. For instance,
 # fishing/non-fishing, loitering/non-loitering, etc.
 
-df = position_msgs[(position_msgs.ssvid == "413461490")].reset_index()
+df = position_msgs[(position_msgs.ssvid == 413461490)].reset_index()
 with psm.context(psm.styles.panel):
     fig = plt.figure(figsize=(12, 12))
     info = psc.track_state_panel(df.timestamp, df.lon, df.lat, df.speed > 7.0,
@@ -352,7 +369,7 @@ with psm.context(psm.styles.panel):
 # Both panel types have a number of options including `annotations` and
 # `add_night_shades`.
 
-df = position_msgs[(position_msgs.ssvid == "413461490")].reset_index()
+df = position_msgs[(position_msgs.ssvid == 413461490)].reset_index()
 with psm.context(psm.styles.panel):
     fig = plt.figure(figsize=(12, 12))
     info = psc.track_state_panel(df.timestamp, df.lon, df.lat, df.speed > 7.0,
@@ -394,11 +411,3 @@ with psm.context(psm.styles.dark):
 
 # +
 # plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
-# -
-
-# ## Publish
-
-# +
-# import rendered
-# rendered.publish_to_github('./Examples.ipynb', 
-#                            'pyseas/doc', action='push')
