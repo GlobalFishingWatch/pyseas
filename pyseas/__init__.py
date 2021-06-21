@@ -11,7 +11,7 @@ def _reload():
     from pyseas import maps, cm, styles, util, props
     from pyseas.contrib import plot_tracks
     from pyseas.maps import (scalebar, core, rasters, ticks, projection, overlays,
-                             rasterize, colorbar)
+                             rasterize, colorbar, bivariate)
     from pyseas import contrib
     import imp
 
@@ -25,8 +25,10 @@ def _reload():
     imp.reload(rasters)
     imp.reload(rasterize)
     imp.reload(colorbar)
+    imp.reload(bivariate)
     imp.reload(core)
     imp.reload(maps)
+    
     imp.reload(plot_tracks)
     imp.reload(pyseas)
     imp.reload(projection)

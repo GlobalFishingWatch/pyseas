@@ -175,11 +175,7 @@ def h3_to_raster(h3_data, row_locs, col_locs, transform, fill=0.0):
     -------
     2D array of float
     """
-<<<<<<< HEAD
     # Delay importation of vect, so only get the warning when actually used.
-=======
-    # Delay importation of vect to avoid warning.
->>>>>>> set-rasterize-fill
     with warnings.catch_warnings():
         # Suppress useless UserWarning about unstable
         warnings.simplefilter("ignore")            
@@ -229,7 +225,11 @@ def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='uppe
     2D array of float
     """
     assert origin in ('upper', 'lower')
-    projected = np.zeros([len(row_locs), len(col_locs)])
+    assert len(raster.shape) in (2, 3)
+    if len(raster.shape) == 2:
+        projected = np.zeros([len(row_locs), len(col_locs)])
+    elif len(raster.shape) == 3:
+        projected = np.zeros([len(row_locs), len(col_locs), raster.shape[-1]])
     counts = np.zeros([len(row_locs), len(col_locs)]) + 1e-10
     lon0, lon1, lat0, lat1 = extent
     if origin == 'upper':
@@ -256,7 +256,10 @@ def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='uppe
         projected[ii[valid], jj[valid]] += raster[rr[valid], cc[valid]]
         counts[ii[valid], jj[valid]] += 1
 
-    return projected / counts
+    if len(raster.shape) == 2:
+        return projected / counts
+    else:
+        return projected / counts[:, :, np.newaxis]
 
 
 class InterpImage(AxesImage):

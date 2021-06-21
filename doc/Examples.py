@@ -411,3 +411,76 @@ with psm.context(psm.styles.dark):
 
 # +
 # plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
+
+# +
+import pandas as pd
+
+q = """
+SELECT *
+FROM `scratch_jaeyoon.fishing_effort_known_vs_unknown_midhighres_v20210320`
+"""
+df = pd.read_gbq(q, project_id='world-fishing-827', dialect='standard')
+
+df_all = df[df["fishing_hours_all"].notnull()]
+df_known = df[df["fishing_hours_known_vessels"].notnull()]
+# -
+
+df_all.head()
+
+grid_known = psm.rasters.df2raster(df_known, 'lon_bin', 'lat_bin', 
+                                     'fishing_hours_known_vessels', 
+                                     xyscale=5, per_km2=True)
+grid_total = psm.rasters.df2raster(df_all, 'lon_bin', 'lat_bin', 
+                                     'fishing_hours_all', 
+                                     xyscale=5, per_km2=True)
+grid_ratio = np.divide(grid_known, grid_total, out=np.zeros_like(grid_known), 
+                       where=grid_total!=0)
+
+#
+# Two color RGBs for row ratio and high ratio
+clow = (255, 69, 115)  # redish
+cmid = (255, 255, 255)  # white
+chigh = (0, 255, 195)  # greenish
+n = 255.
+colors = [(clow[0] / n, clow[1] / n, clow[2] / n),
+          (cmid[0] / n, cmid[1] / n, cmid[2] / n),
+          (chigh[0] / n, chigh[1] / n, chigh[2] / n)]
+#
+# Create a custom linear colormap using the colors above for ratio dimension (red to green)
+jaeyoons_lscm = mpcolors.LinearSegmentedColormap.from_list(
+    'contrast', colors, N=256)
+
+# +
+pyseas._reload()
+from pyseas.maps import bivariate
+
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(15, 15), dpi=300, facecolor='white')
+    ax = psm.create_map()
+    psm.add_land(ax)
+
+    norm1 = mpcolors.LogNorm(vmin=0.1, vmax=10, clip=True)
+    norm2 = mpcolors.Normalize(vmin=0.0, vmax=1.0, clip=True)
+
+    cmap = bivariate.TransparencyBivariateColormap(jaeyoons_lscm)
+    colorized = cmap(norm2(grid_ratio), norm1(grid_total))
+    
+    psm.add_raster(colorized)
+    
+    bivariate.add_bivariate_colorbox(cmap, norm1, norm2,
+                                     xlabel='fraction of matched fishing hours',
+                                    ylabel='total fishing hours', fontsize=8,
+                                     height=0.4,
+                                    yformat='{x:.1f}')
+    
+    plt.show()
+
+
+# -
+
+plt.imshow(colorized)
+
+from matplotlib import cm
+plt.imshow(cm.Reds(norm1(grid_total)))
+
+
