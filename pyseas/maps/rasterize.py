@@ -24,19 +24,20 @@ Much code here repurposed from the matplotlib sources for `Axes.imshow` and
 from collections import Counter
 import numpy as np
 import h3.api.numpy_int as h3
-from h3.unstable import vect
 
+from matplotlib.colors import Normalize 
 from matplotlib.image import AxesImage
 from matplotlib import rcParams
 from matplotlib import cm
 import matplotlib.cbook as cbook
 import matplotlib.artist as martist
+import warnings
 
 from . import core
 
 
 def h3_show(ax, h3_data, cmap=None, norm=None, aspect=None, 
-            vmin=None, vmax=None, url=None, alpha=1.0, **kwargs):
+            vmin=None, vmax=None, url=None, alpha=1.0, fill=0.0, **kwargs):
     """Plot H3 DGG data in a way friendly to projected maps.
 
     This is derived from Axes.imshow.
@@ -47,6 +48,8 @@ def h3_show(ax, h3_data, cmap=None, norm=None, aspect=None,
     h3_data : dict mapping np.uint64 to int or float
         The key is a H3 ID, while the value is either a count or density.
     cmap, norm, aspect, vmin, vmax, url, alpha, kwargs : see Axes.imshow
+    fill : int or None, optional
+        Value to use for unspecified H3 locations, see h3_to_raster
 
     Returns
     -------
@@ -57,7 +60,7 @@ def h3_show(ax, h3_data, cmap=None, norm=None, aspect=None,
     im = H3Image(ax, cmap=cmap, norm=norm, extent=ax.get_extent(), interpolation='nearest', 
                  origin='lower', **kwargs)
 
-    return _finalize_show(h3_data, im, ax, alpha, url)
+    return _finalize_show((h3_data, fill), im, ax, alpha, url)
 
 
 def raster_show(ax, raster, extent, origin='upper', cmap=None, norm=None, aspect=None, 
@@ -148,12 +151,15 @@ def _finalize_show(source_data, im, ax, alpha, url):
     return im
 
 
-def h3cnts_to_raster(h3_data, row_locs, col_locs, transform):
+def h3_to_raster(h3_data, row_locs, col_locs, transform, fill=0.0):
     """Convert dictionary of H3 data to raster in projected coords
 
     If multiple resolutions of cells are present in h3_data they
     are plotted from lowest resolution to highest resolution,
     putting the high resolution cells on top.
+
+    Note that this relies on `h3.unstable`, so might require
+    modification to work in the future.
     
     Parameters
     ----------
@@ -162,13 +168,26 @@ def h3cnts_to_raster(h3_data, row_locs, col_locs, transform):
     row_locs : array of float
     col_locs : array of float
     transform : function mapping (rows, columns) to (lons, lats)
+    fill : float or None, optional
+        Value to fill areas of the raster with no H3 data. None is mapped to NaN.
 
     Returns
     -------
     2D array of float
     """
+<<<<<<< HEAD
+    # Delay importation of vect, so only get the warning when actually used.
+=======
+    # Delay importation of vect to avoid warning.
+>>>>>>> set-rasterize-fill
+    with warnings.catch_warnings():
+        # Suppress useless UserWarning about unstable
+        warnings.simplefilter("ignore")            
+        from h3.unstable import vect
+
     levels = sorted(set(h3.h3_get_resolution(h3id) for h3id in h3_data))
-    raster = np.zeros([len(row_locs), len(col_locs)])
+    raster = np.empty([len(row_locs), len(col_locs)])
+    raster.fill(np.nan if (fill is None) else fill)
     for i, row in enumerate(row_locs):
         lons, lats = transform([row] * len(col_locs), col_locs)
         for level in levels:
@@ -177,6 +196,14 @@ def h3cnts_to_raster(h3_data, row_locs, col_locs, transform):
                 if h3ndx in h3_data:
                     raster[i, j] = h3_data[h3ndx]
     return raster
+
+
+def h3cnts_to_raster(*args, **kwargs):
+    warnings.warn(
+            "h3cnts_to_raster is deprecated, use h3_to_raster instead",
+            DeprecationWarning
+        )
+    return h3_to_raster(*args, **kwargs)
 
 
 def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='upper'):
@@ -275,7 +302,7 @@ class InterpImage(AxesImage):
             these care not coordinate pairs such as are used in skimage.draw.
         transform : function mapping (rows, columns) to (lons, lats)
 
-        See `h3cnts_to_raster` and `raster_to_raster` for more details on the 
+        See `h3_to_raster` and `raster_to_raster` for more details on the 
         the arguments.
         """
         raise NotImplemented()
@@ -287,7 +314,8 @@ class H3Image(InterpImage):
     Typically used through `h3_show`.
     """
     def _get_updated_A(self, row_locs, col_locs, transform):
-        return h3cnts_to_raster(self._source_data, row_locs, col_locs, transform) 
+        h3data, fill = self._source_data
+        return h3_to_raster(h3data, row_locs, col_locs, transform, fill=fill) 
 
 
 class RasterImage(InterpImage):

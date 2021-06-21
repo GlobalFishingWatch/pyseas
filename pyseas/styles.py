@@ -1,9 +1,22 @@
+from cycler import cycler as _cycler, Cycler as _Cycler
 from matplotlib import pyplot as _plt
 from matplotlib import rcsetup as _rcsetup
+from matplotlib import font_manager
+import os
+from pathlib import Path
 from . import props as _props
 from . import cm as _cm
-from cycler import cycler
 from matplotlib.colors import to_rgba
+import numpy as np
+import skimage.io as skio
+import gcsfs
+
+root = Path(__file__).parents[1]
+data = Path(__file__).parents[0] / 'data'
+
+font_dirs = [x for x in (data / 'fonts').iterdir() if x.is_dir()]
+for font_file in font_manager.findSystemFonts(fontpaths=font_dirs):
+    font_manager.fontManager.addfont(font_file)
 
 """
 This chart style was developed on a 10 by 6 figure size. 
@@ -46,19 +59,59 @@ chart_style = {
 }
 
 
-_light_track_cycler = cycler(color=_props.light.track.colors)
-_light_artist_cycler = cycler(edgecolor=_props.light.track.colors, 
+_light_track_cycler = _cycler(color=_props.light.track.colors)
+_light_artist_cycler = _cycler(edgecolor=_props.light.track.colors,
         facecolor=[(0, 0, 0, 0)]*len(_props.light.track.colors))
-_dark_track_cycler = cycler(color=_props.dark.track.colors)
-_dark_artist_cycler = cycler(edgecolor=_props.dark.track.colors, 
+_dark_track_cycler = _cycler(color=_props.dark.track.colors)
+_dark_artist_cycler = _cycler(edgecolor=_props.dark.track.colors,
     facecolor=[(0, 0, 0, 0)]*len(_props.dark.track.colors))
 
 _chart_colors = []
 for clr in _props.chart.colors._100_percent:
     _chart_colors.append(clr)
 
-_chart_cycler = cycler(color=_chart_colors, linewidth=[2]*len(_chart_colors))
-del cycler, _chart_colors, clr
+_chart_cycler = _cycler(color=_chart_colors, linewidth=[2]*len(_chart_colors))
+del _chart_colors, clr
+
+
+def create_props(kinds, colors=None, interstitial_color=(0.5, 0.5, 0.5, 1)):
+    """Create props suitable for track plots.
+
+    Parameters
+    ----------
+    kinds : list of str
+        The keys for different values in the plot
+    colors : list of str or cycler.Cycler, optional
+        Colors to apply to line segments. These are paired with `kinds` the values
+        supplied above and added to the output dict under `(k, k)`
+        If a Cycler, then the cycler should supply `edgecolor` and `facecolor` values (facecolor
+        should be transparent). By default, pulls the cycler from trackprops.
+    interstitial_color : matplotlib color value, optional
+        Color to apply to segments between points with different kind values.
+
+    Returns
+    -------
+    dict mapping (k1, k2) to props
+    """
+    if colors is None:
+        prop_cycle = _plt.rcParams.get('pyseas.map.trackprops', _dark_artist_cycler)
+    elif isinstance(colors, (list, int)):
+        prop_cycle = _cycler(edgecolor=colors, facecolor=[(0, 0, 0, 0)] * len(colors))
+    elif isinstance(colors, _Cycler):
+        prop_cycle = colors
+    else:
+        raise ValueError(f"don't know how to handle props of type {type(props)}")
+    prop_cycle = prop_cycle()
+    props = {}
+    for k1 in kinds:
+        props[(k1, k1)] = next(prop_cycle)
+        for k2 in kinds:
+            if k1 != k2:
+                props[(k1, k2)] = {'edgecolor' : interstitial_color,
+                                   'facecolor' : (0, 0, 0, 0),
+                                   'legend' : None}
+    return props
+
 
 
 def create_plot_panel_props(prop_map):
@@ -69,8 +122,9 @@ def create_plot_panel_props(prop_map):
     prop_map: dict or OrderedDict (Python 2)
         background colors should typically come first
 
-
-    TODO: describe ordering
+    Returns
+    -------
+    dict mapping (k1, k2) to props
     """
     props = {}
     for k1, v in prop_map.items():
@@ -85,29 +139,16 @@ def create_plot_panel_props(prop_map):
                 props[k2, k1] = v
     return props
 
-# _undef = dict(edgecolor=_props.fishing.undefined.color, facecolor='none', 
-#                         linewidth=_props.fishing.undefined.width,
-#                         alpha=_props.fishing.undefined.alpha)
-
 
 _fishing_props = create_plot_panel_props({
-    -1 : {'color' : _props.fishing.undefined.color, 'width' : _props.fishing.undefined.width, 'alpha' : _props.fishing.undefined.alpha},
-     0 : {'color' : _props.fishing.non_fishing.color, 'width' : _props.fishing.non_fishing.width, 'alpha' : _props.fishing.non_fishing.alpha},
-     1 : {'color' : _props.fishing.fishing.color, 'width' : _props.fishing.fishing.width, 'alpha' : _props.fishing.fishing.alpha}
+    -1 : {'color' : _props.fishing.undefined.color, 'width' : _props.fishing.undefined.width, 
+          'alpha' : _props.fishing.undefined.alpha},
+     0 : {'color' : _props.fishing.non_fishing.color, 'width' : _props.fishing.non_fishing.width, 
+          'alpha' : _props.fishing.non_fishing.alpha},
+     1 : {'color' : _props.fishing.fishing.color, 'width' : _props.fishing.fishing.width, 
+          'alpha' : _props.fishing.fishing.alpha}
      })
 
-
-# _fishing_props = {
-#     (1, 0) : _nonfishprops,
-#     (0, 1) : _nonfishprops,
-#     (0, 0) : _nonfishprops,
-#     (1, 1) : _fishprops,
-#     (-1, -1) : _undef,
-#     (-1, 0) : _undef,
-#     (-1, 1) : _undef,
-#     (0, -1) : _undef,
-#     (1, -1) : _undef,
-# }
 
 _annotationmapprops = dict(fontdict={'color' : 'black', 'weight': 'bold', 'size' : 10},
                            bbox=dict(facecolor='none', edgecolor='black', boxstyle='circle'))
@@ -116,7 +157,35 @@ _annotationplotprops = dict(fontdict={'size' : 10, 'weight' : 'medium'})
 
 _colorbarlabelfont  = {'fontsize': 12}
 
-# TODO: swap 'pyseas.' for 'pyseas.'
+logo_dir = data / 'logos'
+
+def get_logo(img_or_path):
+    """Retrieve a logo from a local or GCS path
+
+    Parameters
+    ----------
+    img_or_path : array or str
+
+    Returns
+    -------
+    array
+    """
+    if not isinstance(img_or_path, str):
+        return np.asarray(img_or_path)
+    path = img_or_path
+    if path.startswith('gs://') or path.startswith('gcs://'):
+        _, path = path.split('//', 1)
+        local_path = logo_dir / os.path.basename(path)
+        if not local_path.exists():
+            fs = gcsfs.GCSFileSystem()
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+            fs.get_file(path, local_path)
+    else:
+        local_path = Path(path)
+        if not local_path.is_absolute():
+            local_path = logo_dir / path
+    return skio.imread(local_path)
+
 
 dark = {
         'text.usetex' : False,
@@ -153,8 +222,8 @@ dark = {
          'pyseas.map.annotationplotprops' : _annotationplotprops,
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
-         'pyseas.logo.name' : _props.dark.logo.name,
-         'pyseas.logo.base_scale' : _props.dark.logo.base_scale,
+         'pyseas.logo' : get_logo(_props.dark.logo.name),
+         'pyseas.logo.scale_adj' : _props.dark.logo.scale_adj,
          'pyseas.logo.alpha' : _props.dark.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.dark.miniglobe.overlaycolor,
          'pyseas.miniglobe.outerwidth' : _props.dark.miniglobe.outer_width,
@@ -197,8 +266,8 @@ light = {
          'pyseas.map.annotationplotprops' : _annotationplotprops,
          'pyseas.map.projlabelsize' : _props.dark.projection_label.size,
          'pyseas.map.colorbarlabelfont' : _colorbarlabelfont,
-         'pyseas.logo.name' : _props.light.logo.name,
-         'pyseas.logo.base_scale' : _props.light.logo.base_scale,
+         'pyseas.logo' : get_logo(_props.light.logo.name),
+         'pyseas.logo.scale_adj' : _props.light.logo.scale_adj,
          'pyseas.logo.alpha' : _props.light.logo.alpha,
          'pyseas.miniglobe.overlaycolor' : _props.light.miniglobe.overlaycolor,
          'pyseas.miniglobe.outerwidth' : _props.light.miniglobe.outer_width,
@@ -221,5 +290,35 @@ for k in panel:
 del k
 
 
+
+
+
+def set_default_logos(light_logo=None, dark_logo=None, scale_adj=1, alpha=None):
+    """Set the default logos to use with add_logo
+
+    Either the light logo, the dark logo, or both may be specified. If both,
+    then scale_adj and alpha applies to both. If neither is specified, nothing
+    is done.
+
+    Parameters
+    ----------
+    light_logo, dark_logo : array, optional
+        Must be in a format that matplotlib understands.
+    scale_adj : float, optional
+        The default image scale is multiplied by this amount.
+    alpha : float or None, optional
+        Set the image alpha. If not specified, the image alpha is inherited from previous
+        logos.
+    """
+    if light_logo is not None:
+        light['pyseas.logo'] = get_logo(light_logo)
+        light['pyseas.logo.scale_adj'] = scale_adj
+        if alpha is not None:
+            light['pyseas.logo.alpha'] = alpha
+    if dark_logo is not None:
+        dark['pyseas.logo'] = get_logo(dark_logo)
+        dark['pyseas.logo.scale_adj'] = scale_adj
+        if alpha is not None:
+            dark['pyseas.logo.alpha'] = alpha
 
 

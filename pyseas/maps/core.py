@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt
 import matplotlib.offsetbox as mplobox
 import matplotlib.colors as mplcolors
 from matplotlib.lines import Line2D
+from matplotlib import gridspec
 from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 import cartopy
 import cartopy.feature as cfeature
@@ -37,8 +38,7 @@ import cartopy.mpl.gridliner
 import json
 import os
 import uuid
-from .. import props
-from .. import styles
+
 import geopandas as gpd
 import numpy as np
 from cartopy.feature import ShapelyFeature
@@ -48,8 +48,11 @@ from shapely.errors import TopologicalError
 from shapely import ops as shpops
 from skimage import io as skio
 import warnings
+from .. import props
+from .. import styles
 from . import ticks
 from . import rasterize
+from . import colorbar
 
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
@@ -70,7 +73,7 @@ _projections = {
 
 def load_projections():
 
-    path = os.path.join(root, 'data/projection_info.json')
+    path = os.path.join(root, 'pyseas/data/projection_info.json')
     with open(path) as f:
         info = json.load(f)
     for k, v in info.items():
@@ -330,8 +333,7 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, tr
         assert len(kind) == len(lon)
 
     if props is None:
-        kinds = sorted(set(kind))
-        props = {(k, k) : p for (k, p) in zip(kinds, _plot_cycler)}       
+        props = styles.create_props(np.unique(kind))
 
     handles = {}
     for k1, k2 in sorted(props.keys()):
@@ -339,10 +341,14 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, tr
         if mask.sum():
             ml_coords = _build_multiline_string_coords(lon, lat, mask, break_on_change)   
             mls = MultiLineString(ml_coords)
-            p = props[k1, k2]
+            p = props[k1, k2].copy()
+            if 'legend' in p:
+                key = p.pop('legend')
+            else:
+                key = k1 if (k1 == k2) else f'{k1}-{k2}'
             ax.add_geometries([mls], crs=transform, **p)
-            key = k1 if (k1 == k2) else k2
-            handles[key] = Line2D([0], [0], color=p['edgecolor'], lw=p.get('linewidth', 1))
+            if key:
+                handles[key] = Line2D([0], [0], color=p['edgecolor'], lw=p.get('linewidth', 1))
 
     return handles
 
@@ -359,14 +365,12 @@ def plot(*args, **kwargs):
 
 _eezs = {}
 
-def add_eezs(ax=None, use_boundaries=True, facecolor='none', edgecolor=None, linewidth=None, alpha=1):
+def add_eezs(ax=None, facecolor='none', edgecolor=None, linewidth=None, alpha=1):
     """Add EEZs to an existing map
 
     Parameters
     ----------
     ax : matplotlib axes object, optional
-    use_boundaries : bool, optional
-        use the boundaries version of EEZs which is smaller and faster, but not as detailed.
     facecolor : str, optional
     edgecolor: str or tuple, optional
         Can be styled with 'pyseas.eez.bordercolor'
@@ -381,15 +385,15 @@ def add_eezs(ax=None, use_boundaries=True, facecolor='none', edgecolor=None, lin
     """
     if ax is None:
         ax = plt.gca()
-    if use_boundaries:
-        path = os.path.join(root, 'untracked/data/eez_boundaries_v11.gpkg')
-    else:
-        path = os.path.join(root, 'untracked/data/eez_v11.gpkg')
+    path = os.path.join(root, 'pyseas/data/eezs/eez_boundaries_v11.gpkg')
     if path not in _eezs:
         try:
-            _eezs[path] = gpd.read_file(path)
+            with warnings.catch_warnings():
+                # Suppress useless RuntimeWarning from geopandas when reading EEZs
+                warnings.simplefilter("ignore")            
+                _eezs[path] = gpd.read_file(path)
         except FileNotFoundError:
-            raise FileNotFoundError('Eezs must be installed into the `untracked/data/` directory')
+            raise FileNotFoundError('Eezs must be installed into the `pyseas/data/` directory')
 
     eezs = _eezs[path]
     edgecolor = edgecolor or plt.rcParams.get('pyseas.eez.bordercolor', props.dark.eez.color)
@@ -536,16 +540,19 @@ def create_map(subplot=(1, 1, 1),
     # ax.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])
     return ax
 
-def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, hshift=0, vshift=0):
+def add_logo(logo=None,  scale=1,loc='upper left', alpha=None, hshift=0, vshift=0, ax=None):
     """Add a logo to a plot
+
+    By default the image is scaled so that logos are rendered at a constant area. Additional
+    scaling can be applied by setting *scale*. It may be useful to define a large logo since
+    it will render nicely across a wide range of plot sizes.
 
     Parameters
     ----------
-    ax : Axes, optional
-    name : str, optional
-        Name of logo file located in `untracked/data/logos` default to value of 'pyseas.logo.name'
+    logo : array
+        2D or 3D array suitable for imshow
     scale : float, optional
-        Additional scaling to apply to image in addition to value of 'pyseas.logo.base_scale'
+        Additional scaling to apply to image.
     loc : str or (float, float), optional
         Location to place logo. 'upper left', 'center right' etc. Or pair of floats in axes coords.
         Similar to matplotlib Legend.
@@ -555,6 +562,7 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, hshift=0
         Additional horizontal shift in axis coordinates
     vshift : float, optional
         Additional verticals shift in axis coordinates    
+    ax : Axes, optional
 
     Keyword args are passed on to add_raster.
 
@@ -562,8 +570,11 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, hshift=0
     -------
     OffsetBox
     """
-    if name is None:
-        name = plt.rcParams.get('pyseas.logo.name', 'logo.png')
+    if logo is None:
+        logo = plt.rcParams.get('pyseas.logo', styles.dark['pyseas.logo'])
+        scale_adj = plt.rcParams.get('pyseas.logo.scale_adj', styles.dark['pyseas.logo.scale_adj'])
+    else:
+        scale_adj = 1
     is_global = isinstance(_last_projection, str) and _last_projection.startswith('global.')
     box_alignment = (0.5, 0.5)
     if is_global and isinstance(loc, str):
@@ -577,13 +588,14 @@ def add_logo(ax=None, name=None, scale=1, loc='upper left', alpha=None, hshift=0
                 box_alignment = (a1, a0)
                 loc = (l1, l0)
 
-    base_scale = plt.rcParams.get('pyseas.logo.base_scale', 1)
+    # This number keeps the scaling compatible with earlier versions where the base scale was
+    # set explicitly, while assuring that a scale of 1 isn't crazy. scale_adj should be two for GFW logo
+    base_scale = scale_adj * 324368.0 / (logo.shape[0] * logo.shape[1])
     if alpha is None:
         alpha = plt.rcParams.get('pyseas.logo.alpha', 1)
     if ax is None:
         ax = plt.gca()
 
-    logo = skio.imread(os.path.join(root, 'untracked/data/logos', name))
     imagebox = mplobox.OffsetImage(logo, zoom=scale * base_scale, alpha=alpha)
     if isinstance(loc, str):
         aob = mplobox.AnchoredOffsetbox(child=imagebox, loc=loc, frameon=False)
@@ -836,13 +848,14 @@ def plot_h3_data(h3_data, subplot=(1, 1, 1), projection='global.default',
 
 
 def plot_raster_w_colorbar(raster, label='', loc='bottom',
-                projection='global.default', hspace=0.05, wspace=0.016,
-                bg_color=None, hide_axes=True, cbformat=None, **kwargs):
+                hspace=0.05, wspace=0.016,
+                cbformat=None, **kwargs):
     """Draw a GFW themed map over a raster with a colorbar
 
     Parameters
     ----------
     raster : 2D array
+    subplot : tuple or gridspec
     label : str, optional
     loc : str, optional
     projection : cartopy.crs.Projection, optional
@@ -850,9 +863,6 @@ def plot_raster_w_colorbar(raster, label='', loc='bottom',
         space between colorbar and axis
     wspace : float, optional
         horizontal space adjustment
-    bg_color : str or tuple, optional
-    hide_axes : bool
-        if `true`, hide x and y axes
     cbformat : formatter
     
     Other Parameters
@@ -863,35 +873,14 @@ def plot_raster_w_colorbar(raster, label='', loc='bottom',
     -------
     (GeoAxes, AxesImage)
     """
-    assert loc in ('top', 'bottom')
-    is_global = isinstance(projection, str) and projection.startswith('global.')
-    if is_global:
-        wratios = [1, 1, 1, 0.85]
-    else:
-        wratios = [1, 1, 1, 0.01]
-    if loc == 'top':
-        hratios = [.015, 1]
-        cb_ind, pl_ind = 0, 1
-        anchor = 'NE'
-    else:
-        hratios = [1, 0.015]
-        cb_ind, pl_ind = 1, 0
-        anchor = 'SE'
+    warnings.warn(
+        "plot_raster_w_colorbar is deprecated, use plot_raster with add_colorbar instead",
+        DeprecationWarning
+    )    
 
-    gs = plt.GridSpec(2, 4, height_ratios=hratios, width_ratios=wratios, hspace=hspace, wspace=wspace)
-    ax, im = plot_raster(raster, gs[pl_ind, :], projection=projection, **kwargs)
-    ax.set_anchor(anchor)
-    cb_ax = plt.subplot(gs[cb_ind, 2])
-    cb = plt.colorbar(im, cb_ax, orientation='horizontal', shrink=0.8, format=cbformat)
-    leg_ax = plt.subplot(gs[cb_ind, 1], frame_on=False)
-    leg_ax.axes.get_xaxis().set_visible(False)
-    leg_ax.axes.get_yaxis().set_visible(False)
-    leg_ax.text(1, 0.5, label, 
-        fontdict=plt.rcParams.get('pyseas.map.colorbarlabelfont', styles._colorbarlabelfont),
-                    horizontalalignment='right', verticalalignment='center')
-    if loc == 'top':
-        cb_ax.xaxis.tick_top()
-    plt.sca(ax)
+    ax, im = plot_raster(raster, **kwargs)
+    cb = colorbar.add_colorbar(im, label=label, loc=loc, hspace=hspace, wspace=wspace, format=cbformat)
+
     return ax, im, cb
 
 
