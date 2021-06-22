@@ -442,7 +442,7 @@ grid_ratio = np.divide(grid_known, grid_total, out=np.zeros_like(grid_known),
 pyseas._reload()
 from pyseas.maps import bivariate
 
-cmap = bivariate.TransparencyBivariateColormap(pyseas.cm.misc.orange_blue)
+cmap = bivariate.TransparencyBivariateColormap(pyseas.cm.misc.blue_orange)
 
 with psm.context(psm.styles.dark):
     fig = plt.figure(figsize=(15, 15), dpi=300, facecolor='white')
@@ -466,4 +466,8 @@ with psm.context(psm.styles.dark):
               fontsize=12)
     
     plt.show()
+
+
+# -
+
 

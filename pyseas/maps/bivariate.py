@@ -3,7 +3,13 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 from matplotlib import cm
 import matplotlib.pyplot as plt
+import mpl_toolkits.axisartist.floating_axes as floating_axes
+import mpl_toolkits.axisartist.angle_helper as angle_helper
+from mpl_toolkits.axisartist.grid_finder import MaxNLocator
+
 from .. import props
+
+
 
 
 class BivariateColormap:
@@ -76,6 +82,27 @@ def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None,
 
     wloc, hloc = loc
 
+    # angle = 45
+
+
+    # tr = Affine2D().scale(1, 1).rotate_deg(angle)
+
+    # [(x0, y0), (x, y1)] = ax.transAxes([(wloc, hloc), (wloc + width, hloc + height)])
+    # display_extents = [x0, y0, x1, y1]
+
+    # grid_helper = floating_axes.GridHelperCurveLinear(
+    #     tr, extremes=display_extents,
+    #     grid_locator1=MaxNLocator(nbins=4),
+    #     grid_locator2=MaxNLocator(nbins=4))
+
+    # ax1 = fig.add_subplot(
+    #     rect, axes_class=floating_axes.FloatingAxes, grid_helper=grid_helper)
+
+    # cb_ax = ax1.get_aux_axes(tr)
+
+    # return ax1, aux_ax
+
+
     cb_ax = ax.inset_axes([wloc, hloc, width, height], transform=ax.transAxes)
 
     x, y = np.meshgrid(np.linspace(ynorm.vmin, ynorm.vmax, 1000), 
@@ -108,7 +135,7 @@ def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None,
 
 
 
-def add_bivariate_raster(raster1, raster2, norm1=None, norm2=None, bvcmap=default_bvcm,
+def add_bivariate_raster(raster1, raster2, norm1=None, norm2=None, bvcmap=None,
                   alpha=None, ax=None, extent=(-180, 180, -90, 90), origin='upper',
                   **kwargs):
     """Add a raster to an existing map
