@@ -441,42 +441,8 @@ grid_ratio = np.divide(grid_known, grid_total, out=np.zeros_like(grid_known),
 # +
 pyseas._reload()
 from pyseas.maps import bivariate
-import cmocean.cm
 
-
-# This can be any colormap, here I'm reusing Jaeyoons example.
-# clow = (255, 69, 115)  # redish
-clow = (255, 0, 0)  # redish
-cmid = (255, 255, 255)  # white
-# chigh = (0, 255, 195)  # greenish
-chigh = (128, 255, 255)  # greenish
-n = 255.
-colors = [(clow[0] / n, clow[1] / n, clow[2] / n),
-#           (cmid[0] / n, cmid[1] / n, cmid[2] / n),
-          (chigh[0] / n, chigh[1] / n, chigh[2] / n)]
-#
-# Create a custom linear colormap using the colors above for ratio dimension (red to green)
-jaeyoons_lscm = mpcolors.LinearSegmentedColormap.from_list(
-    'contrast', colors, N=256)
-
-
-tims_lscm = mpcolors.LinearSegmentedColormap.from_list(
-    'contrast', [(1.0, 1.0, 0.), (0., 1.0, 1.0)], N=256)
-
-r0, g0, b0 = 1, 0.2, 0
-r1, g1, b1 = 0, 1.0, 0.8
-h0, s0, v0 = mpcolors.rgb_to_hsv((r0, g0, b0))
-h1, s1, v1 = mpcolors.rgb_to_hsv((r1, g1, b1))
-
-def interp(a, b, n=64):
-    return a + np.linspace(0, 1, n, endpoint=True) * (b - a)
-
-tims_lscm = mpcolors.LinearSegmentedColormap.from_list('contrast',
-    [(r / v, g / v, b / v) for (r, g, b, v) in
-        zip(interp(r0, r1), interp(g0, g1), interp(b0, b1), interp(v0, v1))]
-)
-
-# The actual plotting code. No convenience functions yet.
+cmap = bivariate.TransparencyBivariateColormap(pyseas.cm.misc.orange_blue)
 
 with psm.context(psm.styles.dark):
     fig = plt.figure(figsize=(15, 15), dpi=300, facecolor='white')
@@ -486,10 +452,9 @@ with psm.context(psm.styles.dark):
     norm1 = mpcolors.LogNorm(vmin=0.01, vmax=10, clip=True)
     norm2 = mpcolors.Normalize(vmin=0.0, vmax=1.0, clip=True)
 
-    cmap = bivariate.TransparencyBivariateColormap(tims_lscm)
-    colorized = cmap(norm2(grid_ratio), norm1(grid_total))
+    colorized_raster = cmap(norm2(grid_ratio), norm1(grid_total))
     
-    psm.add_raster(colorized)
+    psm.add_raster(colorized_raster)
     
     cb_ax = bivariate.add_bivariate_colorbox(cmap, norm1, norm2,
                                      xlabel='fraction of matched fishing hours',
@@ -501,13 +466,4 @@ with psm.context(psm.styles.dark):
               fontsize=12)
     
     plt.show()
-
-
-# -
-
-plt.imshow(colorized)
-
-from matplotlib import cm
-plt.imshow(cm.Reds(norm1(grid_total)))
-
 

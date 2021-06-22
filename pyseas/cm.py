@@ -76,11 +76,17 @@ class _Light(object):
 light = _Light()
 
 
-class _Unofficial(object):
-  jc_presence  = _hex2cmap('jc_presence', ('#3359A8', '#16A3A4', '#00FFC3', '#ffffff'))
-  jc_reception = _hex2cmap('jc_reception', ('#5E0C20', '#2927A8', '#41FFA7', '#ffffff'))
-  jc_linearorange = _hex2cmap('jc_linearorange', ('#0C276C', '#824158', '#FF9500', '#ffffff'))
-  jc_linearblue = _hex2cmap('jc_linearblue', ('#0C276C', '#1D5780', '#00FFC3', '#ffffff'))
-  jc_linearpink = _hex2cmap('jc_linearpink', ('#0C276C', '#4E289B', '#F74559', '#ffffff'))
+class _Misc(object):
+    blue_orange = _colors.LinearSegmentedColormap.from_list('blue_orange',
+                        ['#FF7E00', '#F18352', '#E08979', '#CC8F99', '#B496B4', 
+                         '#999CCC', '#79A1E0', '#52A6F1', '#00AAFF'][::-1])
+    orange_blue = _colors.LinearSegmentedColormap.from_list('orange_blue',
+                        ['#FF7E00', '#F18352', '#E08979', '#CC8F99', '#B496B4', 
+                         '#999CCC', '#79A1E0', '#52A6F1', '#00AAFF'])
+    jc_presence  = _hex2cmap('jc_presence', ('#3359A8', '#16A3A4', '#00FFC3', '#ffffff'))
+    jc_reception = _hex2cmap('jc_reception', ('#5E0C20', '#2927A8', '#41FFA7', '#ffffff'))
+    jc_linearorange = _hex2cmap('jc_linearorange', ('#0C276C', '#824158', '#FF9500', '#ffffff'))
+    jc_linearblue = _hex2cmap('jc_linearblue', ('#0C276C', '#1D5780', '#00FFC3', '#ffffff'))
+    jc_linearpink = _hex2cmap('jc_linearpink', ('#0C276C', '#4E289B', '#F74559', '#ffffff'))
 
-unofficial = _Unofficial()
+misc = unofficial = _Misc()
