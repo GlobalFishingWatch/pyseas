@@ -446,21 +446,18 @@ cmap = bivariate.TransparencyBivariateColormap(pyseas.cm.misc.blue_orange)
 
 with psm.context(psm.styles.dark):
     fig = plt.figure(figsize=(15, 15), dpi=300, facecolor='white')
-    ax = psm.create_map()
+    ax = psm.create_map((projection='regional.north_pacific')
     psm.add_land(ax)
 
     norm1 = mpcolors.LogNorm(vmin=0.01, vmax=10, clip=True)
     norm2 = mpcolors.Normalize(vmin=0.0, vmax=1.0, clip=True)
-
-    colorized_raster = cmap(norm2(grid_ratio), norm1(grid_total))
     
-    psm.add_raster(colorized_raster)
+    bivariate.add_bivariate_raster(grid_ratio, grid_total, cmap, norm1, norm2)
     
     cb_ax = bivariate.add_bivariate_colorbox(cmap, norm1, norm2,
-                                     xlabel='fraction of matched fishing hours',
-                                    ylabel='total fishing hours', fontsize=8,
-                                     height=0.4, loc = (0.8, -0.45),
-                                    yformat='{x:.2f}')
+                                            xlabel='fraction of matched fishing hours',
+                                            ylabel='total fishing hours',
+                                            yformat='{x:.2f}')
     
     plt.title("Fishing Effort by Identified vs. Unidentified Vessels (2019-2020)", 
               fontsize=12)
@@ -469,5 +466,216 @@ with psm.context(psm.styles.dark):
 
 
 # -
+
+import sys
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors as mpcolors
+import matplotlib.gridspec as gridspec
+from operator import add
+​
+import pyseas
+pyseas._reload()
+import pyseas.maps as psm
+​
+# Set plot parameters and styling
+psm.use(psm.styles.chart_style)
+plt.rcParams['figure.figsize'] = (10, 6)
+​
+# Show all dataframe rows
+pd.set_option("max_rows", 20)
+# -
+​
+ownership_by_mmsi_table = 'world-fishing-827.scratch_jenn.ownership_by_mmsi_2012_2020_v20210601'
+public_fishing_effort_table = 'global-fishing-watch.gfw_public_data.fishing_effort_byvessel_v2'
+​
+​
+## Gets gridded fishing effort for non-overlapping MMSI with the specified ownership type and geartype.
+## Default values are used to allow the user to not specify one or both of 
+## the parameters, in which case the query will will not parse out effort by that attribute.
+def get_gridded_fishing_effort(ownership_type=None, geartype=None):
+    
+    if not ownership_type:
+        ownership_check = 'TRUE'
+    else:
+        ownership_check = ownership_type
+​
+    if not geartype:
+        geartype_check = 'TRUE'
+    elif isinstance(geartype, str):
+        geartype_check = f'geartype = "{geartype}"'
+    elif isinstance(geartype, list):
+        geartype_check = f'geartype IN UNNEST({geartype})'
+    else:
+        print("Invalid geartype")
+        sys.exit()
+    
+    
+    q = f'''
+    WITH 
+​
+    ## Get the fishing vessels of interest (i.e. foreign owned, domestic owned, etc)
+    ## Remove MMSI that have identities with overlapping time ranges
+    fishing_identities_of_interest AS (
+        SELECT 
+        mmsi,
+        first_timestamp,
+        last_timestamp,
+        FROM `{ownership_by_mmsi_table}`
+        WHERE is_fishing
+        AND {ownership_check}
+        AND {geartype_check}
+        AND NOT timestamp_overlap
+    ),
+​
+    ## Get the fishing activity for each mmsi and their time ranges
+    ## The DISTINCT is crucial as it prevent duplication of fishing activity
+    ## When multiple identities are attached to one MMSI and have
+    ## overlapping time ranges.
+    fishing_of_interest AS (
+        SELECT DISTINCT
+        b.*
+        FROM fishing_identities_of_interest a
+        LEFT JOIN `{public_fishing_effort_table}` b
+        ON a.mmsi = b.mmsi
+        AND b.date BETWEEN DATE(a.first_timestamp) AND DATE(a.last_timestamp)
+        WHERE b.fishing_hours IS NOT NULL
+    ),
+​
+    ## Group by grid cells
+    fishing_of_interest_gridded AS (
+        SELECT
+        cell_ll_lat * 10 as cell_ll_lat,
+        cell_ll_lon * 10 as cell_ll_lon,
+        SUM(fishing_hours) AS fishing_hours,
+        FROM fishing_of_interest
+        GROUP BY cell_ll_lat, cell_ll_lon
+    ),
+​
+    fishing_total_gridded AS (
+        SELECT
+        cell_ll_lat * 10 as cell_ll_lat,
+        cell_ll_lon * 10 as cell_ll_lon,
+        SUM(fishing_hours) AS total_fishing_in_cell,
+        SUM(fishing_hours)/(SELECT SUM(fishing_hours) FROM `{public_fishing_effort_table}`) as effort_weight,
+        COUNT(mmsi) as num_mmsi,
+        FROM `{public_fishing_effort_table}`
+        GROUP BY cell_ll_lat, cell_ll_lon
+    )
+​
+    SELECT
+    cell_ll_lat,
+    cell_ll_lon,
+    num_mmsi,
+    fishing_hours,
+    total_fishing_in_cell,
+    IFNULL(SAFE_DIVIDE(fishing_hours, total_fishing_in_cell), 0) AS fishing_hours_prop,
+    IFNULL(SAFE_DIVIDE(fishing_hours, total_fishing_in_cell), 0) * effort_weight AS fishing_hours_prop_weighted,
+    FROM fishing_of_interest_gridded 
+    JOIN fishing_total_gridded USING (cell_ll_lat, cell_ll_lon) 
+    WHERE cell_ll_lat IS NOT NULL and cell_ll_lon IS NOT NULL
+    '''
+​
+    return pd.read_gbq(q, project_id='world-fishing-827', dialect='standard')
+​
+​
+​
+# ##### Foreign
+​
+df_public_fishing_effort_foreign = get_gridded_fishing_effort('is_foreign')
+​
+# #### Total
+​
+# # +
+q = f'''
+SELECT
+cell_ll_lat * 10 as cell_ll_lat,
+cell_ll_lon * 10 as cell_ll_lon,
+SUM(fishing_hours) AS total_fishing_in_cell,
+COUNT(mmsi) as num_mmsi,
+FROM `{public_fishing_effort_table}`
+GROUP BY cell_ll_lat, cell_ll_lon
+'''
+​
+df_public_fishing_effort_total = pd.read_gbq(q, project_id='world-fishing-827', dialect='standard')
+# -
+​
+# ### Rasterize and calculate ratios
+​
+# # +
+grid_foreign = pyseas.maps.rasters.df2raster(df_public_fishing_effort_foreign, 'cell_ll_lon', 'cell_ll_lat', 
+                                     'fishing_hours', xyscale=10, per_km2=True)
+grid_total = pyseas.maps.rasters.df2raster(df_public_fishing_effort_total, 'cell_ll_lon', 'cell_ll_lat', 
+                                     'total_fishing_in_cell', xyscale=10, per_km2=True)
+​
+grid_foreign_ratio = np.divide(grid_foreign, grid_total, out=np.zeros_like(grid_foreign), where=grid_total!=0)
+# -
+​
+​
+import imp
+imp.reload(pyseas)
+pyseas._reload()
+from pyseas.maps import bivariate
+cmap = bivariate.TransparencyBivariateColormap(pyseas.cm.misc.blue_orange)
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(15, 15), dpi=300, facecolor='white')
+    ax = psm.create_map()
+    psm.add_land(ax)
+    norm1 = mpcolors.LogNorm(vmin=0.1, vmax=25.2, clip=True)
+    norm2 = mpcolors.Normalize(vmin=0.0, vmax=1.0, clip=True)
+    colorized_raster = cmap(norm2(grid_foreign_ratio), norm1(grid_total))
+    psm.add_raster(colorized_raster)
+    cb_ax = bivariate.add_bivariate_colorbox(cmap, norm1, norm2,
+                                     xlabel='fraction of matched fishing hours',
+                                    ylabel='total fishing hours', fontsize=8,
+                                     height=0.4, loc = (0.8, -0.45),
+                                    yformat='{x:.2f}')
+    plt.title("Fishing Effort by Identified vs. Unidentified Vessels (2019-2020)", 
+              fontsize=12)
+    plt.show()
+​
+import imp
+imp.reload(pyseas)
+pyseas._reload()
+from pyseas.maps import bivariate
+cmap = bivariate.TransparencyBivariateColormap(pyseas.cm.misc.blue_orange)
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(15, 15), dpi=300, facecolor='white')
+    ax = psm.create_map()
+    psm.add_land(ax)
+    norm1 = mpcolors.LogNorm(vmin=0.01, vmax=25.2, clip=True)
+    norm2 = mpcolors.LogNorm(vmin=0.01, vmax=1.0, clip=True)
+    colorized_raster = cmap(norm2(grid_foreign_ratio), norm1(grid_total))
+    psm.add_raster(colorized_raster)
+    cb_ax = bivariate.add_bivariate_colorbox(cmap, norm1, norm2,
+                                     xlabel='fraction of matched fishing hours',
+                                    ylabel='total fishing hours', fontsize=8,
+                                     height=0.4, loc = (0.8, -0.45),
+                                    yformat='{x:.2f}')
+    plt.title("Fishing Effort by Identified vs. Unidentified Vessels (2019-2020)", 
+              fontsize=12)
+    plt.show()
+​
+# ## Comparing the normalization
+#
+# When using linear, it doesn't set any masked values. When using log, it does. This means that the colorized_raster gets a blueish values in spaces that don't have values whereas those same cells get set to transparent (0,0,0,0) in the log version.
+​
+# #### Linear
+​
+norm2 = mpcolors.Normalize(vmin=0.0, vmax=1.0, clip=True)
+norm2(grid_foreign_ratio)
+​
+colorized_raster = cmap(norm2(grid_foreign_ratio), norm1(grid_total))
+colorized_raster
+​
+# #### Log
+​
+norm2 = mpcolors.LogNorm(vmin=0.01, vmax=1.0, clip=True)
+norm2(grid_foreign_ratio)
+​
+colorized_raster = cmap(norm2(grid_foreign_ratio), norm1(grid_total))
+colorized_raster
+​
 
 

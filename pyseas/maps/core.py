@@ -192,7 +192,6 @@ def add_raster(raster, ax=None, extent=None, origin='upper', interpolation='near
     if ax is None:
         ax = plt.gca()
     if extent is None:
-        plt.gcf().canvas.draw()
         extent = (-180, 180, -90, 90)
     if 'cmap' in kwargs and isinstance(kwargs['cmap'], str):
         src = plt.rcParams['pyseas.map.cmapsrc']
