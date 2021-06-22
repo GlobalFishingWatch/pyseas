@@ -1,6 +1,6 @@
 
 import numpy as np
-from matplotlib.colors import LinearSegmentedColormap, Normalize
+from matplotlib.colors import Normalize, LogNorm
 from matplotlib import cm
 import matplotlib.pyplot as plt
 from . import core
@@ -9,8 +9,8 @@ from .. import props
 
 class BivariateColormap:
 
-    log_x = False
-    log_y = False
+    log_x = None
+    log_y = None
 
     def __call__(self, X, Y, alpha=None):
         """Return color for the pair of values X and Y.
@@ -45,7 +45,7 @@ class TransparencyBivariateColormap(BivariateColormap):
     log_x, log_y : bool, optional
     """
 
-    def __init__(self, base_cmap, log_x=False, log_y=True):
+    def __init__(self, base_cmap, log_x=None, log_y=None):
         self.base_cmap = base_cmap
         self.log_x = log_x
         self.log_y = log_y
@@ -121,6 +121,13 @@ hw_ratio_map = {
 }
 
 
+def _is_log(cmap_value, norm):
+    if cmap_value is None:
+        return isinstance(norm, LogNorm)
+    else:
+        return cmap_value
+
+
 def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None, xlabel='', ylabel='',
                 xformat=None, yformat=None, loc='below right', width=None, height=None,
                 bg_color=None, fontsize=8, pad=0.05):
@@ -181,10 +188,10 @@ def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None,
     cb_ax.set_xlabel(xlabel, fontsize=fontsize)
     cb_ax.set_ylabel(ylabel, fontsize=fontsize)
 
-    if bvcmap.log_x:
-        cb_ax.set_xscale('log')
-    if bvcmap.log_y:
+    if _is_log(bvcmap.log_x, xnorm):
         cb_ax.set_yscale('log')
+    if _is_log(bvcmap.log_y, ynorm):
+        cb_ax.set_xscale('log')
 
     if xformat is not None:
         cb_ax.xaxis.set_major_formatter(xformat)
