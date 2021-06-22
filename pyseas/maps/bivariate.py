@@ -42,12 +42,13 @@ class TransparencyBivariateColormap(BivariateColormap):
     Parameters
     ----------
     base_cmap : matplotlib Colormap
+    log_x, log_y : bool, optional
     """
 
-    log_y = True
-
-    def __init__(self, base_cmap):
+    def __init__(self, base_cmap, log_x=False, log_y=True):
         self.base_cmap = base_cmap
+        self.log_x = log_x
+        self.log_y = log_y
 
     # TODO: should make this parameterizable
     def __call__(self, X, Y, alpha=None):
