@@ -428,8 +428,6 @@ grid_ratio = np.divide(grid_known, grid_total, out=np.zeros_like(grid_known),
                        where=grid_total!=0)
 
 # +
-pyseas._reload()
-
 cmap = psm.cm.bivariate.TransparencyBivariateColormap(psm.cm.bivariate.orange_blue)
 
 with psm.context(psm.styles.dark):
