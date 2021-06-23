@@ -92,11 +92,6 @@ class SummedBivariateColormap(BivariateColormap):
 _default_cmap = SummedBivariateColormap(cm.Reds, cm.Blues)
 
 
-
-
-# TODO: implement loc_finder, which takes labels like 'below right', 'lower right', 'upper right', 'above right'
-# and turns them into loc values, will also need width and height to decide
-
 def _loc_finder(loc_name, width, height, pad):
     if loc_name == 'below right':
         return 1 - width, -(height + pad)
@@ -106,8 +101,8 @@ def _loc_finder(loc_name, width, height, pad):
         return 1 + pad, 1 - height
     if loc_name == 'above right':
         return 1 - width, 1 + pad
-
     raise ValueError(f'unknown loc_name: {loc_name}')
+
 
 # TODO: in proj_info
 # Or figure out how to get aspect ratios efficiently and accurately
@@ -176,11 +171,11 @@ def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None,
 
     cb_ax = ax.inset_axes([wloc, hloc, width, height], transform=ax.transAxes)
 
-    x, y = np.meshgrid(np.linspace(ynorm.vmin, ynorm.vmax, 1000), 
-                       np.linspace(xnorm.vmin, xnorm.vmax, 1000))
+    x, y = np.meshgrid(np.linspace(xnorm.vmin, xnorm.vmax, 1000), 
+                       np.linspace(ynorm.vmin, ynorm.vmax, 1000))
 
-    im = cb_ax.imshow(bvcmap(ynorm(x), xnorm(y)), 
-        extent=(ynorm.vmin, ynorm.vmax, xnorm.vmin, xnorm.vmax), origin='lower', aspect='auto')
+    im = cb_ax.imshow(bvcmap(xnorm(x), ynorm(y)), 
+        extent=(xnorm.vmin, xnorm.vmax, ynorm.vmin, ynorm.vmax), origin='lower', aspect='auto')
     bg_color = bg_color or plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
 
     cb_ax.set_facecolor(bg_color)
@@ -189,9 +184,9 @@ def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None,
     cb_ax.set_ylabel(ylabel, fontsize=fontsize)
 
     if _is_log(bvcmap.log_x, xnorm):
-        cb_ax.set_yscale('log')
-    if _is_log(bvcmap.log_y, ynorm):
         cb_ax.set_xscale('log')
+    if _is_log(bvcmap.log_y, ynorm):
+        cb_ax.set_yscale('log')
 
     if xformat is not None:
         cb_ax.xaxis.set_major_formatter(xformat)
@@ -235,6 +230,6 @@ def add_bivariate_raster(raster1, raster2, bvcmap=_default_cmap, norm1=None, nor
     if norm2 is None:
         norm2 = Normalize()
 
-    raster = bvcmap(raster1, raster2, alpha)
+    raster = bvcmap(norm1(raster1), norm2(raster2), alpha)
 
     return core.add_raster(raster, extent=extent, origin=origin, **kwargs)
