@@ -1,6 +1,7 @@
 from .. import context
 from .. import use
 from .. import styles
+from .. import cm
 
 from .core import create_map
 from .core import add_land
@@ -19,6 +20,9 @@ from .core import plot_h3_data
 from .core import plot_raster
 from .core import plot_raster_w_colorbar
 from .core import identity
+
+from .bivariate import add_bivariate_colorbox
+from .bivariate import add_bivariate_raster
 
 from .colorbar import add_colorbar
 

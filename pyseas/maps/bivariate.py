@@ -129,7 +129,9 @@ def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None,
         Currently supported names are 'below right', 'lower right', 'upper right',
         and 'above right'.
     width, height : float, optional
-        Size of colorbar in Axes coordinates
+        Size of colorbar in Axes coordinates. If only one is specified and the last
+        projection was one of the standard one, then an appropriate aspect ratio will
+        be used. Otherwise the same width and height will be used.
     bg_color : maplotlib color, optional
     fontsize : int, optional # TODO: stylize
     pad : float, optional
@@ -151,7 +153,7 @@ def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None,
         aspect_ratio = core.projection_info[core._last_projection]['aspect_ratio']
     else:
         aspect_ratio = 1
-        
+
     if height is None:
         height = width * aspect_ratio
     if width is None:

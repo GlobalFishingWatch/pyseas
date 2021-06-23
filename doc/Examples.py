@@ -404,67 +404,55 @@ with psm.context(psm.styles.dark):
 #
 # (or if navigating from within a clone of the repo, go directly to the file [here](contrib/PlotGap.ipynb))
 
+# +
+# plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
+# -
+
+# ## Bivariate Rasters
+#
+# There is basic support for Bivariate plots, although only TransparencyBivariateColormap
+# has been significantly tested at time.
+
+# +
+df = pd.read_csv('data/fishing_effort_known_vs_unknown_2020_1deg.csv.zip')
+df_all = df[df["fishing_hours_all"].notnull()]
+df_known = df[df["fishing_hours_known_vessels"].notnull()]
+
+grid_known = psm.rasters.df2raster(df_known, 'lon_bin', 'lat_bin', 
+                                     'fishing_hours_known_vessels', 
+                                     xyscale=1, per_km2=True)
+grid_total = psm.rasters.df2raster(df_all, 'lon_bin', 'lat_bin', 
+                                     'fishing_hours_all', 
+                                     xyscale=1, per_km2=True)
+grid_ratio = np.divide(grid_known, grid_total, out=np.zeros_like(grid_known), 
+                       where=grid_total!=0)
+
+# +
+pyseas._reload()
+
+cmap = psm.cm.bivariate.TransparencyBivariateColormap(psm.cm.bivariate.orange_blue)
+
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(15, 15))
+    ax = psm.create_map()
+    psm.add_land(ax)
+
+    norm1 = mpcolors.Normalize(vmin=0.0, vmax=1.0, clip=True)
+    norm2 = mpcolors.LogNorm(vmin=0.01, vmax=10, clip=True)
+    
+    psm.add_bivariate_raster(grid_ratio, grid_total, cmap, norm1, norm2)
+    
+    cb_ax = psm.add_bivariate_colorbox(cmap, norm1, norm2,
+                                            xlabel='fraction of matched fishing hours',
+                                            ylabel='total fishing hours',
+                                            yformat='{x:.2f}')
+
+
+# -
 # ## Saving Plots
 #
 # Plots can be saved in the normal way, using `plt.savefig`. If a background
 # is needed, the standard facecolor can be applied as shown below.
 
 # +
-# plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
-
-# +
-import pandas as pd
-
-q = """
-SELECT *
-FROM `scratch_jaeyoon.fishing_effort_known_vs_unknown_midhighres_v20210320`
-"""
-df = pd.read_gbq(q, project_id='world-fishing-827', dialect='standard')
-
-df_all = df[df["fishing_hours_all"].notnull()]
-df_known = df[df["fishing_hours_known_vessels"].notnull()]
-# -
-
-df_all.head()
-
-grid_known = psm.rasters.df2raster(df_known, 'lon_bin', 'lat_bin', 
-                                     'fishing_hours_known_vessels', 
-                                     xyscale=5, per_km2=True)
-grid_total = psm.rasters.df2raster(df_all, 'lon_bin', 'lat_bin', 
-                                     'fishing_hours_all', 
-                                     xyscale=5, per_km2=True)
-grid_ratio = np.divide(grid_known, grid_total, out=np.zeros_like(grid_known), 
-                       where=grid_total!=0)
-
-
-
-# +
-pyseas._reload()
-from pyseas.maps import bivariate
-
-cmap = bivariate.TransparencyBivariateColormap(pyseas.cm.misc.blue_orange)
-
-with psm.context(psm.styles.dark):
-    fig = plt.figure(figsize=(15, 15), dpi=300, facecolor='white')
-    ax = psm.create_map(projection='regional.north_pacific')
-    psm.add_land(ax)
-
-    norm1 = mpcolors.Normalize(vmin=0.0, vmax=1.0, clip=True)
-    norm2 = mpcolors.LogNorm(vmin=0.01, vmax=10, clip=True)
-    
-    bivariate.add_bivariate_raster(grid_ratio, grid_total, cmap, norm1, norm2)
-    
-    cb_ax = bivariate.add_bivariate_colorbox(cmap, norm1, norm2,
-                                            xlabel='fraction of matched fishing hours',
-                                            ylabel='total fishing hours',
-                                            yformat='{x:.2f}')
-    
-    plt.title("Fishing Effort by Identified vs. Unidentified Vessels (2019-2020)", 
-              fontsize=12)
-    
-    plt.show()
-
-
-# -
-
-
+# df_known.to_csv('data/fishing_effort_know_vs_unknown.csv.zip')

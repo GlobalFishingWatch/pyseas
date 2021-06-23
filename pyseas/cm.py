@@ -26,6 +26,20 @@ unofficial.jc_reception
 unofficial.jc_linearorange
 unofficial.jc_linearblue
 unofficial.jc_linearpink
+
+
+BivariateColormaps
+------------------
+
+## Factory functions to create bivariate colormaps
+bivariate.TransparencyBivariateColormap
+bivariate.SummedBivariateColormap
+
+## Colormaps suitable for use with TransparencyBivariateColormap
+bivariate.orange_blue
+bivariate.blue_orange
+
+
 """
 from matplotlib import colors as _colors
 import numpy as _np
@@ -60,13 +74,13 @@ def _hex2cmap(name, hex_colors, flip=False):
     cmap.set_bad(alpha = 0.0)
     return cmap
 
-class _Dark(object):
+class _Dark:
     reception = _hex2cmap('reception', ('#ff4573', '#7b2e8d', '#093b76', '#0c276c')) 
     fishing = _hex2cmap('fishing', ('#0c276c', '#3b9088', '#eeff00', '#ffffff')) 
     presence = _hex2cmap('presence', ('#0c276c', '#114685','#00ffc3','#ffffff'))
 dark = _Dark()
 
-class _Light(object):
+class _Light:
     reception = _hex2cmap('reception', ('#ff4573', '#7b2e8d', '#093b76', '#0c276c'), 
         flip=True) 
     fishing = _hex2cmap('fishing', ('#0c276c', '#3b9088', '#eeff00', '#ffffff'),
@@ -76,7 +90,20 @@ class _Light(object):
 light = _Light()
 
 
-class _Misc(object):
+class _Bivariate:
+    blue_orange = _colors.LinearSegmentedColormap.from_list('blue_orange',
+                        ['#FF7E00', '#F18352', '#E08979', '#CC8F99', '#B496B4', 
+                         '#999CCC', '#79A1E0', '#52A6F1', '#00AAFF'][::-1])
+    orange_blue = _colors.LinearSegmentedColormap.from_list('orange_blue',
+                        ['#FF7E00', '#F18352', '#E08979', '#CC8F99', '#B496B4', 
+                         '#999CCC', '#79A1E0', '#52A6F1', '#00AAFF'])
+
+    from .maps.bivariate import TransparencyBivariateColormap
+    from .maps.bivariate import SummedBivariateColormap
+
+bivariate = _Bivariate()
+
+class _Misc:
     blue_orange = _colors.LinearSegmentedColormap.from_list('blue_orange',
                         ['#FF7E00', '#F18352', '#E08979', '#CC8F99', '#B496B4', 
                          '#999CCC', '#79A1E0', '#52A6F1', '#00AAFF'][::-1])
