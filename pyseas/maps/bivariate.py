@@ -104,18 +104,6 @@ def _loc_finder(loc_name, width, height, pad):
     raise ValueError(f'unknown loc_name: {loc_name}')
 
 
-# TODO: in proj_info
-# Or figure out how to get aspect ratios efficiently and accurately
-hw_ratio_map = {
-    'global.default' : 2,
-    'global.dateline_centered' : 2,
-    'global.pacific_centered' : 2,
-    'global.atlantic_centered' : 2,
-    'global.indian_centered' : 2,
-    'regional.north_pacific' : 1.9,
-}
-
-
 def _is_log(cmap_value, norm):
     if cmap_value is None:
         return isinstance(norm, LogNorm)
@@ -159,10 +147,15 @@ def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None,
     if width is height is None:
         width = 0.2
 
+    if core._last_projection in core.projection_info:
+        aspect_ratio = core.projection_info[core._last_projection]['aspect_ratio']
+    else:
+        aspect_ratio = 1
+        
     if height is None:
-        height = width * hw_ratio_map.get(core._last_projection, 1)
+        height = width * aspect_ratio
     if width is None:
-        width = height / hw_ratio_map.get(core._last_projection, 1)
+        width = height / aspect_ratio
 
     if isinstance(loc, str):
         loc = _loc_finder(loc, width, height, pad=pad)
