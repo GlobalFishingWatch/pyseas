@@ -493,6 +493,32 @@ _last_projection = None
 _last_extent = None
 _plot_cycler = None
 
+
+def _process_map_args(projection, extent):
+    global _last_projection, _last_extent, _plot_cycler
+    if isinstance(projection, str):
+        if extent is None:
+            extent = get_extent(projection)
+        _last_projection = projection
+        projection = get_projection(projection)
+    else:
+        _last_projection = projection
+    _last_extent = extent
+    _plot_cycler = plt.rcParams.get('pyseas.map.trackprops', styles._dark_artist_cycler)()
+    return projection, extent
+
+
+def _setup_map_axes(ax, bg_color, extent, hide_axes):
+    bg_color = bg_color or plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
+    ax.background_patch.set_facecolor(bg_color)
+    if extent is not None:
+        ax.set_extent(extent, crs=identity)
+    if hide_axes:
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+    # ax.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])
+
+
 def create_map(subplot=(1, 1, 1), 
                 projection='global.default', 
                 extent=None,
@@ -512,30 +538,38 @@ def create_map(subplot=(1, 1, 1),
     -------
     GeoAxes
     """
-    global _last_projection, _last_extent, _plot_cycler
-    if isinstance(projection, str):
-        if extent is None:
-            extent = get_extent(projection)
-        _last_projection = projection
-        projection = get_projection(projection)
-    else:
-        _last_projection = projection
-    _last_extent = extent
-    _plot_cycler = plt.rcParams.get('pyseas.map.trackprops', styles._dark_artist_cycler)()
+    projection, extent = _process_map_args(projection, extent)
 
-    bg_color = bg_color or plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
     if not isinstance(subplot, tuple):
         # Allow grridspec to be passed through
         subplot = (subplot,)
+
     ax = plt.subplot(*subplot, projection=projection)
-    ax.background_patch.set_facecolor(bg_color)
-    if extent is not None:
-        ax.set_extent(extent, crs=identity)
-    if hide_axes:
-        ax.axes.get_xaxis().set_visible(False)
-        ax.axes.get_yaxis().set_visible(False)
-    # ax.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])
+    _setup_map_axes(ax, bg_color, extent, hide_axes)
+
     return ax
+
+
+def create_maps(ny, nx, 
+                projection='global.default',
+                extent=None,
+                bg_color=None,
+                hide_axes=True,
+                **kwargs):
+    """ """
+    projection, extent = _process_map_args(projection, extent)
+
+    if 'subplot_kw' not in kwargs:
+        kwargs['subplot_kw'] = {}
+    kwargs['subplot_kw']['projection'] = projection
+
+    fig, axes = plt.subplots(ny, nx, **kwargs)
+    for ax in axes:
+        _setup_map_axes(ax, bg_color, extent, hide_axes)
+
+    return fig, axes
+    
+
 
 def add_logo(logo=None,  scale=1,loc='upper left', alpha=None, hshift=0, vshift=0, ax=None):
     """Add a logo to a plot

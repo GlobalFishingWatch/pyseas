@@ -428,6 +428,7 @@ grid_ratio = np.divide(grid_known, grid_total, out=np.zeros_like(grid_known),
                        where=grid_total!=0)
 
 # +
+pyseas._reload()
 cmap = psm.cm.bivariate.TransparencyBivariateColormap(psm.cm.bivariate.orange_blue)
 
 with psm.context(psm.styles.dark):
@@ -447,7 +448,36 @@ with psm.context(psm.styles.dark):
                                             aspect_ratio=2.0)
 
 
+# +
+pyseas._reload()
+
+cmap = psm.cm.bivariate.TransparencyBivariateColormap(pyseas.cm.misc.blue_orange)
+
+# projection = psm.core.get_projection('global.default')
+# psm.core._last_projection = 'global.default'
+# fig, (ax0, ax1) = plt.subplots(2, 1, subplot_kw={'projection' : projection},
+#                               figsize=(15, 15), dpi=300, facecolor='white')
+        
+with psm.context(psm.styles.dark):
+    fig, (ax0, ax1) = psm.create_maps(2, 1, figsize=(15, 15), dpi=300, facecolor='white')
+
+    norm1 = mpcolors.LogNorm(vmin=0.01, vmax=1.0, clip=True)
+    norm2 = mpcolors.LogNorm(vmin=0.1, vmax=10, clip=True)
+    psm.add_bivariate_raster(grid_ratio, grid_total, cmap, norm1, norm2, ax=ax0)
+    psm.add_land(ax0)
+    psm.add_bivariate_raster(grid_ratio, grid_total, cmap, norm1, norm2, ax=ax1)
+    psm.add_land(ax1)
+    cb_ax = psm.add_bivariate_colorbox(cmap, norm1, norm2,
+                                     xlabel='foreign-owned vessel fishing hours\n(as fraction of total fishing hours)',
+                                     ylabel='total fishing hours (per $\mathregular{km^2}$)', fontsize=8,
+                                     xformat='{x:.2f}', yformat='{x:.2f}',
+                                     aspect_ratio=2.0,
+                                      ax=ax1)
+    plt.title("Fishing Effort by Foreign-Owned Fishing Vessels (2012-2020)", 
+              fontsize=16)
+    plt.show()
 # -
+
 # ## Saving Plots
 #
 # Plots can be saved in the normal way, using `plt.savefig`. If a background

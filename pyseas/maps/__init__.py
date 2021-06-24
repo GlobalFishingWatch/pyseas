@@ -4,6 +4,7 @@ from .. import styles
 from .. import cm
 
 from .core import create_map
+from .core import create_maps
 from .core import add_land
 from .core import add_countries
 from .core import add_h3_data
