@@ -236,4 +236,4 @@ def add_bivariate_raster(raster1, raster2, bvcmap=_default_cmap, norm1=None, nor
 
     raster = bvcmap(norm1(raster1), norm2(raster2), alpha)
 
-    return core.add_raster(raster, extent=extent, origin=origin, **kwargs)
+    return core.add_raster(raster, ax=ax, extent=extent, origin=origin, **kwargs)
