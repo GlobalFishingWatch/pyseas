@@ -520,16 +520,17 @@ def _setup_map_axes(ax, bg_color, extent, hide_axes):
 
 
 def create_map(subplot=(1, 1, 1), 
-                projection='global.default', 
-                extent=None,
-                bg_color=None, 
-                hide_axes=True):
+               projection='global.default', 
+               extent=None,
+               bg_color=None, 
+               hide_axes=True):
     """Draw a GFW themed map
 
     Parameters
     ----------
-    subplot : tuple or GridSpec
-    projection : cartopy.crs.Projection, optional
+    subplot : tuple or GridSpec, optional
+    projection : str or cartopy.crs.Projection, optional
+    extent : 4-tuple of float or None, optional
     bg_color : str or tuple, optional
     hide_axes : bool, optional
         if `true`, hide x and y axes
@@ -550,22 +551,44 @@ def create_map(subplot=(1, 1, 1),
     return ax
 
 
-def create_maps(ny, nx, 
+def create_maps(nrows=1, ncols=1, *, 
                 projection='global.default',
                 extent=None,
                 bg_color=None,
                 hide_axes=True,
                 **kwargs):
-    """ """
+    """Create mulitiple map similarly to plt.subplots
+
+    Parameters
+    ----------
+    nrows, ncols : int, optional
+        Number of rows/columns of the subplot grid
+    projection : str or cartopy.crs.Projection, optional
+    extent : 4-tuple of float or None, optional
+    bg_color : str or tuple, optional
+    hide_axes : bool, optional
+        if `true`, hide x and y axes
+
+    Other Parameters
+    ----------------
+    Keyword args are passed on to plt.subplots.
+
+    Returns
+    -------
+    fig : plt.Figure
+    ax : GeoAxes or array of GeoAxes
+    """
     projection, extent = _process_map_args(projection, extent)
 
     if 'subplot_kw' not in kwargs:
         kwargs['subplot_kw'] = {}
     kwargs['subplot_kw']['projection'] = projection
 
-    fig, axes = plt.subplots(ny, nx, **kwargs)
-    for ax in axes:
+    fig, axes = plt.subplots(nrows, ncols, squeeze=False, **kwargs)
+    for ax in axes.flatten():
         _setup_map_axes(ax, bg_color, extent, hide_axes)
+
+    axes = axes[0, 0] if (axes.size == 1) else np.squeeze(axes)
 
     return fig, axes
     

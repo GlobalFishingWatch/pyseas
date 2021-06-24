@@ -193,17 +193,40 @@ with plt.rc_context(psm.styles.dark):
         psm.add_colorbar(im, ax=ax, label=r"hours per $\mathregular{km^2}$", 
                  width=1.7, height=0.035, wspace=0.0025, valign=0.2)
 
+# If a grid of maps using the same projection is being plotted, one can instead
+# use `create_maps`, which mirrors the interface of `plt.subplots`
+
+import pyseas; pyseas._reload()
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+with plt.rc_context(psm.styles.dark):
+    fig, axes = psm.create_maps(2, 2, 
+                                projection='country.indonesia',
+                                figsize=(14.7, 7.6))
+    with psm.context({'text.color' : (0.5, 0.5, 0.5)}):
+        for row in axes:
+            for ax in row:
+                im = psm.add_raster(seismic_raster, 
+                                     ax=ax,
+                                     cmap='presence',
+                                     norm=norm,
+                                     origin='lower')
+        psm.add_colorbar(im, ax=ax, label=r"hours per $\mathregular{km^2}$", 
+                 width=1.7, height=0.035, wspace=0.0025, valign=0.2)
+        
+        plt.subplots_adjust(hspace=0, wspace=0.02)
+
 # Display a raster along with standard colorbar.
 pyseas._reload()
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with psm.context(psm.styles.dark):
     with psm.context({'text.color' : 'white'}):
-        ax, im = psm.plot_raster(seismic_raster, 
-                                          projection='global.default',
-                                  cmap='presence',
-                                  norm=norm,
-                                  origin='lower')
+        fig, ax = psm.create_maps(projection='country.indonesia',
+                                    figsize=(14.7, 7.6))
+        psm.add_raster(seismic_raster,
+                       cmap='presence',
+                       norm=norm,
+                       origin='lower')
         psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", loc='bottom')
 
 # ### H3 Discrete Global Grids
@@ -452,14 +475,11 @@ with psm.context(psm.styles.dark):
 pyseas._reload()
 
 cmap = psm.cm.bivariate.TransparencyBivariateColormap(pyseas.cm.misc.blue_orange)
-
-# projection = psm.core.get_projection('global.default')
-# psm.core._last_projection = 'global.default'
-# fig, (ax0, ax1) = plt.subplots(2, 1, subplot_kw={'projection' : projection},
-#                               figsize=(15, 15), dpi=300, facecolor='white')
-        
+    
+cmap = psm.cm.bivariate.TransparencyBivariateColormap(pyseas.cm.misc.blue_orange)
+    
 with psm.context(psm.styles.dark):
-    fig, (ax0, ax1) = psm.create_maps(2, 1, figsize=(15, 15), dpi=300, facecolor='white')
+    fig, (ax0, ax1) = psm.create_maps(2, 1, figsize=(15, 15), facecolor='white')
 
     norm1 = mpcolors.LogNorm(vmin=0.01, vmax=1.0, clip=True)
     norm2 = mpcolors.LogNorm(vmin=0.1, vmax=10, clip=True)
