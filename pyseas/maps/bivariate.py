@@ -3,6 +3,7 @@ import numpy as np
 from matplotlib.colors import Normalize, LogNorm
 from matplotlib import cm
 import matplotlib.pyplot as plt
+import warnings
 from . import core
 from .. import props
 
@@ -110,9 +111,29 @@ def _is_log(cmap_value, norm):
     else:
         return cmap_value
 
+def _setup_width_and_height(width, height, aspect_ratio):
+    if width is height is None:
+        width = 0.2
+    if aspect_ratio is None:
+        aspect_ratio = 1.0
+
+    if width is None or height is None:
+        if core._last_projection in core.projection_info:
+            scale = core.projection_info[core._last_projection]['aspect_ratio'] / aspect_ratio
+        else:
+            warnings.warn('Using non-standard projection, consider setting width and height')
+            scale = 1 / aspect_ratio
+
+        if height is None:
+            height = width * scale
+        if width is None:
+            width = height / scale
+
+    return width, height
+
 
 def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None, xlabel='', ylabel='',
-                xformat=None, yformat=None, loc='below right', width=None, height=None,
+                xformat=None, yformat=None, loc='below right', width=None, height=None, aspect_ratio=None,
                 bg_color=None, fontsize=8, pad=0.05):
     """Add colorbar to a PySeas raster
 
@@ -128,10 +149,11 @@ def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None,
         Location name or ocation of the colorbox in axis coordinates.  
         Currently supported names are 'below right', 'lower right', 'upper right',
         and 'above right'.
-    width, height : float, optional
+    width, height : float or None, optional
         Size of colorbar in Axes coordinates. If only one is specified and the last
         projection was one of the standard one, then an appropriate aspect ratio will
         be used. Otherwise the same width and height will be used.
+    aspect_ratio : float or None, optional
     bg_color : maplotlib color, optional
     fontsize : int, optional # TODO: stylize
     pad : float, optional
@@ -146,22 +168,9 @@ def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None,
         xnorm = Normalize(vmin=0, vmax=1, clip=True)
     if ynorm is None:
         ynorm = Normalize(vmin=0, vmax=1, clip=True)
-    if width is height is None:
-        width = 0.2
-
-    if core._last_projection in core.projection_info:
-        aspect_ratio = core.projection_info[core._last_projection]['aspect_ratio']
-    else:
-        aspect_ratio = 1
-
-    if height is None:
-        height = width * aspect_ratio
-    if width is None:
-        width = height / aspect_ratio
-
+    width, height = _setup_width_and_height(width, height, aspect_ratio)
     if isinstance(loc, str):
         loc = _loc_finder(loc, width, height, pad=pad)
-
     wloc, hloc = loc
 
     cb_ax = ax.inset_axes([wloc, hloc, width, height], transform=ax.transAxes)

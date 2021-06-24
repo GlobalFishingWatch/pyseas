@@ -443,7 +443,8 @@ with psm.context(psm.styles.dark):
     cb_ax = psm.add_bivariate_colorbox(cmap, norm1, norm2,
                                             xlabel='fraction of matched fishing hours',
                                             ylabel='total fishing hours',
-                                            yformat='{x:.2f}')
+                                            yformat='{x:.2f}',
+                                            aspect_ratio=2.0)
 
 
 # -
