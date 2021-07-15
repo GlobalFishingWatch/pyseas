@@ -193,17 +193,40 @@ with plt.rc_context(psm.styles.dark):
         psm.add_colorbar(im, ax=ax, label=r"hours per $\mathregular{km^2}$", 
                  width=1.7, height=0.035, wspace=0.0025, valign=0.2)
 
+# If a grid of maps using the same projection is being plotted, one can instead
+# use `create_maps`, which mirrors the interface of `plt.subplots`
+
+import pyseas; pyseas._reload()
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+with plt.rc_context(psm.styles.dark):
+    fig, axes = psm.create_maps(2, 2, 
+                                projection='country.indonesia',
+                                figsize=(14.7, 7.6))
+    with psm.context({'text.color' : (0.5, 0.5, 0.5)}):
+        for row in axes:
+            for ax in row:
+                im = psm.add_raster(seismic_raster, 
+                                     ax=ax,
+                                     cmap='presence',
+                                     norm=norm,
+                                     origin='lower')
+        psm.add_colorbar(im, ax=ax, label=r"hours per $\mathregular{km^2}$", 
+                 width=1.7, height=0.035, wspace=0.0025, valign=0.2)
+        
+        plt.subplots_adjust(hspace=0, wspace=0.02)
+
 # Display a raster along with standard colorbar.
 pyseas._reload()
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with psm.context(psm.styles.dark):
     with psm.context({'text.color' : 'white'}):
-        ax, im = psm.plot_raster(seismic_raster, 
-                                          projection='global.default',
-                                  cmap='presence',
-                                  norm=norm,
-                                  origin='lower')
+        fig, ax = psm.create_maps(projection='country.indonesia',
+                                    figsize=(14.7, 7.6))
+        psm.add_raster(seismic_raster,
+                       cmap='presence',
+                       norm=norm,
+                       origin='lower')
         psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", loc='bottom')
 
 # ### H3 Discrete Global Grids
@@ -404,10 +427,55 @@ with psm.context(psm.styles.dark):
 #
 # (or if navigating from within a clone of the repo, go directly to the file [here](contrib/PlotGap.ipynb))
 
+# +
+# plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
+# -
+
+# ## Bivariate Rasters
+#
+# There is basic support for Bivariate plots, although only TransparencyBivariateColormap
+# has been significantly tested at time.
+
+# +
+df = pd.read_csv('data/fishing_effort_known_vs_unknown_2020_1deg.csv.zip')
+df_all = df[df["fishing_hours_all"].notnull()]
+df_known = df[df["fishing_hours_known_vessels"].notnull()]
+
+grid_known = psm.rasters.df2raster(df_known, 'lon_bin', 'lat_bin', 
+                                     'fishing_hours_known_vessels', 
+                                     xyscale=1, per_km2=True)
+grid_total = psm.rasters.df2raster(df_all, 'lon_bin', 'lat_bin', 
+                                     'fishing_hours_all', 
+                                     xyscale=1, per_km2=True)
+grid_ratio = np.divide(grid_known, grid_total, out=np.zeros_like(grid_known), 
+                       where=grid_total!=0)
+
+# +
+pyseas._reload()
+cmap = psm.cm.bivariate.TransparencyBivariateColormap(psm.cm.bivariate.orange_blue)
+
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(15, 15))
+    ax = psm.create_map()
+    psm.add_land(ax)
+
+    norm1 = mpcolors.Normalize(vmin=0.0, vmax=1.0, clip=True)
+    norm2 = mpcolors.LogNorm(vmin=0.01, vmax=10, clip=True)
+    
+    psm.add_bivariate_raster(grid_ratio, grid_total, cmap, norm1, norm2)
+    
+    cb_ax = psm.add_bivariate_colorbox(cmap, norm1, norm2,
+                                            xlabel='fraction of matched fishing hours',
+                                            ylabel='total fishing hours',
+                                            yformat='{x:.2f}',
+                                            aspect_ratio=2.0)
+
+
+# -
 # ## Saving Plots
 #
 # Plots can be saved in the normal way, using `plt.savefig`. If a background
 # is needed, the standard facecolor can be applied as shown below.
 
 # +
-# plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
+# df_known.to_csv('data/fishing_effort_know_vs_unknown.csv.zip')
