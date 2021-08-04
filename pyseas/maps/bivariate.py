@@ -51,7 +51,6 @@ class TransparencyBivariateColormap(BivariateColormap):
         self.log_x = log_x
         self.log_y = log_y
 
-    # TODO: should make this parameterizable
     def __call__(self, X, Y, alpha=None):
         colors = self.base_cmap(X)
         colors[..., 3] *= Y
@@ -79,11 +78,9 @@ class SummedBivariateColormap(BivariateColormap):
         self.cmap1 = cmap1
         self.cmap2 = cmap2
 
-    # TODO: should make this parameterizable
     def __call__(self, X, Y, alpha=None):
         clr1 = self.cmap1(X)
         clr2 = self.cmap2(Y)
-        # TODO: Do we want to check for Nan here?
         colors = np.clip(clr1 + clr2, 0, 1)
         if alpha is not None:
             colors[..., 3] *= alpha
@@ -155,7 +152,7 @@ def add_bivariate_colorbox(bvcmap, xnorm=None, ynorm=None, *, ax=None, fig=None,
         be used. Otherwise the same width and height will be used.
     aspect_ratio : float or None, optional
     bg_color : maplotlib color, optional
-    fontsize : int, optional # TODO: stylize
+    fontsize : int, optional
     pad : float, optional
     
     Returns

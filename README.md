@@ -34,6 +34,10 @@ necessary to use `pyseas`, replace `".[nb]"` with `.`
 to omit the *notebook* dependencies. If you are not interested in the `Examples`
 notebooks, you may omit `-e` and avoid the in-place install.
 
+## Documentation
+
+Examples of common plotting tasks are show in [doc/Examples.ipynb](doc/examples.ipynb)
+
 ## Acknowledgments
 
 * EEZ boundaries are drawn using *World EEZ v11* from [Marine Regions](https://www.marineregions.org/) 
