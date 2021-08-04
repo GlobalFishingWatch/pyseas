@@ -1,5 +1,5 @@
 from matplotlib.style import context, use
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 
 def _reload():
@@ -34,6 +34,7 @@ def _reload():
     imp.reload(projection)
     imp.reload(overlays)
     contrib._reload()
+
 
 
 
