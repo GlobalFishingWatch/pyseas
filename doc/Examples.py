@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.5.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -86,6 +86,8 @@ with psm.context(psm.styles.light):
 # -
 # `set_default_logos` accepts Google Cloud Storage paths prefixed with 
 # either `gs://` or `gcs://`. Logos loaded this way are locally cached.
+# For example, if your logos are located at `gs://pyseas/logos/`, you can
+# use the following:
 
 # +
 psm.styles.set_default_logos(light_logo='gs://pyseas/logos/logo_black.png', 
@@ -125,7 +127,6 @@ seismic_raster = psm.rasters.df2raster(seismic_presence, 'lon_index', 'lat_index
                                          xyscale=10, origin='lower', per_km2=True)
 
 # Display a raster along with standard colorbar.
-pyseas._reload()
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with psm.context(psm.styles.dark):
@@ -160,7 +161,6 @@ with plt.rc_context(psm.styles.dark):
 # `add_colorbar` can be used with subplots. Here we just plot the same 
 # thing twice and add a colorbar to the last plot.
 
-import pyseas; pyseas._reload()
 fig = plt.figure(figsize=(14, 14))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 1)
@@ -176,7 +176,6 @@ with plt.rc_context(psm.styles.dark):
             ax.set_title(f'Seismic Vessel Presence Near Indonesia - {i + 1}')
         psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$ ")
 
-import pyseas; pyseas._reload()
 fig = plt.figure(figsize=(14.7, 7.6))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 2, hspace=0, wspace=0.02)
@@ -196,7 +195,6 @@ with plt.rc_context(psm.styles.dark):
 # If a grid of maps using the same projection is being plotted, one can instead
 # use `create_maps`, which mirrors the interface of `plt.subplots`
 
-import pyseas; pyseas._reload()
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with plt.rc_context(psm.styles.dark):
     fig, axes = psm.create_maps(2, 2, 
@@ -216,7 +214,6 @@ with plt.rc_context(psm.styles.dark):
         plt.subplots_adjust(hspace=0, wspace=0.02)
 
 # Display a raster along with standard colorbar.
-pyseas._reload()
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with psm.context(psm.styles.dark):
@@ -434,7 +431,7 @@ with psm.context(psm.styles.dark):
 # ## Bivariate Rasters
 #
 # There is basic support for Bivariate plots, although only TransparencyBivariateColormap
-# has been significantly tested at time.
+# has been significantly tested at this time.
 
 # +
 df = pd.read_csv('data/fishing_effort_known_vs_unknown_2020_1deg.csv.zip')
@@ -451,7 +448,6 @@ grid_ratio = np.divide(grid_known, grid_total, out=np.zeros_like(grid_known),
                        where=grid_total!=0)
 
 # +
-pyseas._reload()
 cmap = psm.cm.bivariate.TransparencyBivariateColormap(psm.cm.bivariate.orange_blue)
 
 with psm.context(psm.styles.dark):

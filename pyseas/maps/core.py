@@ -557,7 +557,7 @@ def create_maps(nrows=1, ncols=1, *,
                 bg_color=None,
                 hide_axes=True,
                 **kwargs):
-    """Create mulitiple map similarly to plt.subplots
+    """Create multiple maps similarly to plt.subplots
 
     Parameters
     ----------
