@@ -14,6 +14,8 @@
 #     name: python3
 # ---
 
+
+
 # # Examples of Plotting with *pyseas*
 
 # +
@@ -72,7 +74,7 @@ with psm.context(psm.styles.light):
 # logo as shown below.
 
 # +
-light_logo = skimage.io.imread('../pyseas/data/logos/picc_black.png')
+light_logo = skimage.io.imread('../data/logos/picc_black.png')
 
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(18, 6))
@@ -254,41 +256,6 @@ with psm.context(psm.styles.dark):
                       pad=0.04,
                      )
 
-query_template = """
-with h3_fishing as (
-  select jslibs.h3.ST_H3(ST_GEOGPOINT(lon, lat), {level}) h3_n 
-  from gfw_research.pipe_v20190502_fishing
-  where lon between -180 and 180 and lat < 0
-  and date(date) between "2019-05-01" and "2019-10-31"
-  and nnet_score > .5
-)
-
-select h3_n as h3, count(*) as cnt
-from h3_fishing
-group by h3_n
-"""
-polar_fishing_h3_7 = pd.read_gbq(query_template.format(level=7), project_id='world-fishing-827')
-polar_h3cnts_7 = {np.uint64(int(x.h3, 16)) : x.cnt for x in polar_fishing_h3_7.itertuples()}
-
-fig = plt.figure(figsize=(14, 7))
-norm = mpcolors.LogNorm(1, 5000)
-with psm.context(psm.styles.dark):
-    ax, im = psm.plot_h3_data(polar_h3cnts_7, 
-                              projection=cartopy.crs.Stereographic(central_latitude=-90, 
-                                                central_longitude=0, true_scale_latitude=-70),
-                                extent = (-180, 180, -30, -90), 
-                              cmap='presence',
-                              norm=norm)
-    psm.add_countries()
-    psm.add_eezs()
-    ax.set_title('H3 data example')
-    fig.colorbar(im, ax=ax, 
-                      orientation='horizontal',
-                      fraction=0.02,
-                      aspect=40,
-                      pad=0.04,
-                     )
-
 # ## Plotting Tracks
 
 # There are two base functions for plotting vessel tracks. `maps.plot` is
@@ -455,9 +422,8 @@ with psm.context(psm.styles.dark):
 
 # ## Plotting Gaps
 #
-# See [PlotGap.ipynb](https://github.com/GlobalFishingWatch/rendered/blob/master/pyseas/doc/contrib/PlotGap.ipynb)
-#
-# (or if navigating from within a clone of the repo, go directly to the file [here](contrib/PlotGap.ipynb))
+# See `PlotGap.ipynb` [locally](contrib/PlotGap.ipynb) or on 
+# [github](https://github.com/GlobalFishingWatch/rendered/blob/master/pyseas/pyseas/doc/contrib/PlotGap.ipynb)
 
 # +
 # plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
@@ -483,20 +449,6 @@ grid_ratio = np.divide(grid_known, grid_total, out=np.zeros_like(grid_known),
                        where=grid_total!=0)
 # -
 
-grid_total.dtype
-
-plt.imshow(cmap(norm1(grid_ratio), norm2(grid_total)))
-norm2(grid_total).mean(), norm2(grid_total).max()
-norm2([0.001, 0.01, 0.1, 1, 10, 100, 100000, 0])
-# norm1(grid_ratio).mean()
-# norm2(grid_total.flatten()).mean(), grid_total.mean()
-
-
-
-# +
-pyseas._reload()
-
-
 cmap = psm.cm.bivariate.TransparencyBivariateColormap(psm.cm.bivariate.orange_blue)
 with psm.context(psm.styles.dark):
     fig = plt.figure(figsize=(15, 15))
@@ -513,9 +465,6 @@ with psm.context(psm.styles.dark):
                                             ylabel='total fishing hours',
                                             yformat='{x:.2f}',
                                             aspect_ratio=2.0)
-
-
-# -
 # ## Saving Plots
 #
 # Plots can be saved in the normal way, using `plt.savefig`. If a background
