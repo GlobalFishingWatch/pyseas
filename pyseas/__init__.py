@@ -2,6 +2,21 @@ from matplotlib.style import context, use
 __version__ = "0.4.0"
 
 
+import os, subprocess
+base = os.path.dirname(__file__)
+path = os.path.join(base, 'doc', 'Examples.ipynb')
+
+__doc__ = f"""Library for plotting GFW style maps
+
+To see some examples, run:
+
+    jupyter notebook {path}
+"""
+
+
+del os, subprocess, base, path
+
+
 def _reload():
     """Reload modules during development
 

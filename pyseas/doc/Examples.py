@@ -34,7 +34,7 @@ import pyseas.cm
 
 # %matplotlib inline
 
-data_dir = Path(pyseas.__file__).parents[1] / 'doc' / 'data'
+data_dir = Path('..') / 'doc' / 'data'
 # -
 
 # ## Recomended Style
@@ -254,6 +254,41 @@ with psm.context(psm.styles.dark):
                       pad=0.04,
                      )
 
+query_template = """
+with h3_fishing as (
+  select jslibs.h3.ST_H3(ST_GEOGPOINT(lon, lat), {level}) h3_n 
+  from gfw_research.pipe_v20190502_fishing
+  where lon between -180 and 180 and lat < 0
+  and date(date) between "2019-05-01" and "2019-10-31"
+  and nnet_score > .5
+)
+
+select h3_n as h3, count(*) as cnt
+from h3_fishing
+group by h3_n
+"""
+polar_fishing_h3_7 = pd.read_gbq(query_template.format(level=7), project_id='world-fishing-827')
+polar_h3cnts_7 = {np.uint64(int(x.h3, 16)) : x.cnt for x in polar_fishing_h3_7.itertuples()}
+
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(1, 5000)
+with psm.context(psm.styles.dark):
+    ax, im = psm.plot_h3_data(polar_h3cnts_7, 
+                              projection=cartopy.crs.Stereographic(central_latitude=-90, 
+                                                central_longitude=0, true_scale_latitude=-70),
+                                extent = (-180, 180, -30, -90), 
+                              cmap='presence',
+                              norm=norm)
+    psm.add_countries()
+    psm.add_eezs()
+    ax.set_title('H3 data example')
+    fig.colorbar(im, ax=ax, 
+                      orientation='horizontal',
+                      fraction=0.02,
+                      aspect=40,
+                      pad=0.04,
+                     )
+
 # ## Plotting Tracks
 
 # There are two base functions for plotting vessel tracks. `maps.plot` is
@@ -446,10 +481,23 @@ grid_total = psm.rasters.df2raster(df_all, 'lon_bin', 'lat_bin',
                                      xyscale=1, per_km2=True)
 grid_ratio = np.divide(grid_known, grid_total, out=np.zeros_like(grid_known), 
                        where=grid_total!=0)
+# -
+
+grid_total.dtype
+
+plt.imshow(cmap(norm1(grid_ratio), norm2(grid_total)))
+norm2(grid_total).mean(), norm2(grid_total).max()
+norm2([0.001, 0.01, 0.1, 1, 10, 100, 100000, 0])
+# norm1(grid_ratio).mean()
+# norm2(grid_total.flatten()).mean(), grid_total.mean()
+
+
 
 # +
-cmap = psm.cm.bivariate.TransparencyBivariateColormap(psm.cm.bivariate.orange_blue)
+pyseas._reload()
 
+
+cmap = psm.cm.bivariate.TransparencyBivariateColormap(psm.cm.bivariate.orange_blue)
 with psm.context(psm.styles.dark):
     fig = plt.figure(figsize=(15, 15))
     ax = psm.create_map()
@@ -458,7 +506,7 @@ with psm.context(psm.styles.dark):
     norm1 = mpcolors.Normalize(vmin=0.0, vmax=1.0, clip=True)
     norm2 = mpcolors.LogNorm(vmin=0.01, vmax=10, clip=True)
     
-    psm.add_bivariate_raster(grid_ratio, grid_total, cmap, norm1, norm2)
+    psm.add_bivariate_raster(grid_ratio, np.clip(grid_total, 0.01, 10), cmap, norm1, norm2)
     
     cb_ax = psm.add_bivariate_colorbox(cmap, norm1, norm2,
                                             xlabel='fraction of matched fishing hours',
