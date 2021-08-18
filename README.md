@@ -36,8 +36,8 @@ notebooks, you may omit `-e` and avoid the in-place install.
 
 ## Documentation
 
-
-Examples of common plotting tasks are shown in [pyseas/doc/Examples.ipynb](pyseas/doc/Examples.ipynb)
+Examples of common plotting tasks are shown in [pyseas/doc/Examples.ipynb](pyseas/doc/Examples.ipynb),
+or on [github](https://github.com/GlobalFishingWatch/rendered/blob/master/pyseas/pyseas/doc/Examples.ipynb).
 
 ## Acknowledgments
 
