@@ -51,16 +51,17 @@ class TransparencyBivariateColormap(BivariateColormap):
     log_x, log_y : bool, optional
     """
 
-    def __init__(self, base_cmap, log_x=None, log_y=None, n_x=None, n_y=None):
-        self.base_cmap = base_cmap
+    def __init__(self, cmap, transmap=None, log_x=None, log_y=None, n_x=None, n_y=None):
+        self.cmap = cmap
+        self.transmap = (lambda x: x) if (transmap is None) else transmap
         self.log_x = log_x
         self.log_y = log_y
         self.n_x = n_x
         self.n_y = n_y
 
     def __call__(self, X, Y, alpha=None):
-        colors = self.base_cmap(self.discretize(X, self.n_x))
-        colors[..., 3] *= self.discretize(Y, self.n_y)
+        colors = self.cmap(self.discretize(X, self.n_x))
+        colors[..., 3] *= self.transmap(self.discretize(Y, self.n_y))
         if alpha is not None:
             colors[..., 3] *= alpha
         return colors
@@ -238,9 +239,10 @@ def add_bivariate_colorbox(
 
     cb_ax = ax.inset_axes([wloc, hloc, width, height], transform=ax.transAxes)
 
+    # TODO: need to do this in logspace somehow or with inverse colormap or...
     x, y = np.meshgrid(
-        np.linspace(xnorm.vmin, xnorm.vmax, 1000),
-        np.linspace(ynorm.vmin, ynorm.vmax, 1000),
+        np.linspace(xnorm.vmin, xnorm.vmax, 10000),
+        np.linspace(ynorm.vmin, ynorm.vmax, 10000),
     )
 
     cb_ax.imshow(
