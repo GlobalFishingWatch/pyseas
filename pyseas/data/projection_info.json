@@ -177,14 +177,14 @@
             "central_latitude": 38.5
         },
         "extent": [
-            -12,
-            40,
-            30,
-            44.8333333
+            -7.5,
+            39,
+            29,
+            47.5
         ],
         "name": "Albers equal area conic @ 20\u00b0E,120\u00b0N",
         "proj-string" : "+proj=aea +lon_0=17 +lat_1=32.1666667 +lat_2=44.8333333 +lat_0=38.5 +datum=WGS84 +units=m +no_defs",
-        "aspect_ratio" : null
+        "aspect_ratio" : 1.9
     },
     "regional.china": {
         "projection": "LambertAzimuthalEqualArea",
