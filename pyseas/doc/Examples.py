@@ -658,7 +658,7 @@ with psm.context(psm.styles.light):
     psm.add_land()
     psm.add_countries()
     ax.plot([x for (x, y) in five_corners], [y for (x, y) in five_corners], 
-            transform=psm.identity)
+            transform=psm.identity, zorder=0)
     ax.set_extent((lon_min - 5, lon_max + 5, lat_min - 5, lat_max + 5), crs=psm.identity)
 
 # +
