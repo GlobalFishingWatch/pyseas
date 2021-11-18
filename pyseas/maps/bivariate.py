@@ -1,5 +1,5 @@
 import numpy as np
-from matplotlib.colors import Normalize, LogNorm, LinearSegmentedColormap
+from matplotlib.colors import Normalize, LogNorm, LinearSegmentedColormap, Colormap
 import matplotlib.pyplot as plt
 import warnings
 from . import core
@@ -180,6 +180,26 @@ def _setup_width_and_height(width, height, aspect_ratio):
     return width, height
 
 
+def _locs(vmin, vmax, pixels, islog):
+    if islog:
+        return np.exp(np.linspace(np.log(vmin), np.log(vmax), pixels))
+    else:
+        return np.linspace(vmin, vmax, pixels)
+
+
+class _IndexColormap(Colormap):
+    def __init__(self, source):
+        self.source = np.asarray(source)
+
+    def __call__(self, x, alpha=None, bytes=False):
+        return self.source[x]
+
+
+class _IdentNorm(Normalize):
+    def __call__(self, x):
+        return x
+
+
 def add_bivariate_colorbox(
     bvcmap,
     xnorm=None,
@@ -198,6 +218,7 @@ def add_bivariate_colorbox(
     bg_color=None,
     fontsize=8,
     pad=0.05,
+    pixels=256,
 ):
     """Add colorbar to a PySeas raster
 
@@ -221,6 +242,8 @@ def add_bivariate_colorbox(
     bg_color : maplotlib color, optional
     fontsize : int, optional
     pad : float, optional
+    pixels : int, optional
+        Number of pixels along in each axis in the colorbox image.
 
     Returns
     -------
@@ -239,18 +262,29 @@ def add_bivariate_colorbox(
 
     cb_ax = ax.inset_axes([wloc, hloc, width, height], transform=ax.transAxes)
 
-    # TODO: need to do this in logspace somehow or with inverse colormap or...
-    x, y = np.meshgrid(
-        np.linspace(xnorm.vmin, xnorm.vmax, 10000),
-        np.linspace(ynorm.vmin, ynorm.vmax, 10000),
+    islog_x = _is_log(bvcmap.log_x, xnorm)
+    islog_y = _is_log(bvcmap.log_y, ynorm)
+
+    x = _locs(xnorm.vmin, xnorm.vmax, pixels, islog_x)
+    y = _locs(ynorm.vmin, ynorm.vmax, pixels, islog_y)
+
+    xmg, ymg = np.meshgrid(
+        x,
+        y,
     )
 
-    cb_ax.imshow(
-        bvcmap(xnorm(x), ynorm(y)),
-        extent=(xnorm.vmin, xnorm.vmax, ynorm.vmin, ynorm.vmax),
-        origin="lower",
-        aspect="auto",
+    # We use pcolormesh, with this hacked colormap so that we get even points
+    # in axes space even when we have log axes. If we use imshow instead,
+    # points get further and further apart for small log values.
+    icmap = _IndexColormap(bvcmap(xnorm(xmg), ynorm(ymg)).reshape(-1, 4))
+    cb_ax.pcolormesh(
+        x,
+        y,
+        np.arange(pixels * pixels).reshape(pixels, pixels),
+        cmap=icmap,
+        norm=_IdentNorm(),
     )
+
     bg_color = bg_color or plt.rcParams.get(
         "pyseas.ocean.color", props.dark.ocean.color
     )
@@ -260,9 +294,9 @@ def add_bivariate_colorbox(
     cb_ax.set_xlabel(xlabel, fontsize=fontsize)
     cb_ax.set_ylabel(ylabel, fontsize=fontsize)
 
-    if _is_log(bvcmap.log_x, xnorm):
+    if islog_x:
         cb_ax.set_xscale("log")
-    if _is_log(bvcmap.log_y, ynorm):
+    if islog_y:
         cb_ax.set_yscale("log")
 
     if xformat is not None:

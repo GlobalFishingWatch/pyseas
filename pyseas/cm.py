@@ -117,20 +117,23 @@ class _Bivariate:
             "#00AAFF",
         ][::-1],
     )
-    orange_blue = _colors.LinearSegmentedColormap.from_list(
-        "orange_blue",
+    orange_blue = blue_orange.reversed
+    bright_blue_orange = _colors.LinearSegmentedColormap.from_list(
+        "bright_blue_orange",
         [
-            "#FF7E00",
-            "#F18352",
-            "#E08979",
-            "#CC8F99",
-            "#B496B4",
-            "#999CCC",
-            "#79A1E0",
-            "#52A6F1",
-            "#00AAFF",
+            "#0062F0",
+            "#405FF2",
+            "#645BE1",
+            "#855ECF",
+            "#A463BB",
+            "#BB63A3",
+            "#D06286",
+            "#E16063",
+            "#F2613B",
+            "#F56A00",
         ],
     )
+    bright_blue_orange = bright_blue_orange.reversed
     aqua = _colors.LinearSegmentedColormap.from_list(
         "aqua", [(0.95, 0.95, 0.95), (0.39, 0.53, 1.0)]
     )
