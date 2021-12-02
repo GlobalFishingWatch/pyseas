@@ -309,6 +309,24 @@ with psm.context(psm.styles.light):
 
     plt.legend()
 
+# The track extent is padded using `pad_abs` and `pad_rel`. This works
+# even when the extent is zero
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(8, 8))
+    df = position_msgs[position_msgs.seg_id == "249014000-2018-01-21T16:36:23.000000Z"]
+    df = df.iloc[:1]
+    projinfo = psm.find_projection(df.lon, df.lat)
+    psm.create_map(projection=projinfo.projection)
+    psm.add_land()
+
+    psm.plot(df.lon.values, df.lat.values, label="first")
+    psm.plot(df.lon.values, df.lat.values + 0.1, label="second")
+    psm.plot(
+        df.lon.values - 0.3, df.lat.values, color="purple", linewidth=3, label="third"
+    )
+
+    plt.legend()
+
 # One can use `add_plot` to display multiple plots at once or to display a single
 # plot with multiple states. In the first case one uses `break_on_change=False` and
 # in the second `break_on_change=True`. In either case, the value of the `props`
