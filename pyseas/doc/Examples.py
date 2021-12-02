@@ -268,10 +268,12 @@ with psm.context(psm.styles.dark):
     psm.add_countries()
     psm.add_eezs()
     ax.set_title("H3 data example")
-    fig.colorbar(
+    psm.add_colorbar(im, width=1.0)
+    # Or
+    plt.colorbar(
         im,
         ax=ax,
-        orientation="horizontal",
+        orientation="vertical",
         fraction=0.02,
         aspect=40,
         pad=0.04,
