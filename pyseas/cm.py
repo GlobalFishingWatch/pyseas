@@ -43,7 +43,6 @@ bivariate.blue_orange
 """
 from matplotlib import colors as _colors
 import numpy as _np
-import skimage.color as _skcolor
 
 
 def _hex2cmap(name, hex_colors, flip=False):
@@ -117,7 +116,7 @@ class _Bivariate:
             "#00AAFF",
         ][::-1],
     )
-    orange_blue = blue_orange.reversed
+    orange_blue = blue_orange.reversed()
     bright_blue_orange = _colors.LinearSegmentedColormap.from_list(
         "bright_blue_orange",
         [
@@ -133,7 +132,7 @@ class _Bivariate:
             "#F56A00",
         ],
     )
-    bright_blue_orange = bright_blue_orange.reversed
+    bright_blue_orange = bright_blue_orange.reversed()
     aqua = _colors.LinearSegmentedColormap.from_list(
         "aqua", [(0.95, 0.95, 0.95), (0.39, 0.53, 1.0)]
     )

@@ -53,8 +53,6 @@ with psm.context(psm.styles.light):
     psm.add_gridlines()
     psm.add_gridlabels()
     psm.add_logo(loc="upper left")
-# plt.savefig('/Users/timothyhochberg/Desktop/pyseas_logo_test.png', dpi=300,
-# facecolor=plt.rcParams['pyseas.fig.background'])
 
 # More commonly you'll want to either specify a custom logo as shown here, or set the default
 # logo as shown below.
@@ -107,6 +105,16 @@ with psm.context(psm.styles.light):
     psm.add_eezs()
     psm.add_gridlines()
     # Note gridlabels don't currently work on global maps
+
+# If you don't need to show the Mediterraean, you can show the major oceans
+# with the "global.pacific_157w" projection
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    psm.create_map(projection="global.pacific_157w")
+    psm.add_land()
+    psm.add_countries()
+    psm.add_eezs()
+    psm.add_gridlines()
 
 # ## Rasters
 #
@@ -292,15 +300,15 @@ with psm.context(psm.styles.dark):
 position_msgs = pd.read_csv(data_dir / "position_messages.csv.zip")
 position_msgs["timestamp"] = pd.to_datetime(position_msgs.timestamp)
 
-# Note the use of `maps.find_projection` to find an appropriate projection and extents
+# Note the use of `maps.add_lonlat_proj` to find an appropriate projection and extents
 # based on lat/lon data.
 
 # Simple track plotting analogous to plt.plot
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(8, 8))
     df = position_msgs[position_msgs.seg_id == "249014000-2018-01-21T16:36:23.000000Z"]
-    projinfo = psm.find_projection(df.lon, df.lat)
-    psm.create_map(projection=projinfo.projection)
+    projname = psm.add_lonlat_proj(df.lon, df.lat)
+    psm.create_map(projection=projname)
     psm.add_land()
 
     psm.plot(df.lon.values, df.lat.values, label="first")
@@ -317,8 +325,8 @@ with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(8, 8))
     df = position_msgs[position_msgs.seg_id == "249014000-2018-01-21T16:36:23.000000Z"]
     df = df.iloc[:1]
-    projinfo = psm.find_projection(df.lon, df.lat)
-    psm.create_map(projection=projinfo.projection)
+    psm.add_lonlat_proj(df.lon, df.lat, name="small_projection")
+    psm.create_map(projection="small_projection")
     psm.add_land()
 
     psm.plot(df.lon.values, df.lat.values, label="first")
@@ -339,8 +347,8 @@ with psm.context(psm.styles.light):
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(8, 8))
     df = position_msgs[position_msgs.ssvid != 220413000]
-    projinfo = psm.find_projection(df.lon, df.lat)
-    psm.create_map(projection=projinfo.projection, extent=projinfo.extent)
+    projname = psm.add_lonlat_proj(df.lon, df.lat)
+    psm.create_map(projection=projname)
     psm.add_land()
     handles = psm.add_plot(
         df.lon.values, df.lat.values, df.ssvid, break_on_change=False
@@ -522,10 +530,6 @@ with psm.context(psm.styles.dark):
 # See `PlotGap.ipynb` [locally](contrib/PlotGap.ipynb) or on 
 # [github](https://github.com/GlobalFishingWatch/rendered/blob/master/pyseas/pyseas/doc/contrib/PlotGap.ipynb)
 
-# +
-# plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
-# -
-
 # ## Bivariate Rasters
 #
 # There is basic support for Bivariate plots, although only TransparencyBivariateColormap
@@ -619,7 +623,7 @@ with psm.context(psm.styles.dark):
 # Then:
 
 # +
-df = pd.read_csv("data/polar_fishing_h3_7.csv.zip")
+polar_fishing_h3_7 = pd.read_csv("data/polar_fishing_h3_7.csv.zip")
 polar_h3cnts_7 = {
     np.uint64(int(x.h3, 16)): x.cnt for x in polar_fishing_h3_7.itertuples()
 }
@@ -730,4 +734,4 @@ with psm.context(psm.styles.light):
 # the standard facecolor can be applied as shown below.
 
 # +
-# df_known.to_csv('data/fishing_effort_know_vs_unknown.csv.zip')
+# plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])

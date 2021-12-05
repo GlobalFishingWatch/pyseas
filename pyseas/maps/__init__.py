@@ -1,3 +1,4 @@
+# flake8: noqa
 from .. import context
 from .. import use
 from .. import styles
@@ -28,6 +29,7 @@ from .bivariate import add_bivariate_raster
 from .colorbar import add_colorbar
 
 from .projection import find_projection
+from .projection import add_lonlat_proj
 
 from .scalebar import add_scalebar
 

@@ -1,7 +1,50 @@
 from collections import namedtuple
+import json
+import math
 import numpy as np
+import os
 import cartopy.crs
 from ..util import asarray, lon_avg
+
+
+identity = cartopy.crs.PlateCarree()
+
+root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+
+_projections = {
+    "EqualEarth": cartopy.crs.EqualEarth,
+    "LambertAzimuthalEqualArea": cartopy.crs.LambertAzimuthalEqualArea,
+    "AlbersEqualArea": cartopy.crs.AlbersEqualArea,
+    "LambertCylindrical": cartopy.crs.LambertCylindrical,
+}
+
+
+def load_projections():
+
+    path = os.path.join(root, "pyseas/data/projection_info.json")
+    with open(path) as f:
+        info = json.load(f)
+    for k, v in info.items():
+        v["projection"] = _projections[v["projection"]]
+        info[k] = v
+    return info
+
+
+projection_info = load_projections()
+
+
+def get_projection(region_name):
+
+    info = projection_info[region_name]
+    return info["projection"](**info["args"])
+
+
+def get_extent(region_name):
+    return projection_info[region_name]["extent"]
+
+
+def get_proj_description(region_name):
+    return projection_info[region_name]["description"]
 
 
 DEFAULT_PADDING_DEG = 0.1
@@ -11,6 +54,64 @@ ProjectionInfo = namedtuple(
     "ProjectionInfo",
     ["projection", "extent", "description", "central_longitude", "central_latitude"],
 )
+
+
+def find_projection_core(lons, lats, pad_rel=0.2, pad_abs=0.1, percentile=99.9):
+    """Find a suitable projection and extent for a set of lat lon points.
+
+    Projection will include most points, but only forces `percentile` of them
+    to be within the projection to allow for outliers.
+
+    Parameters
+    ----------
+    lons : array of float
+    lats : array of float
+    pad_rel : float, optional
+        Base extent is padded by this times base extent size.
+    pad_abs : float, optional
+        Base extent is padded by this many degrees.
+    percentile : float, optional
+        Fraction of points to force into projection extents.
+
+    Returns
+    -------
+    ProjectionInfo
+        A namedtuple containing `projection`, `extent`, `description`, `central_longitude`,
+        and `central_latitude`. Projection here is the projection *name*
+
+    """
+    lons, lats = (asarray(x) for x in (lons, lats))
+    assert len(lons) == len(lats), (len(lons), len(lats))
+    lonm0 = lon_avg(lons)
+    lons = (lons - lonm0 + 180) % 360 + lonm0 - 180
+    lon0, lonm, lon1 = np.percentile(lons, (100 - percentile, 50, percentile))
+    (lon0, lon1) = [(x - lonm + 180) % 360 + lonm - 180 for x in (lon0, lon1)]
+    if lon0 > lon1:
+        lon0, lon1 = lon1, lon0
+    lat0, latm, lat1 = np.percentile(lats, (100 - percentile, 50, percentile))
+    lon_delta = abs(lon1 - lon0) * pad_rel + pad_abs
+    lat_delta = abs(lat1 - lat0) * pad_rel + pad_abs
+
+    extent = (lon0 - lon_delta, lon1 + lon_delta, lat0 - lat_delta, lat1 + lat_delta)
+    if (
+        extent[1] - extent[0] <= MAX_LAMBERT_EXTENT
+        and extent[3] - extent[2] <= MAX_LAMBERT_EXTENT
+    ):
+        projection = "LambertAzimuthalEqualArea"
+        lonstr = ("{}°E" if (lonm >= 0) else "{}°W").format(int(round(abs(lonm))))
+        latstr = ("{}°N" if (latm >= 0) else "{}°S").format(int(round(abs(latm))))
+        description = "Lambert azimuthal equal area @{},{}".format(lonstr, latstr)
+    else:
+        extent = None
+        latm = None
+        projection = "EqualEarth"
+        lonstr = ("{}°E" if (lonm >= 0) else "{}°W").format(int(round(abs(lonm))))
+        description = "EqualEarth @{}".format(
+            lonstr,
+        )
+    return ProjectionInfo(
+        projection, extent, description, central_longitude=lonm, central_latitude=latm
+    )
 
 
 def find_projection(lons, lats, pad_rel=0.2, pad_abs=0.1, percentile=99.9):
@@ -37,37 +138,59 @@ def find_projection(lons, lats, pad_rel=0.2, pad_abs=0.1, percentile=99.9):
         and `central_latitude`.
 
     """
-    lons, lats = (asarray(x) for x in (lons, lats))
-    assert len(lons) == len(lats), (len(lons), len(lats))
-    lonm0 = lon_avg(lons)
-    lons = (lons - lonm0 + 180) % 360 + lonm0 - 180
-    lon0, lonm, lon1 = np.percentile(lons, (100 - percentile, 50, percentile))
-    (lon0, lon1) = [(x - lonm + 180) % 360 + lonm - 180 for x in (lon0, lon1)]
-    if lon0 > lon1:
-        lon0, lon1 = lon1, lon0
-    lat0, latm, lat1 = np.percentile(lats, (100 - percentile, 50, percentile))
-    lon_delta = abs(lon1 - lon0) * pad_rel + pad_abs
-    lat_delta = abs(lat1 - lat0) * pad_rel + pad_abs
-
-    extent = (lon0 - lon_delta, lon1 + lon_delta, lat0 - lat_delta, lat1 + lat_delta)
-    if (
-        extent[1] - extent[0] <= MAX_LAMBERT_EXTENT
-        and extent[3] - extent[2] <= MAX_LAMBERT_EXTENT
-    ):
+    info = find_projection_core(lons, lats, pad_rel, pad_abs, percentile)
+    if info.projection == "LambertAzimuthalEqualArea":
         projection = cartopy.crs.LambertAzimuthalEqualArea(
-            central_longitude=lonm, central_latitude=latm
+            central_longitude=info.central_longitude,
+            central_latitude=info.central_latitude,
         )
-        lonstr = ("{}°E" if (lonm >= 0) else "{}°W").format(int(round(abs(lonm))))
-        latstr = ("{}°N" if (latm >= 0) else "{}°S").format(int(round(abs(latm))))
-        description = "Lambert azimuthal equal area @{},{}".format(lonstr, latstr)
+    elif info.projection == "EqualEarth":
+        projection = cartopy.crs.EqualEarth(central_longitude=info.central_longitude)
     else:
-        extent = None
-        latm = None
-        projection = cartopy.crs.EqualEarth(central_longitude=lonm)
-        lonstr = ("{}°E" if (lonm >= 0) else "{}°W").format(int(round(abs(lonm))))
-        description = "EqualEarth @{}".format(
-            lonstr,
+        raise RuntimeError("unknown projection name")
+    return info._replace(projection=projection)
+
+
+template = {
+    "projection": "None",
+    "args": None,
+    "extent": None,
+    "description": None,
+    "aspect_ratio": 2.1,
+}
+
+
+def approximate_aspect_ratio(extent, lat0):
+    lon0, lon1, lat0, lat1 = extent
+    dlon = lon1 - lon0
+    if dlon > 180:
+        dlon = 360 - dlon
+    if dlon < -180:
+        dlon = dlon + 360
+    assert 0 <= dlon <= 180
+    dlat = lat1 - lat0
+    return dlon * math.cos(math.radians(lat0)) / dlat
+
+
+def add_lonlat_proj(lons, lats, name=None, pad_rel=0.2, pad_abs=0.1, percentile=99.9):
+    info = find_projection_core(lons, lats, pad_rel, pad_abs, percentile)
+    proj = template.copy()
+    proj["projection"] = _projections[info.projection]
+    proj["extent"] = info.extent
+    proj["description"] = info.description
+
+    if info.projection == "EqualEarth":
+        proj["args"] = {"central_longitude": info.central_longitude}
+        proj["aspect_ratio"] = approximate_aspect_ratio(
+            info.extent, info.central_latitude
         )
-    return ProjectionInfo(
-        projection, extent, description, central_longitude=lonm, central_latitude=latm
-    )
+    else:
+        proj["args"] = {
+            "central_longitude": info.central_longitude,
+            "central_latitude": info.central_latitude,
+        }
+        proj["aspect_ratio"] = 2.1
+    if name is None:
+        name = proj["description"]
+    projection_info[name] = proj
+    return name
