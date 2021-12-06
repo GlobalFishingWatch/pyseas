@@ -33,18 +33,23 @@ def load_projections():
 projection_info = load_projections()
 
 
-def get_projection(region_name):
-
-    info = projection_info[region_name]
+def get_projection(projinfo):
+    if isinstance(projinfo, ProjectionInfo):
+        return projinfo.projection
+    info = projection_info[projinfo]
     return info["projection"](**info["args"])
 
 
-def get_extent(region_name):
-    return projection_info[region_name]["extent"]
+def get_extent(projinfo):
+    if isinstance(projinfo, ProjectionInfo):
+        return projinfo.extent
+    return projection_info[projinfo]["extent"]
 
 
-def get_proj_description(region_name):
-    return projection_info[region_name]["description"]
+def get_proj_description(projinfo):
+    if isinstance(projinfo, ProjectionInfo):
+        return projinfo.description
+    return projection_info[projinfo]["description"]
 
 
 DEFAULT_PADDING_DEG = 0.1
@@ -149,48 +154,3 @@ def find_projection(lons, lats, pad_rel=0.2, pad_abs=0.1, percentile=99.9):
     else:
         raise RuntimeError("unknown projection name")
     return info._replace(projection=projection)
-
-
-template = {
-    "projection": "None",
-    "args": None,
-    "extent": None,
-    "description": None,
-    "aspect_ratio": 2.1,
-}
-
-
-def approximate_aspect_ratio(extent, lat0):
-    lon0, lon1, lat0, lat1 = extent
-    dlon = lon1 - lon0
-    if dlon > 180:
-        dlon = 360 - dlon
-    if dlon < -180:
-        dlon = dlon + 360
-    assert 0 <= dlon <= 180
-    dlat = lat1 - lat0
-    return dlon * math.cos(math.radians(lat0)) / dlat
-
-
-def add_lonlat_proj(lons, lats, name=None, pad_rel=0.2, pad_abs=0.1, percentile=99.9):
-    info = find_projection_core(lons, lats, pad_rel, pad_abs, percentile)
-    proj = template.copy()
-    proj["projection"] = _projections[info.projection]
-    proj["extent"] = info.extent
-    proj["description"] = info.description
-
-    if info.projection == "EqualEarth":
-        proj["args"] = {"central_longitude": info.central_longitude}
-        proj["aspect_ratio"] = approximate_aspect_ratio(
-            info.extent, info.central_latitude
-        )
-    else:
-        proj["args"] = {
-            "central_longitude": info.central_longitude,
-            "central_latitude": info.central_latitude,
-        }
-        proj["aspect_ratio"] = 2.1
-    if name is None:
-        name = proj["description"]
-    projection_info[name] = proj
-    return name

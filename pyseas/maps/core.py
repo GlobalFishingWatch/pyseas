@@ -46,7 +46,7 @@ from .. import styles
 from . import ticks
 from . import rasterize
 from . import colorbar
-from .projection import get_extent, get_projection
+from .projection import get_extent, get_projection, ProjectionInfo
 
 
 monkey_patch_cartopy()
@@ -501,7 +501,7 @@ _plot_cycler = None
 
 def _process_map_args(projection, extent):
     global _last_projection, _last_extent, _plot_cycler
-    if isinstance(projection, str):
+    if isinstance(projection, (str, ProjectionInfo)):
         if extent is None:
             extent = get_extent(projection)
         _last_projection = projection

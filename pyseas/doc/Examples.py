@@ -300,15 +300,15 @@ with psm.context(psm.styles.dark):
 position_msgs = pd.read_csv(data_dir / "position_messages.csv.zip")
 position_msgs["timestamp"] = pd.to_datetime(position_msgs.timestamp)
 
-# Note the use of `maps.add_lonlat_proj` to find an appropriate projection and extents
+# Note the use of `maps.find_projection` to find an appropriate projection and extents
 # based on lat/lon data.
 
 # Simple track plotting analogous to plt.plot
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(8, 8))
     df = position_msgs[position_msgs.seg_id == "249014000-2018-01-21T16:36:23.000000Z"]
-    projname = psm.add_lonlat_proj(df.lon, df.lat)
-    psm.create_map(projection=projname)
+    proj = psm.find_projection(df.lon, df.lat)
+    psm.create_map(projection=proj)
     psm.add_land()
 
     psm.plot(df.lon.values, df.lat.values, label="first")
@@ -325,8 +325,8 @@ with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(8, 8))
     df = position_msgs[position_msgs.seg_id == "249014000-2018-01-21T16:36:23.000000Z"]
     df = df.iloc[:1]
-    psm.add_lonlat_proj(df.lon, df.lat, name="small_projection")
-    psm.create_map(projection="small_projection")
+    proj = psm.find_projection(df.lon, df.lat)
+    psm.create_map(projection=proj)
     psm.add_land()
 
     psm.plot(df.lon.values, df.lat.values, label="first")
@@ -347,7 +347,7 @@ with psm.context(psm.styles.light):
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(8, 8))
     df = position_msgs[position_msgs.ssvid != 220413000]
-    projname = psm.add_lonlat_proj(df.lon, df.lat)
+    projname = psm.find_projection(df.lon, df.lat)
     psm.create_map(projection=projname)
     psm.add_land()
     handles = psm.add_plot(
