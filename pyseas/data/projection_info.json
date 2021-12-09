@@ -210,7 +210,7 @@
         "description": "Lambert azimuthal equal area @ 120\u00b0E,22.5\u00b0N",
         "proj-string" : "=proj=laea +lon_0=120 +lat_0=22.5",
         "aspect_ratio" : 0.9,
-        "description" : "This is an extended version of 'country.china' that includes all of the waters claimed by China."
+        "notes" : "This is an extended version of 'country.china' that includes all of the waters claimed by China."
     },
     "country.indonesia": {
         "projection": "LambertCylindrical",
