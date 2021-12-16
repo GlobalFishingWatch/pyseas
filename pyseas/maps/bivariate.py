@@ -231,7 +231,7 @@ def add_bivariate_colorbox(
     xlabel, ylabel : str, optional
     xformat, yformat : str, optional
     loc : str or tuple of float, optional
-        Location name or ocation of the colorbox in axis coordinates.
+        Location name or location of the colorbox in axis coordinates.
         Currently supported names are 'below right', 'lower right', 'upper right',
         and 'above right'.
     width, height : float or None, optional
