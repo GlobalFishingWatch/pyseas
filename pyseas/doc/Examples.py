@@ -601,7 +601,7 @@ with psm.context(psm.styles.dark):
 # +
 df = pd.read_csv("data/polar_fishing_h3_7.csv.zip")
 polar_h3cnts_7 = {
-    np.uint64(int(x.h3, 16)): x.cnt for x in polar_fishing_h3_7.itertuples()
+    np.uint64(int(x.h3, 16)): x.cnt for x in df.itertuples()
 }
 
 fig = plt.figure(figsize=(14, 7))
