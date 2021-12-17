@@ -2,12 +2,12 @@
 # # Examples of Plotting with *pyseas*
 
 # +
-# %load_ext pycodestyle_magic
-# %flake8_on
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpcolors
 import matplotlib.gridspec as gridspec
+import matplotlib.patches as mppatches
+from matplotlib.transforms import Affine2D
 from pathlib import Path
 import skimage.io
 import pandas as pd
@@ -136,7 +136,10 @@ with psm.context(psm.styles.dark):
             norm=norm,
             origin="lower",
         )
-        psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", width=0.5)
+        cbax = psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", width=0.5)
+        cbax.tick_params(labelsize=16)
+
+cbax.collections
 
 # Display a raster along with standard colorbar.
 fig = plt.figure(figsize=(14, 7))
@@ -551,31 +554,54 @@ with psm.context(psm.styles.dark):
         yformat="{x:.2f}",
         aspect_ratio=2.0,
     )
-# ## Saving Plots
-#
-# Plots can be saved in the normal way, using `plt.savefig`. If a background
-# is needed, the standard facecolor can be applied as shown below.
+
+cmap = psm.cm.bivariate.TransparencyBivariateColormap(psm.cm.bivariate.orange_blue)
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(15, 15))
+    ax = psm.create_map()
+    psm.add_land(ax)
+
+    norm1 = mpcolors.Normalize(vmin=0.0, vmax=1.0, clip=True)
+    norm2 = mpcolors.LogNorm(vmin=0.01, vmax=10, clip=True)
+
+    psm.add_bivariate_raster(
+        grid_ratio, np.clip(grid_total, 0.01, 10), cmap, norm1, norm2
+    )
+
+    cb_ax = psm.add_bivariate_colorbox(
+        cmap,
+        norm1,
+        norm2,
+        xlabel="fraction of matched fishing hours",
+        ylabel="total fishing hours",
+        yformat="{x:.2f}",
+        aspect_ratio=2.0,
+    )
+
 # ## Polar Plots
 #
 # These are easier to plot using H3 than lat/lon grids, since H3 doesn't 
 # have singularities at the poles. 
+#
 # First get some data using a query similar to:
 #
-#     with h3_data as (
-#       select jslibs.h3.ST_H3(ST_GEOGPOINT(lon, lat), {level}) h3_n 
-#       from DATASET.TABLE
-#       where lon between -180 and 180 and lat < 0
-#       and date(date) between "YYYY-MM-DD" and "YYYY-MM-DD"
-#     )
+#      with h3_data as (
+#        select jslibs.h3.ST_H3(ST_GEOGPOINT(lon, lat), {level}) h3_n 
+#        from DATASET.TABLE
+#        where lon between -180 and 180 and lat < 0
+#        and date(date) between "YYYY-MM-DD" and "YYYY-MM-DD"
+#      )
 #
-#     select h3_n as h3, count(*) as cnt
-#     from h3_data
-#     group by h3_n
+#      select h3_n as h3, count(*) as cnt
+#      from h3_data
+#      group by h3_n
+#      
+# Then:
 
 # +
 df = pd.read_csv("data/polar_fishing_h3_7.csv.zip")
 polar_h3cnts_7 = {
-    np.uint64(int(x.h3, 16)): x.cnt for x in polar_fishing_h3_7.itertuples()
+    np.uint64(int(x.h3, 16)): x.cnt for x in df.itertuples()
 }
 
 fig = plt.figure(figsize=(14, 7))
@@ -601,6 +627,87 @@ with psm.context(psm.styles.dark):
         aspect=40,
         pad=0.04,
     )
+# -
+
+# ## Adding Polygons
+#
+# If you are just adding a simple, unfilled polygon, you can add it using `ax.plot`. However,
+# if you need a filled polygon, you need to use `matlpotlib.patches.Polygon` 
+
+# +
+# South China Sea extents according to Marine Regions
+lon_min, lon_max = 102.2385, 122.1513
+lat_min, lat_max = -3.2287, 25.5673
+
+ll_corners = [
+    (lon_min, lat_min),
+    (lon_max, lat_min),
+    (lon_max, lat_max),
+    (lon_min, lat_max),
+]
+
+# +
+# First plot using `ax.plot`
+
+# When plotting a polygon using ax.plot, you need to include the first corner at the end
+five_corners = ll_corners + ll_corners[:1]
+
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    ax = psm.create_map(projection="country.china")
+    psm.add_land()
+    psm.add_countries()
+    ax.plot([x for (x, y) in five_corners], [y for (x, y) in five_corners], 
+            transform=psm.identity, zorder=0)
+    ax.set_extent((lon_min - 5, lon_max + 5, lat_min - 5, lat_max + 5), crs=psm.identity)
+
+# +
+# Now using a Polygon
+lons = np.array([x for (x, y) in five_corners])
+lats = np.array([y for (x, y) in five_corners])
+
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    ax = psm.create_map(projection="country.china")
+    
+    xformed = ax.projection.transform_points(psm.identity, lons, lats)[:, :2]
+    xy = xformed[:4]
+
+    rect = mppatches.Polygon(
+        xy,
+        linewidth=1,
+        edgecolor="lime",
+        facecolor=(0, 0, 0, 0.1),
+        transform=ax.transData, 
+        zorder=0)
+    
+    # You can also add an affine transform to the a Polygon
+    # as well as controlling the z-order (higher numbers are
+    # drawn on top)
+    cntr = xy.sum(axis=0)
+    xform = (Affine2D()
+             .rotate_deg_around(*cntr, 20)
+             .scale(0.2)
+            )
+    rotated = mppatches.Polygon(
+        xy,
+        linewidth=1,
+        edgecolor="lime",
+        facecolor=(0, 0, 1.0, 0.2),
+        transform=xform + ax.transData, 
+        zorder=9)
+    
+    psm.add_land()
+    psm.add_countries()
+    ax.set_extent((lon_min - 5, lon_max + 5, lat_min - 5, lat_max + 5), crs=psm.identity)
+    ax.add_patch(rect)
+    ax.add_patch(rotated)
+# -
+
+# ## Saving Plots
+#
+# Plots can be saved in the normal way, using `plt.savefig`. If a background is needed, 
+# the standard facecolor can be applied as shown below.
 
 # +
 # df_known.to_csv('data/fishing_effort_know_vs_unknown.csv.zip')
