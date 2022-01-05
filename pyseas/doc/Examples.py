@@ -31,8 +31,8 @@ data_dir = Path("..") / "doc" / "data"
 
 # ## Basic Mapping
 #
-# Projections can be specified by using any of the names found in the acompanying 
-# `projection_info.md` document, or with any Cartopy projection. There are built in 
+# Projections can be specified by using any of the names found in the acompanying
+# `projection_info.md` document, or with any Cartopy projection. There are built in
 # light and dark styles, which are activated using `pyseas.context`.
 
 with psm.context(psm.styles.dark):
@@ -53,8 +53,6 @@ with psm.context(psm.styles.light):
     psm.add_gridlines()
     psm.add_gridlabels()
     psm.add_logo(loc="upper left")
-# plt.savefig('/Users/timothyhochberg/Desktop/pyseas_logo_test.png', dpi=300,
-# facecolor=plt.rcParams['pyseas.fig.background'])
 
 # More commonly you'll want to either specify a custom logo as shown here, or set the default
 # logo as shown below.
@@ -72,7 +70,7 @@ with psm.context(psm.styles.light):
     psm.add_gridlabels()
     psm.add_logo(light_logo, loc="lower right", scale=0.2)
 # -
-# `set_default_logos` accepts Google Cloud Storage paths prefixed with 
+# `set_default_logos` accepts Google Cloud Storage paths prefixed with
 # either `gs://` or `gcs://`. Logos loaded this way are locally cached.
 # For example, if your logos are located at `gs://pyseas/logos/`, you can
 # use the following:
@@ -96,7 +94,7 @@ with psm.context(psm.styles.dark):
     psm.add_logo(loc="lower right")
 # -
 
-# If region is not specified, you get the default global map as specified by the 
+# If region is not specified, you get the default global map as specified by the
 # projection name `global.default`. Currently that's ExactEarth centered at 0 longitude.
 
 with psm.context(psm.styles.light):
@@ -107,6 +105,16 @@ with psm.context(psm.styles.light):
     psm.add_eezs()
     psm.add_gridlines()
     # Note gridlabels don't currently work on global maps
+
+# If you don't need to show the Mediterraean, you can show the major oceans
+# with the "global.pacific_157w" projection
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    psm.create_map(projection="global.pacific_157w")
+    psm.add_land()
+    psm.add_countries()
+    psm.add_eezs()
+    psm.add_gridlines()
 
 # ## Rasters
 #
@@ -164,7 +172,7 @@ with plt.rc_context(psm.styles.dark):
         pad=0.04,
     )
 
-# `add_colorbar` can be used with subplots. Here we just plot the same 
+# `add_colorbar` can be used with subplots. Here we just plot the same
 # thing twice and add a colorbar to the last plot.
 
 fig = plt.figure(figsize=(14, 14))
@@ -268,10 +276,12 @@ with psm.context(psm.styles.dark):
     psm.add_countries()
     psm.add_eezs()
     ax.set_title("H3 data example")
-    fig.colorbar(
+    psm.add_colorbar(im, width=1.0)
+    # Or
+    plt.colorbar(
         im,
         ax=ax,
-        orientation="horizontal",
+        orientation="vertical",
         fraction=0.02,
         aspect=40,
         pad=0.04,
@@ -297,8 +307,26 @@ position_msgs["timestamp"] = pd.to_datetime(position_msgs.timestamp)
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(8, 8))
     df = position_msgs[position_msgs.seg_id == "249014000-2018-01-21T16:36:23.000000Z"]
-    projinfo = psm.find_projection(df.lon, df.lat)
-    psm.create_map(projection=projinfo.projection)
+    proj = psm.find_projection(df.lon, df.lat)
+    psm.create_map(projection=proj)
+    psm.add_land()
+
+    psm.plot(df.lon.values, df.lat.values, label="first")
+    psm.plot(df.lon.values, df.lat.values + 0.1, label="second")
+    psm.plot(
+        df.lon.values - 0.3, df.lat.values, color="purple", linewidth=3, label="third"
+    )
+
+    plt.legend()
+
+# The track extent is padded using `pad_abs` and `pad_rel`. This works
+# even when the extent is zero
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(8, 8))
+    df = position_msgs[position_msgs.seg_id == "249014000-2018-01-21T16:36:23.000000Z"]
+    df = df.iloc[:1]
+    proj = psm.find_projection(df.lon, df.lat)
+    psm.create_map(projection=proj)
     psm.add_land()
 
     psm.plot(df.lon.values, df.lat.values, label="first")
@@ -312,15 +340,15 @@ with psm.context(psm.styles.light):
 # One can use `add_plot` to display multiple plots at once or to display a single
 # plot with multiple states. In the first case one uses `break_on_change=False` and
 # in the second `break_on_change=True`. In either case, the value of the `props`
-# argument controls the color of plotted line segments. `break_on_change` controls 
+# argument controls the color of plotted line segments. `break_on_change` controls
 # how whether lines with a given `props` values are broken when the value changes.
 
 # Use add plot, to display multiple tracks at once.
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(8, 8))
     df = position_msgs[position_msgs.ssvid != 220413000]
-    projinfo = psm.find_projection(df.lon, df.lat)
-    psm.create_map(projection=projinfo.projection, extent=projinfo.extent)
+    projname = psm.find_projection(df.lon, df.lat)
+    psm.create_map(projection=projname)
     psm.add_land()
     handles = psm.add_plot(
         df.lon.values, df.lat.values, df.ssvid, break_on_change=False
@@ -349,7 +377,7 @@ with psm.context(psm.styles.light):
 # ## Panels
 #
 # There are a couple of convenience functions that package up add_plot
-# for a couple of common cases. These also support adding subsidiary 
+# for a couple of common cases. These also support adding subsidiary
 # time/other-parameter plots and both functions will automatically choses
 # and appropriate projection and extents based on the input data
 # using `maps.find_projection`.
@@ -499,12 +527,8 @@ with psm.context(psm.styles.dark):
 
 # ## Plotting Gaps
 #
-# See `PlotGap.ipynb` [locally](contrib/PlotGap.ipynb) or on 
+# See `PlotGap.ipynb` [locally](contrib/PlotGap.ipynb) or on
 # [github](https://github.com/GlobalFishingWatch/rendered/blob/master/pyseas/pyseas/doc/contrib/PlotGap.ipynb)
-
-# +
-# plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
-# -
 
 # ## Bivariate Rasters
 #
@@ -580,13 +604,13 @@ with psm.context(psm.styles.dark):
 
 # ## Polar Plots
 #
-# These are easier to plot using H3 than lat/lon grids, since H3 doesn't 
-# have singularities at the poles. 
+# These are easier to plot using H3 than lat/lon grids, since H3 doesn't
+# have singularities at the poles.
 #
 # First get some data using a query similar to:
 #
 #      with h3_data as (
-#        select jslibs.h3.ST_H3(ST_GEOGPOINT(lon, lat), {level}) h3_n 
+#        select jslibs.h3.ST_H3(ST_GEOGPOINT(lon, lat), {level}) h3_n
 #        from DATASET.TABLE
 #        where lon between -180 and 180 and lat < 0
 #        and date(date) between "YYYY-MM-DD" and "YYYY-MM-DD"
@@ -595,14 +619,12 @@ with psm.context(psm.styles.dark):
 #      select h3_n as h3, count(*) as cnt
 #      from h3_data
 #      group by h3_n
-#      
+#
 # Then:
 
 # +
-df = pd.read_csv("data/polar_fishing_h3_7.csv.zip")
-polar_h3cnts_7 = {
-    np.uint64(int(x.h3, 16)): x.cnt for x in df.itertuples()
-}
+polar_fishing_h3_7 = pd.read_csv("data/polar_fishing_h3_7.csv.zip")
+polar_h3cnts_7 = {np.uint64(int(x.h3, 16)): x.cnt for x in polar_fishing_h3_7.itertuples()}
 
 fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(1, 5000)
@@ -632,7 +654,7 @@ with psm.context(psm.styles.dark):
 # ## Adding Polygons
 #
 # If you are just adding a simple, unfilled polygon, you can add it using `ax.plot`. However,
-# if you need a filled polygon, you need to use `matlpotlib.patches.Polygon` 
+# if you need a filled polygon, you need to use `matlpotlib.patches.Polygon`
 
 # +
 # South China Sea extents according to Marine Regions
@@ -657,9 +679,15 @@ with psm.context(psm.styles.light):
     ax = psm.create_map(projection="country.china")
     psm.add_land()
     psm.add_countries()
-    ax.plot([x for (x, y) in five_corners], [y for (x, y) in five_corners], 
-            transform=psm.identity, zorder=0)
-    ax.set_extent((lon_min - 5, lon_max + 5, lat_min - 5, lat_max + 5), crs=psm.identity)
+    ax.plot(
+        [x for (x, y) in five_corners],
+        [y for (x, y) in five_corners],
+        transform=psm.identity,
+        zorder=0,
+    )
+    ax.set_extent(
+        (lon_min - 5, lon_max + 5, lat_min - 5, lat_max + 5), crs=psm.identity
+    )
 
 # +
 # Now using a Polygon
@@ -669,7 +697,7 @@ lats = np.array([y for (x, y) in five_corners])
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(18, 6))
     ax = psm.create_map(projection="country.china")
-    
+
     xformed = ax.projection.transform_points(psm.identity, lons, lats)[:, :2]
     xy = xformed[:4]
 
@@ -678,36 +706,107 @@ with psm.context(psm.styles.light):
         linewidth=1,
         edgecolor="lime",
         facecolor=(0, 0, 0, 0.1),
-        transform=ax.transData, 
-        zorder=0)
-    
+        transform=ax.transData,
+        zorder=0,
+    )
+
     # You can also add an affine transform to the a Polygon
     # as well as controlling the z-order (higher numbers are
     # drawn on top)
     cntr = xy.sum(axis=0)
-    xform = (Affine2D()
-             .rotate_deg_around(*cntr, 20)
-             .scale(0.2)
-            )
+    xform = Affine2D().rotate_deg_around(*cntr, 20).scale(0.2)
     rotated = mppatches.Polygon(
         xy,
         linewidth=1,
         edgecolor="lime",
         facecolor=(0, 0, 1.0, 0.2),
-        transform=xform + ax.transData, 
-        zorder=9)
-    
+        transform=xform + ax.transData,
+        zorder=9,
+    )
+
     psm.add_land()
     psm.add_countries()
-    ax.set_extent((lon_min - 5, lon_max + 5, lat_min - 5, lat_max + 5), crs=psm.identity)
+    ax.set_extent(
+        (lon_min - 5, lon_max + 5, lat_min - 5, lat_max + 5), crs=psm.identity
+    )
     ax.add_patch(rect)
     ax.add_patch(rotated)
 # -
 
 # ## Saving Plots
 #
-# Plots can be saved in the normal way, using `plt.savefig`. If a background is needed, 
+# Plots can be saved in the normal way, using `plt.savefig`. If a background is needed,
 # the standard facecolor can be applied as shown below.
 
 # +
-# df_known.to_csv('data/fishing_effort_know_vs_unknown.csv.zip')
+# First plot using `ax.plot`
+
+# When plotting a polygon using ax.plot, you need to include the first corner at the end
+five_corners = ll_corners + ll_corners[:1]
+
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    ax = psm.create_map(projection="country.china")
+    psm.add_land()
+    psm.add_countries()
+    ax.plot(
+        [x for (x, y) in five_corners],
+        [y for (x, y) in five_corners],
+        transform=psm.identity,
+        zorder=0,
+    )
+    ax.set_extent(
+        (lon_min - 5, lon_max + 5, lat_min - 5, lat_max + 5), crs=psm.identity
+    )
+
+# +
+# Now using a Polygon
+lons = np.array([x for (x, y) in five_corners])
+lats = np.array([y for (x, y) in five_corners])
+
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    ax = psm.create_map(projection="country.china")
+
+    xformed = ax.projection.transform_points(psm.identity, lons, lats)[:, :2]
+    xy = xformed[:4]
+
+    rect = mppatches.Polygon(
+        xy,
+        linewidth=1,
+        edgecolor="lime",
+        facecolor=(0, 0, 0, 0.1),
+        transform=ax.transData,
+        zorder=0,
+    )
+
+    # You can also add an affine transform to the a Polygon
+    # as well as controlling the z-order (higher numbers are
+    # drawn on top)
+    cntr = xy.sum(axis=0)
+    xform = Affine2D().rotate_deg_around(*cntr, 20).scale(0.2)
+    rotated = mppatches.Polygon(
+        xy,
+        linewidth=1,
+        edgecolor="lime",
+        facecolor=(0, 0, 1.0, 0.2),
+        transform=xform + ax.transData,
+        zorder=9,
+    )
+
+    psm.add_land()
+    psm.add_countries()
+    ax.set_extent(
+        (lon_min - 5, lon_max + 5, lat_min - 5, lat_max + 5), crs=psm.identity
+    )
+    ax.add_patch(rect)
+    ax.add_patch(rotated)
+# -
+
+# ## Saving Plots
+#
+# Plots can be saved in the normal way, using `plt.savefig`. If a background is needed,
+# the standard facecolor can be applied as shown below.
+
+# +
+# plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])

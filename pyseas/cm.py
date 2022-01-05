@@ -43,7 +43,6 @@ bivariate.blue_orange
 """
 from matplotlib import colors as _colors
 import numpy as _np
-import skimage.color as _skcolor
 
 
 def _hex2cmap(name, hex_colors, flip=False):

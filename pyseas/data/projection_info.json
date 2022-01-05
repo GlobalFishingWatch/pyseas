@@ -5,7 +5,7 @@
             "central_longitude": 0
         },
         "extent": null,
-        "name": "EqualEarth @ 0\u00b0E",
+        "description": "EqualEarth @ 0\u00b0E",
         "aspect_ratio" : 2.1
     },
     "global.dateline_centered": {
@@ -14,7 +14,7 @@
             "central_longitude": 180
         },
         "extent": null,
-        "name": "EqualEarth @ 180\u00b0E",
+        "description": "EqualEarth @ 180\u00b0E",
         "aspect_ratio" : 2.1
     },
     "global.atlantic_centered": {
@@ -23,7 +23,7 @@
             "central_longitude": -40
         },
         "extent": null,
-        "name": "EqualEarth @ 40\u00b0W",
+        "description": "EqualEarth @ 40\u00b0W",
         "aspect_ratio" : 2.1
     },
     "global.pacific_centered": {
@@ -32,7 +32,16 @@
             "central_longitude": 150
         },
         "extent": null,
-        "name": "EqualEarth @ 150\u00b0E",
+        "description": "EqualEarth @ 150\u00b0E",
+        "aspect_ratio" : 2.1
+    },
+    "global.pacific_157w": {
+        "projection": "EqualEarth",
+        "args": {
+            "central_longitude": -157
+        },
+        "extent": null,
+        "description": "EqualEarth @ 157\u00b0W",
         "aspect_ratio" : 2.1
     },
     "global.indian_centered": {
@@ -41,7 +50,7 @@
             "central_longitude": 70
         },
         "extent": null,
-        "name": "EqualEarth @ 70\u00b0E",
+        "description": "EqualEarth @ 70\u00b0E",
         "aspect_ratio" : 2.1
     },
     "regional.north_pacific": {
@@ -56,7 +65,7 @@
             -10,
             60
         ],
-        "name": "Lambert azimuthal equal area @ 165\u00b0E,25\u00b0N",
+        "description": "Lambert azimuthal equal area @ 165\u00b0E,25\u00b0N",
         "proj-string" : "+proj=laea +lat_0=25 +lon_0=-160",
         "aspect_ratio" : 1.8
 
@@ -73,7 +82,7 @@
             -70,
             10
         ],
-        "name": "Lambert azimuthal equal area @ 140\u00b0W,0\u00b0S",
+        "description": "Lambert azimuthal equal area @ 140\u00b0W,0\u00b0S",
         "proj-string" : "+proj=laea +lat_0=-30 +lon_0=-160",
         "aspect_ratio" : 1.8
     },
@@ -88,7 +97,7 @@
             -65,
             65
         ],
-        "name": "Lambert azimuthal equal area @ 165\u00b0W,0\u00b0N",
+        "description": "Lambert azimuthal equal area @ 165\u00b0W,0\u00b0N",
         "proj-string" : "+proj=laea +lat_0=0 +lon_0=-160",
         "aspect_ratio" : 1.1
     },
@@ -103,7 +112,7 @@
             -75,
             75
         ],
-        "name": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S",
+        "description": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S",
         "proj-string" : "+proj=laea +lat_0=0 +lon_0=-30",
         "aspect_ratio" : 0.7
     },
@@ -119,7 +128,7 @@
             -5,
             75
         ],
-        "name": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S",
+        "description": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S",
         "proj-string" : "+proj=laea +lat_0=35 +lon_0=-30",
         "aspect_ratio" : 1.2
     },
@@ -135,7 +144,7 @@
             -55,
             5
         ],
-        "name": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S",
+        "description": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S",
         "proj-string" : "+proj=laea +lat_0=-35 +lon_0=-20",
         "aspect_ratio" : 1.2
     },
@@ -150,7 +159,7 @@
             -30,
             70
         ],
-        "name": "Lambert azimuthal equal area @ 75\u00b0E,0\u00b0N",
+        "description": "Lambert azimuthal equal area @ 75\u00b0E,0\u00b0N",
         "proj-string" : "+proj=laea +lat_0=-20 +lon_0=80",
         "aspect_ratio" : 1.1
     },
@@ -166,7 +175,7 @@
             25,
             75
         ],
-        "name": "Albers equal area conic @ 15\u00b0E,50\u00b0N",
+        "description": "Albers equal area conic @ 15\u00b0E,50\u00b0N",
         "proj-string" : "=proj=aea +lat_1=33 +lat_2=67 +lon_0=15",
         "aspect_ratio" : 1.4
     },
@@ -182,7 +191,7 @@
             29,
             47.5
         ],
-        "name": "Albers equal area conic @ 20\u00b0E,120\u00b0N",
+        "description": "Albers equal area conic @ 20\u00b0E,120\u00b0N",
         "proj-string" : "+proj=aea +lon_0=17 +lat_1=32.1666667 +lat_2=44.8333333 +lat_0=38.5 +datum=WGS84 +units=m +no_defs",
         "aspect_ratio" : 1.9
     },
@@ -198,10 +207,10 @@
             0,
             45
         ],
-        "name": "Lambert azimuthal equal area @ 120\u00b0E,22.5\u00b0N",
+        "description": "Lambert azimuthal equal area @ 120\u00b0E,22.5\u00b0N",
         "proj-string" : "=proj=laea +lon_0=120 +lat_0=22.5",
         "aspect_ratio" : 0.9,
-        "description" : "This is an extended version of 'country.china' that includes all of the waters claimed by China."
+        "notes" : "This is an extended version of 'country.china' that includes all of the waters claimed by China."
     },
     "country.indonesia": {
         "projection": "LambertCylindrical",
@@ -214,7 +223,7 @@
             -20,
             20
         ],
-        "name": "Lambert cylindrical @ 120\u00b0E",
+        "description": "Lambert cylindrical @ 120\u00b0E",
         "proj-string" : "+proj=cea +lat_ts=0 +lon_0=-240",
         "aspect_ratio" : 2.1
     },
@@ -229,7 +238,7 @@
             -10,
             5
         ],
-        "name": "Lambert cylindrical @ 85\u00b0W",
+        "description": "Lambert cylindrical @ 85\u00b0W",
         "proj-string" : "+proj=cea +lat_ts=0 +lon_0=-85",
         "aspect_ratio" : 1.6
     },
@@ -245,7 +254,7 @@
             26,
             50
         ],
-        "name": "Lambert azimuthal equal area @ 137\u00b0E,38\u00b0N",
+        "description": "Lambert azimuthal equal area @ 137\u00b0E,38\u00b0N",
         "proj-string" : "+proj=laea +lat_0=38 +lon_0=140",
         "aspect_ratio" : 1.1
     },
@@ -261,7 +270,7 @@
             15,
             45
         ],
-        "name": "Albers equal area conic @ 20\u00b0E,120\u00b0N",
+        "description": "Albers equal area conic @ 20\u00b0E,120\u00b0N",
         "proj-string" : "+proj=aea +lon_0=120 +lat_1=20 +lat_2=40",
         "aspect_ratio" : 1.2
     },
@@ -277,7 +286,7 @@
             -60,
             -10
         ],
-        "name": "Lambert azimuthal equal area @ 80\u00b0W",
+        "description": "Lambert azimuthal equal area @ 80\u00b0W",
         "proj-string" : "+proj=laea +lat_0=-35 +lon_0=-80",
         "aspect_ratio" : 0.8
     },
@@ -292,7 +301,7 @@
             -25,
             5
         ],
-        "name": "Lambert azimuthal equal area @ 80\u00b0W",
+        "description": "Lambert azimuthal equal area @ 80\u00b0W",
         "proj-string" : "+proj=laea +lon_0=-80",
         "aspect_ratio" : 1.0
     },
@@ -307,7 +316,7 @@
             -2,
             15
         ],
-        "name": "Lambert azimuthal equal area @ 80\u00b0W",
+        "description": "Lambert azimuthal equal area @ 80\u00b0W",
         "proj-string" : "+proj=laea +lon_0=-80",
         "aspect_ratio" : 0.9
     }

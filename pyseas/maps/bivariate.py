@@ -3,6 +3,7 @@ from matplotlib.colors import Normalize, LogNorm, LinearSegmentedColormap, Color
 import matplotlib.pyplot as plt
 import warnings
 from . import core
+from .projection import projection_info
 from .. import props
 
 
@@ -161,16 +162,15 @@ def _setup_width_and_height(width, height, aspect_ratio):
         aspect_ratio = 1.0
 
     if width is None or height is None:
-        if core._last_projection in core.projection_info:
+        if core._last_projection in projection_info:
             scale = (
-                core.projection_info[core._last_projection]["aspect_ratio"]
-                / aspect_ratio
+                projection_info[core._last_projection]["aspect_ratio"] / aspect_ratio
             )
         else:
             warnings.warn(
                 "Using non-standard projection, consider setting width and height"
             )
-            scale = 1 / aspect_ratio
+            scale = 2.1 / aspect_ratio
 
         if height is None:
             height = width * scale
@@ -283,6 +283,7 @@ def add_bivariate_colorbox(
         np.arange(pixels * pixels).reshape(pixels, pixels),
         cmap=icmap,
         norm=_IdentNorm(),
+        shading="auto",
     )
 
     bg_color = bg_color or plt.rcParams.get(

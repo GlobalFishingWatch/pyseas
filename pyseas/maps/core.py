@@ -28,32 +28,25 @@ See also `contrib.plot_tracks` for examples of using `add_plot`
 from ._monkey_patch_cartopy import monkey_patch_cartopy
 import matplotlib.pyplot as plt
 import matplotlib.offsetbox as mplobox
-import matplotlib.colors as mplcolors
 from matplotlib.lines import Line2D
-from matplotlib import gridspec
 from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 import cartopy
 import cartopy.feature as cfeature
 import cartopy.mpl.gridliner
-import json
 import os
 import uuid
+import warnings
 
 import geopandas as gpd
 import numpy as np
-from cartopy.feature import ShapelyFeature
 import shapely
 from shapely.geometry import MultiLineString
-from shapely.errors import TopologicalError
-from shapely import ops as shpops
-from skimage import io as skio
-import warnings
 from .. import props
 from .. import styles
 from . import ticks
 from . import rasterize
 from . import colorbar
-
+from .projection import get_extent, get_projection, ProjectionInfo
 
 
 monkey_patch_cartopy()
@@ -62,38 +55,10 @@ identity = cartopy.crs.PlateCarree()
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
-_projections = {
-    'EqualEarth' : cartopy.crs.EqualEarth,
-    'LambertAzimuthalEqualArea' : cartopy.crs.LambertAzimuthalEqualArea,
-    'AlbersEqualArea' : cartopy.crs.AlbersEqualArea,
-    'LambertCylindrical' : cartopy.crs.LambertCylindrical,
-}
 
-def load_projections():
-
-    path = os.path.join(root, 'pyseas/data/projection_info.json')
-    with open(path) as f:
-        info = json.load(f)
-    for k, v in info.items():
-        v['projection'] = _projections[v['projection']]
-        info[k] = v
-    return info
-
-projection_info = load_projections()
-
-
-def get_projection(region_name):
-    info = projection_info[region_name]
-    return info['projection'](**info['args'])
-
-def get_extent(region_name):
-    return projection_info[region_name]['extent']
-
-def get_proj_description(region_name):
-    return projection_info[region_name]['name']
-
-
-def add_land(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
+def add_land(
+    ax=None, scale="10m", edgecolor=None, facecolor=None, linewidth=None, **kwargs
+):
     """Add land to an existing map
 
     Parameters
@@ -107,7 +72,7 @@ def add_land(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidth=Non
         Color to use for the landmass faces.
     linewidth : float, optional
         Width of land edge in points
-    
+
     Other Parameters
     ----------------
     Keyword args are passed on to NaturalEarthFeature.
@@ -118,18 +83,28 @@ def add_land(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidth=Non
     """
     if ax is None:
         ax = plt.gca()
-    edgecolor = edgecolor or plt.rcParams.get('pyseas.border.color', props.dark.border.color)
-    facecolor = facecolor or plt.rcParams.get('pyseas.land.color', props.dark.land.color)
-    linewidth = linewidth or plt.rcParams.get('pyseas.border.linewidth', 0.4)
-    land = cfeature.NaturalEarthFeature('physical', 'land', scale,
-                                            edgecolor=edgecolor,
-                                            facecolor=facecolor,
-                                            linewidth=linewidth,
-                                            **kwargs)
+    edgecolor = edgecolor or plt.rcParams.get(
+        "pyseas.border.color", props.dark.border.color
+    )
+    facecolor = facecolor or plt.rcParams.get(
+        "pyseas.land.color", props.dark.land.color
+    )
+    linewidth = linewidth or plt.rcParams.get("pyseas.border.linewidth", 0.4)
+    land = cfeature.NaturalEarthFeature(
+        "physical",
+        "land",
+        scale,
+        edgecolor=edgecolor,
+        facecolor=facecolor,
+        linewidth=linewidth,
+        **kwargs,
+    )
     return ax.add_feature(land)
 
 
-def add_countries(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidth=None, **kwargs):
+def add_countries(
+    ax=None, scale="10m", edgecolor=None, facecolor=None, linewidth=None, **kwargs
+):
     """Add land to an existing map
 
     Parameters
@@ -143,7 +118,7 @@ def add_countries(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidt
         Color to use for the landmass faces.
     linewidth : float, optional
         Width of land edge in points
-    
+
     Other Parameters
     ----------------
     Keyword args are passed on to NaturalEarthFeature.
@@ -154,19 +129,28 @@ def add_countries(ax=None, scale='10m', edgecolor=None, facecolor=None, linewidt
     """
     if ax is None:
         ax = plt.gca()
-    edgecolor = edgecolor or plt.rcParams.get('pyseas.border.color', props.dark.border.color)
-    facecolor = facecolor or plt.rcParams.get('pyseas.land.color', props.dark.land.color)
-    linewidth = linewidth or plt.rcParams.get('pyseas.border.linewidth', 0.4)
-    land = cfeature.NaturalEarthFeature('cultural', 'admin_0_boundary_lines_land', scale,
-                                            edgecolor=edgecolor,
-                                            facecolor=facecolor,
-                                            linewidth=linewidth,
-                                            **kwargs)
+    edgecolor = edgecolor or plt.rcParams.get(
+        "pyseas.border.color", props.dark.border.color
+    )
+    facecolor = facecolor or plt.rcParams.get(
+        "pyseas.land.color", props.dark.land.color
+    )
+    linewidth = linewidth or plt.rcParams.get("pyseas.border.linewidth", 0.4)
+    land = cfeature.NaturalEarthFeature(
+        "cultural",
+        "admin_0_boundary_lines_land",
+        scale,
+        edgecolor=edgecolor,
+        facecolor=facecolor,
+        linewidth=linewidth,
+        **kwargs,
+    )
     return ax.add_feature(land)
 
 
-def add_raster(raster, ax=None, extent=None, origin='upper', interpolation='nearest', 
-               **kwargs):
+def add_raster(
+    raster, ax=None, extent=None, origin="upper", interpolation="nearest", **kwargs
+):
     """Add a raster to an existing map
 
     Parameters
@@ -180,7 +164,7 @@ def add_raster(raster, ax=None, extent=None, origin='upper', interpolation='near
     interpolation : str, optional
         Uses 'nearest' by default as the standard matplotlib default doesn't work
         well with projected data at high resolution.
-    
+
     Other Parameters
     ----------------
     Keyword args are passed on to imshow.
@@ -193,10 +177,10 @@ def add_raster(raster, ax=None, extent=None, origin='upper', interpolation='near
         ax = plt.gca()
     if extent is None:
         extent = (-180, 180, -90, 90)
-    if 'cmap' in kwargs and isinstance(kwargs['cmap'], str):
-        src = plt.rcParams['pyseas.map.cmapsrc']
+    if "cmap" in kwargs and isinstance(kwargs["cmap"], str):
+        src = plt.rcParams["pyseas.map.cmapsrc"]
         try:
-            kwargs['cmap'] = getattr(src, kwargs['cmap'])
+            kwargs["cmap"] = getattr(src, kwargs["cmap"])
         except AttributeError:
             pass
 
@@ -215,7 +199,7 @@ def add_h3_data(h3_data, ax=None, **kwargs):
         (lon_min, lon_max, lat_min, lat_max) of the raster
     origin : str, optional
         Location of the raster origin ['upper' or 'lowers']
-    
+
     Other Parameters
     ----------------
     Keyword args are passed on to imshow.
@@ -226,10 +210,10 @@ def add_h3_data(h3_data, ax=None, **kwargs):
     """
     if ax is None:
         ax = plt.gca()
-    if 'cmap' in kwargs and isinstance(kwargs['cmap'], str):
-        src = plt.rcParams['pyseas.map.cmapsrc']
+    if "cmap" in kwargs and isinstance(kwargs["cmap"], str):
+        src = plt.rcParams["pyseas.map.cmapsrc"]
         try:
-            kwargs['cmap'] = getattr(src, kwargs['cmap'])
+            kwargs["cmap"] = getattr(src, kwargs["cmap"])
         except AttributeError:
             pass
 
@@ -237,7 +221,7 @@ def add_h3_data(h3_data, ax=None, **kwargs):
 
 
 def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
-    assert len(x) == len(y) == len(mask) , (len(x),  len(y), len(mask))
+    assert len(x) == len(y) == len(mask), (len(x), len(y), len(mask))
     i = 0
     ml_coords = []
     last_x = None
@@ -267,7 +251,7 @@ def _build_multiline_string_coords(x, y, mask, break_on_change, x_is_lon=True):
 
     ml_coords = [x for x in ml_coords if len(x) > 1]
     return ml_coords
-        
+
 
 # TODO: move this and add_plot out of core to plot.py
 def _build_mask(kind, k1, k2, break_on_change):
@@ -275,11 +259,11 @@ def _build_mask(kind, k1, k2, break_on_change):
         # Create separate line segments for for each block
         # with endpoints of k1, k2. If k1 != k2, these segments
         # will necessarily have only two points.
-        mask1 = (kind == k1)
+        mask1 = kind == k1
         if k2 == k1:
             mask2 = mask1
         else:
-            mask2 = (kind == k2)
+            mask2 = kind == k2
 
         mask = np.zeros_like(mask1)
         mask[:-1] = mask1[:-1] & mask2[1:]
@@ -288,12 +272,14 @@ def _build_mask(kind, k1, k2, break_on_change):
     else:
         # Create one segment for each type.
         if k1 == k2:
-            return (kind == k1) 
+            return kind == k1
         else:
             return np.zeros(len(kind), dtype=bool)
 
 
-def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, transform=identity):
+def add_plot(
+    lon, lat, kind=None, props=None, ax=None, break_on_change=False, transform=identity
+):
     """Add a plot with different props for different 'kind' values to an existing map
 
     Parameters
@@ -301,12 +287,12 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, tr
     lon : sequence of float
     lat : sequence of float
     kind : sequence of hashable, optional
-        Controls what props are used. Length must match lon/lat and values 
+        Controls what props are used. Length must match lon/lat and values
         are used to index into the `props` map.
     props : dict, optional.
         Maps `kind` of first and last point of each segment to plot style.
          By default, sorted values from `kind`
-        are mapped to 'axes.prop_cycle'. `props` for segments between 
+        are mapped to 'axes.prop_cycle'. `props` for segments between
         points with different `kind` value are looked up under `None`.
         If `None` is missing, these points are not plotted.
     ax : matplotlib axes object, optional
@@ -336,16 +322,18 @@ def add_plot(lon, lat, kind=None, props=None, ax=None, break_on_change=False, tr
     for k1, k2 in sorted(props.keys()):
         mask = _build_mask(kind, k1, k2, break_on_change)
         if mask.sum():
-            ml_coords = _build_multiline_string_coords(lon, lat, mask, break_on_change)   
+            ml_coords = _build_multiline_string_coords(lon, lat, mask, break_on_change)
             mls = MultiLineString(ml_coords)
             p = props[k1, k2].copy()
-            if 'legend' in p:
-                key = p.pop('legend')
+            if "legend" in p:
+                key = p.pop("legend")
             else:
-                key = k1 if (k1 == k2) else f'{k1}-{k2}'
+                key = k1 if (k1 == k2) else f"{k1}-{k2}"
             ax.add_geometries([mls], crs=transform, **p)
             if key:
-                handles[key] = Line2D([0], [0], color=p['edgecolor'], lw=p.get('linewidth', 1))
+                handles[key] = Line2D(
+                    [0], [0], color=p["edgecolor"], lw=p.get("linewidth", 1)
+                )
 
     return handles
 
@@ -355,14 +343,15 @@ def plot(*args, **kwargs):
 
     This is a thin wrapper around matplotlib.plot that sets the default transform.
     """
-    if 'transform' not in kwargs:
-        kwargs['transform'] = identity
+    if "transform" not in kwargs:
+        kwargs["transform"] = identity
     return plt.plot(*args, **kwargs)
 
 
 _eezs = {}
 
-def add_eezs(ax=None, facecolor='none', edgecolor=None, linewidth=None, alpha=1):
+
+def add_eezs(ax=None, facecolor="none", edgecolor=None, linewidth=None, alpha=1):
     """Add EEZs to an existing map
 
     Parameters
@@ -382,22 +371,32 @@ def add_eezs(ax=None, facecolor='none', edgecolor=None, linewidth=None, alpha=1)
     """
     if ax is None:
         ax = plt.gca()
-    path = os.path.join(root, 'pyseas/data/eezs/eez_boundaries_v11.gpkg')
+    path = os.path.join(root, "pyseas/data/eezs/eez_boundaries_v11.gpkg")
     if path not in _eezs:
         try:
             with warnings.catch_warnings():
                 # Suppress useless RuntimeWarning from geopandas when reading EEZs
-                warnings.simplefilter("ignore")            
+                warnings.simplefilter("ignore")
                 _eezs[path] = gpd.read_file(path)
         except FileNotFoundError:
-            raise FileNotFoundError('Eezs must be installed into the `pyseas/data/` directory')
+            raise FileNotFoundError(
+                "Eezs must be installed into the `pyseas/data/` directory"
+            )
 
     eezs = _eezs[path]
-    edgecolor = edgecolor or plt.rcParams.get('pyseas.eez.bordercolor', props.dark.eez.color)
-    linewidth = linewidth or plt.rcParams.get('pyseas.eez.linewidth', 0.4)
+    edgecolor = edgecolor or plt.rcParams.get(
+        "pyseas.eez.bordercolor", props.dark.eez.color
+    )
+    linewidth = linewidth or plt.rcParams.get("pyseas.eez.linewidth", 0.4)
 
-    return ax.add_geometries(eezs.geometry, crs=identity,
-                  alpha=alpha, facecolor=facecolor, edgecolor=edgecolor, linewidth=linewidth)
+    return ax.add_geometries(
+        eezs.geometry,
+        crs=identity,
+        alpha=alpha,
+        facecolor=facecolor,
+        edgecolor=edgecolor,
+        linewidth=linewidth,
+    )
 
 
 def add_figure_background(fig=None, color=None):
@@ -410,11 +409,15 @@ def add_figure_background(fig=None, color=None):
     """
     if fig is None:
         fig = plt.gcf()
-    color = color or plt.rcParams.get('pyseas.fig.background', props.dark.background.color)
+    color = color or plt.rcParams.get(
+        "pyseas.fig.background", props.dark.background.color
+    )
     fig.patch.set_facecolor(color)
 
 
 _current_gridlines = None
+
+
 def add_gridlines(ax=None, zorder=0.5, **kwargs):
     """Add latitude and longitude lines to plot
 
@@ -436,14 +439,16 @@ def add_gridlines(ax=None, zorder=0.5, **kwargs):
     global _current_gridlines
     if ax is None:
         ax = plt.gca()
-    for name in ['linewidth', 'linestyle', 'color', 'alpha']:
+    for name in ["linewidth", "linestyle", "color", "alpha"]:
         if name not in kwargs:
-            kwargs[name] = plt.rcParams['grid.' + name]
+            kwargs[name] = plt.rcParams["grid." + name]
     _current_gridlines = ax.gridlines(zorder=zorder, **kwargs)
     return _current_gridlines
 
-def add_gridlabels(gl=None, lons=None, lats=None, ax=None, fig=None, 
-                    lon_side='bottom', lat_side='left'):
+
+def add_gridlabels(
+    gl=None, lons=None, lats=None, ax=None, fig=None, lon_side="bottom", lat_side="left"
+):
     """Add latitude and longitude labels to plot
 
     Parameters
@@ -480,7 +485,7 @@ def add_gridlabels(gl=None, lons=None, lats=None, ax=None, fig=None,
     if lats is None:
         lats = gl.ylocator.tick_values(*extent[2:])
     fig.canvas.draw()
-    ax.xaxis.set_major_formatter(ticks.LONGITUDE_FORMATTER) 
+    ax.xaxis.set_major_formatter(ticks.LONGITUDE_FORMATTER)
     ax.yaxis.set_major_formatter(ticks.LATITUDE_FORMATTER)
     with warnings.catch_warnings():
         # Suppress a Deprecation warning from matplotlib till cartopy gets updated.
@@ -496,7 +501,7 @@ _plot_cycler = None
 
 def _process_map_args(projection, extent):
     global _last_projection, _last_extent, _plot_cycler
-    if isinstance(projection, str):
+    if isinstance(projection, (str, ProjectionInfo)):
         if extent is None:
             extent = get_extent(projection)
         _last_projection = projection
@@ -504,12 +509,16 @@ def _process_map_args(projection, extent):
     else:
         _last_projection = projection
     _last_extent = extent
-    _plot_cycler = plt.rcParams.get('pyseas.map.trackprops', styles._dark_artist_cycler)()
+    _plot_cycler = plt.rcParams.get(
+        "pyseas.map.trackprops", styles._dark_artist_cycler
+    )()
     return projection, extent
 
 
 def _setup_map_axes(ax, bg_color, extent, hide_axes):
-    bg_color = bg_color or plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
+    bg_color = bg_color or plt.rcParams.get(
+        "pyseas.ocean.color", props.dark.ocean.color
+    )
     ax.background_patch.set_facecolor(bg_color)
     if extent is not None:
         ax.set_extent(extent, crs=identity)
@@ -519,11 +528,13 @@ def _setup_map_axes(ax, bg_color, extent, hide_axes):
     # ax.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])
 
 
-def create_map(subplot=(1, 1, 1), 
-               projection='global.default', 
-               extent=None,
-               bg_color=None, 
-               hide_axes=True):
+def create_map(
+    subplot=(1, 1, 1),
+    projection="global.default",
+    extent=None,
+    bg_color=None,
+    hide_axes=True,
+):
     """Draw a GFW themed map
 
     Parameters
@@ -534,7 +545,7 @@ def create_map(subplot=(1, 1, 1),
     bg_color : str or tuple, optional
     hide_axes : bool, optional
         if `true`, hide x and y axes
-    
+
     Returns
     -------
     GeoAxes
@@ -551,12 +562,16 @@ def create_map(subplot=(1, 1, 1),
     return ax
 
 
-def create_maps(nrows=1, ncols=1, *, 
-                projection='global.default',
-                extent=None,
-                bg_color=None,
-                hide_axes=True,
-                **kwargs):
+def create_maps(
+    nrows=1,
+    ncols=1,
+    *,
+    projection="global.default",
+    extent=None,
+    bg_color=None,
+    hide_axes=True,
+    **kwargs,
+):
     """Create multiple maps similarly to plt.subplots
 
     Parameters
@@ -580,9 +595,9 @@ def create_maps(nrows=1, ncols=1, *,
     """
     projection, extent = _process_map_args(projection, extent)
 
-    if 'subplot_kw' not in kwargs:
-        kwargs['subplot_kw'] = {}
-    kwargs['subplot_kw']['projection'] = projection
+    if "subplot_kw" not in kwargs:
+        kwargs["subplot_kw"] = {}
+    kwargs["subplot_kw"]["projection"] = projection
 
     fig, axes = plt.subplots(nrows, ncols, squeeze=False, **kwargs)
     for ax in axes.flatten():
@@ -591,10 +606,11 @@ def create_maps(nrows=1, ncols=1, *,
     axes = axes[0, 0] if (axes.size == 1) else np.squeeze(axes)
 
     return fig, axes
-    
 
 
-def add_logo(logo=None,  scale=1,loc='upper left', alpha=None, hshift=0, vshift=0, ax=None):
+def add_logo(
+    logo=None, scale=1, loc="upper left", alpha=None, hshift=0, vshift=0, ax=None
+):
     """Add a logo to a plot
 
     By default the image is scaled so that logos are rendered at a constant area. Additional
@@ -615,7 +631,7 @@ def add_logo(logo=None,  scale=1,loc='upper left', alpha=None, hshift=0, vshift=
     hshift : float, optional
         Additional horizontal shift in axis coordinates
     vshift : float, optional
-        Additional verticals shift in axis coordinates    
+        Additional verticals shift in axis coordinates
     ax : Axes, optional
 
     Keyword args are passed on to add_raster.
@@ -625,28 +641,36 @@ def add_logo(logo=None,  scale=1,loc='upper left', alpha=None, hshift=0, vshift=
     OffsetBox
     """
     if logo is None:
-        logo = plt.rcParams.get('pyseas.logo', styles.dark['pyseas.logo'])
-        scale_adj = plt.rcParams.get('pyseas.logo.scale_adj', styles.dark['pyseas.logo.scale_adj'])
+        logo = plt.rcParams.get("pyseas.logo", styles.dark["pyseas.logo"])
+        scale_adj = plt.rcParams.get(
+            "pyseas.logo.scale_adj", styles.dark["pyseas.logo.scale_adj"]
+        )
     else:
         scale_adj = 1
-    is_global = isinstance(_last_projection, str) and _last_projection.startswith('global.')
+    is_global = isinstance(_last_projection, str) and _last_projection.startswith(
+        "global."
+    )
     box_alignment = (0.5, 0.5)
     if is_global and isinstance(loc, str):
-            if loc == 'center':
-                loc = (0.5, 0.5)
-            else:
-                v, h = loc.split()
-                a0, l0 = {'upper' : (1, 0.98), 'center' : (0.5, 0.5), 'lower' : (0, 0.02)}[v]
-                delta = 0.02 if (v == 'center') else 0.2
-                a1, l1 = {'right' : (1, 1 - delta), 'center' : (0.5, 0.5), 'left' : (0, delta)}[h]
-                box_alignment = (a1, a0)
-                loc = (l1, l0)
+        if loc == "center":
+            loc = (0.5, 0.5)
+        else:
+            v, h = loc.split()
+            a0, l0 = {"upper": (1, 0.98), "center": (0.5, 0.5), "lower": (0, 0.02)}[v]
+            delta = 0.02 if (v == "center") else 0.2
+            a1, l1 = {
+                "right": (1, 1 - delta),
+                "center": (0.5, 0.5),
+                "left": (0, delta),
+            }[h]
+            box_alignment = (a1, a0)
+            loc = (l1, l0)
 
     # This number keeps the scaling compatible with earlier versions where the base scale was
     # set explicitly, while assuring that a scale of 1 isn't crazy. scale_adj should be two for GFW logo
     base_scale = scale_adj * 324368.0 / (logo.shape[0] * logo.shape[1])
     if alpha is None:
-        alpha = plt.rcParams.get('pyseas.logo.alpha', 1)
+        alpha = plt.rcParams.get("pyseas.logo.alpha", 1)
     if ax is None:
         ax = plt.gca()
 
@@ -654,16 +678,27 @@ def add_logo(logo=None,  scale=1,loc='upper left', alpha=None, hshift=0, vshift=
     if isinstance(loc, str):
         aob = mplobox.AnchoredOffsetbox(child=imagebox, loc=loc, frameon=False)
     else:
-        aob = mplobox.AnnotationBbox(offsetbox=imagebox, xy=loc, frameon=False, xycoords='axes fraction',
-                                     box_alignment=box_alignment)
+        aob = mplobox.AnnotationBbox(
+            offsetbox=imagebox,
+            xy=loc,
+            frameon=False,
+            xycoords="axes fraction",
+            box_alignment=box_alignment,
+        )
     ax.add_artist(aob)
     return aob
 
 
-
-
-def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np.sqrt(2)), 
-                  add_aoi=None, central_marker=None, marker_size=16, marker_color=None):
+def add_miniglobe(
+    ax=None,
+    loc="upper right",
+    size=0.2,
+    offset=0.5 * (1 - 1 / np.sqrt(2)),
+    add_aoi=None,
+    central_marker=None,
+    marker_size=16,
+    marker_color=None,
+):
     """Add a mini globe to a corner of the maps showing where the primary map is located.
 
     Parameters
@@ -699,13 +734,13 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
         ax = plt.gca()
     if isinstance(offset, str):
         offset = {
-            'inside' : 0,
-            'inside corner' : 0.5 * (1 - 1 / np.sqrt(2)),
-            'edge centered' : 0.5,
-            'outside' : 1.0
+            "inside": 0,
+            "inside corner": 0.5 * (1 - 1 / np.sqrt(2)),
+            "edge centered": 0.5,
+            "outside": 1.0,
         }[offset]
     if add_aoi is None:
-        add_aoi = (central_marker is None)
+        add_aoi = central_marker is None
 
     # proj -> projection of primary map
     # ortho -> projection of mini globe
@@ -717,44 +752,57 @@ def add_miniglobe(ax=None, loc='upper right', size=0.2, offset=0.5 * (1 - 1 / np
     # Determine the center in proj coordinates, then reproject to lat, lon;
     # This is more robust than trying to average longitude.
     xcen = 0.5 * (x0 + x1)
-    ycen = 0.5 * (y0 + y1) 
-    [(lon, lat, _)] = identity.transform_points(proj, np.array([xcen]), np.array([ycen]))
+    ycen = 0.5 * (y0 + y1)
+    [(lon, lat, _)] = identity.transform_points(
+        proj, np.array([xcen]), np.array([ycen])
+    )
 
-    # Create the mini globe, with continents 
+    # Create the mini globe, with continents
     ortho = cartopy.crs.Orthographic(central_latitude=lat, central_longitude=lon)
     inset = plt.axes([0, 0, 1, 1], projection=ortho, label=uuid.uuid1().hex)
     inset.set_global()
-    bg_color = plt.rcParams.get('pyseas.ocean.color', props.dark.ocean.color)
+    bg_color = plt.rcParams.get("pyseas.ocean.color", props.dark.ocean.color)
     inset.background_patch.set_facecolor(bg_color)
-    add_land(ax=inset, edgecolor='none'),
+    add_land(ax=inset, edgecolor="none"),
 
     # Determine appropriate offsets to put mini globe on a corner of the primary
     # plot, then use InsetPosition to place it there.
     try:
         v, h = loc.split()
-        loc_y, sgn_y = {'upper' : (1, 1),  'center' : (0.5, 0), 'lower' : (0, -1)}[v]
-        loc_x, sgn_x = {'right' : (1, 1),  'center' : (0.5, 0), 'left' : (0, -1)}[h]
-    except:
+        loc_y, sgn_y = {"upper": (1, 1), "center": (0.5, 0), "lower": (0, -1)}[v]
+        loc_x, sgn_x = {"right": (1, 1), "center": (0.5, 0), "left": (0, -1)}[h]
+    except Exception:
         raise ValueError('illegal `loc`: "{}"'.format(loc))
     dx = x1 - x0
     dy = y1 - y0
-    ip = InsetPosition(ax, [loc_x - (loc_x - sgn_x * offset) * size * max(dy, dx) / dx,
-                            loc_y - (loc_y - sgn_y * offset) * size * max(dy, dx) / dy,
-                            size * dy / min(dy, dx),
-                            size * dx / min(dy, dx)])
+    ip = InsetPosition(
+        ax,
+        [
+            loc_x - (loc_x - sgn_x * offset) * size * max(dy, dx) / dx,
+            loc_y - (loc_y - sgn_y * offset) * size * max(dy, dx) / dy,
+            size * dy / min(dy, dx),
+            size * dx / min(dy, dx),
+        ],
+    )
     inset.set_axes_locator(ip)
 
     if central_marker is not None:
         if marker_color is None:
-            marker_color = plt.rcParams['axes.edgecolor']
-        inset.plot(lon, lat, marker=central_marker, 
-                    markersize=marker_size, color=marker_color, transform=ortho)
+            marker_color = plt.rcParams["axes.edgecolor"]
+        inset.plot(
+            lon,
+            lat,
+            marker=central_marker,
+            markersize=marker_size,
+            color=marker_color,
+            transform=ortho,
+        )
 
     if add_aoi:
-        add_minimap_aoi(ax, inset)     
+        add_minimap_aoi(ax, inset)
 
     # Restore primary map as current axes
-    plt.sca(ax)        
+    plt.sca(ax)
 
     return inset
 
@@ -767,26 +815,36 @@ def add_minimap_aoi(from_ax, to_ax):
 
     # To add the AOI we need project the boundary of the primary
     # map onto the minimap. The primary map is assumed to be rectangular
-    # So no global Orthographic, EqualEarth, etc projections. The 
+    # So no global Orthographic, EqualEarth, etc projections. The
     # inset is assumed to be in an Orthographic projection. Both of
     # these could be relaxed with some work if necessary.
 
-    # Projecting directly from the primary map to the minimap can result in 
+    # Projecting directly from the primary map to the minimap can result in
     # projecting points to infinity which is nonrecoverable. So instead we
     # first project the boundaries of the minimap to the primary map (`proj`)
     # projection, clip the primary map boundary there, then project back.
 
-    # Step 1: Build the primary map boundary in `proj` coordinates. It is 
-    # a rectangle there, so this is straightforward. 
+    # Step 1: Build the primary map boundary in `proj` coordinates. It is
+    # a rectangle there, so this is straightforward.
     x0, x1, y0, y1 = ax.get_extent(crs=proj)
-    n = plt.rcParams.get('pyseas.miniglobe.ptsperside', props.dark.miniglobe.pts_per_side)
-    xs = np.r_[np.linspace(x0, x0, n), np.linspace(x0, x1, n),
-               np.linspace(x1, x1, n), np.linspace(x1, x0, n)]
-    ys = np.r_[np.linspace(y0, y1, n), np.linspace(y1, y1, n),
-               np.linspace(y1, y0, n), np.linspace(y0, y0, n)]
+    n = plt.rcParams.get(
+        "pyseas.miniglobe.ptsperside", props.dark.miniglobe.pts_per_side
+    )
+    xs = np.r_[
+        np.linspace(x0, x0, n),
+        np.linspace(x0, x1, n),
+        np.linspace(x1, x1, n),
+        np.linspace(x1, x0, n),
+    ]
+    ys = np.r_[
+        np.linspace(y0, y1, n),
+        np.linspace(y1, y1, n),
+        np.linspace(y1, y0, n),
+        np.linspace(y0, y0, n),
+    ]
 
     # Step 2: Find the border of the ortho map and transform that to `proj` coordinates.
-    # We know that this is a circle of diameter 1 centered at 0.5, 0.5 in *axes* 
+    # We know that this is a circle of diameter 1 centered at 0.5, 0.5 in *axes*
     # coordinates (for Orthographic), so start there and use matplotlib transforms to
     # get that to `proj` coordinates.
     rads = np.linspace(0, 2 * np.pi, endpoint=True)
@@ -796,18 +854,22 @@ def add_minimap_aoi(from_ax, to_ax):
     outside_pixel = np.array([inset.transAxes.transform(xy) for xy in outside_axes])
     inv = inset.transData.inverted()
     outside_data = np.array([inv.transform(xy) for xy in outside_pixel])
-    outside_data_proj = proj.transform_points(ortho, 
-                                outside_data[:, 0], outside_data[:, 1])[:, :2]
+    outside_data_proj = proj.transform_points(
+        ortho, outside_data[:, 0], outside_data[:, 1]
+    )[:, :2]
 
     # Step 3: Clip the primary map outline to the ortho boundary. This prevents points
     # being projected to infinity when we project back to ortho coordinates.
     outside_poly = shapely.geometry.Polygon(outside_data_proj)
     raw_inside_coords = np.c_[xs, ys]
     if outside_poly.is_valid:
-        inside_data_primary = shapely.geometry.Polygon(raw_inside_coords).intersection(
-                                                    outside_poly).exterior.coords
+        inside_data_primary = (
+            shapely.geometry.Polygon(raw_inside_coords)
+            .intersection(outside_poly)
+            .exterior.coords
+        )
         if len(inside_data_primary) == 0:
-            # This typically indicates a problem with the transformed geometry as 
+            # This typically indicates a problem with the transformed geometry as
             # discussed below. Apply the same fix.
             inside_data_primary = raw_inside_coords
     else:
@@ -817,34 +879,53 @@ def add_minimap_aoi(from_ax, to_ax):
         # worry about that when we run into it.
         inside_data_primary = raw_inside_coords
 
-    # Step 4: Build a polygon that in the shape of the ortho plot, with a hole in it in 
-    # the shape of the primary plot. Layer it over the ortho plot, to dim out 
+    # Step 4: Build a polygon that in the shape of the ortho plot, with a hole in it in
+    # the shape of the primary plot. Layer it over the ortho plot, to dim out
     # everything but the primary plot area. `overlaycolor` is expected to have
     # alpha near 0.1, so the rest of the map shows through.
-    inside_data = ortho.transform_points(proj, 
-            np.array([x for (x, y) in inside_data_primary]), 
-            np.array([y for (x, y) in inside_data_primary]))[:, :2]
+    inside_data = ortho.transform_points(
+        proj,
+        np.array([x for (x, y) in inside_data_primary]),
+        np.array([y for (x, y) in inside_data_primary]),
+    )[:, :2]
     poly = shapely.geometry.Polygon(outside_data, [inside_data[::-1]])
-    hlc = plt.rcParams.get('pyseas.miniglobe.overlaycolor', props.dark.miniglobe.overlaycolor)
-    inner_width = plt.rcParams.get('pyseas.miniglobe.innerwidth', props.dark.miniglobe.inner_width)
-    # TODO: inner width should be applied to inner polygon only, so separate polygon with only 
+    hlc = plt.rcParams.get(
+        "pyseas.miniglobe.overlaycolor", props.dark.miniglobe.overlaycolor
+    )
+    inner_width = plt.rcParams.get(
+        "pyseas.miniglobe.innerwidth", props.dark.miniglobe.inner_width
+    )
+    # TODO: inner width should be applied to inner polygon only, so separate polygon with only
     # inside datas
     inset.add_geometries([poly], ortho, facecolor=hlc, edgecolor=None)
     if inner_width > 0:
         poly = shapely.geometry.Polygon(inside_data)
-        inset.add_geometries([poly], ortho, 
-            facecolor=(0, 0, 0, 0), linewidth=inner_width, edgecolor=plt.rcParams['axes.edgecolor'])
+        inset.add_geometries(
+            [poly],
+            ortho,
+            facecolor=(0, 0, 0, 0),
+            linewidth=inner_width,
+            edgecolor=plt.rcParams["axes.edgecolor"],
+        )
 
-    outer_width = plt.rcParams.get('pyseas.miniglobe.outer_width', props.dark.miniglobe.outer_width)
-    inset.spines['geo'].set_linewidth(outer_width)    
-    inset.spines['geo'].set_edgecolor(plt.rcParams['axes.edgecolor'])       
+    outer_width = plt.rcParams.get(
+        "pyseas.miniglobe.outer_width", props.dark.miniglobe.outer_width
+    )
+    inset.spines["geo"].set_linewidth(outer_width)
+    inset.spines["geo"].set_edgecolor(plt.rcParams["axes.edgecolor"])
 
     # Restore primary map as current axes
-    plt.sca(ax)     
+    plt.sca(ax)
 
 
-def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
-                bg_color=None, hide_axes=True, **kwargs):
+def plot_raster(
+    raster,
+    subplot=(1, 1, 1),
+    projection="global.default",
+    bg_color=None,
+    hide_axes=True,
+    **kwargs,
+):
     """Draw a GFW themed map over a raster
 
     Parameters
@@ -856,7 +937,7 @@ def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
     hide_axes : bool
         if `true`, hide x and y axes
 
-    
+
     Other Parameters
     ----------------
     Keyword args are passed on to add_raster.
@@ -865,16 +946,21 @@ def plot_raster(raster, subplot=(1, 1, 1), projection='global.default',
     -------
     (GeoAxes, AxesImage)
     """
-    extent = kwargs.get('extent')
+    extent = kwargs.get("extent")
     ax = create_map(subplot, projection, extent, bg_color, hide_axes)
     im = add_raster(raster, ax=ax, **kwargs)
     add_land(ax)
-    return  ax, im
+    return ax, im
 
 
-
-def plot_h3_data(h3_data, subplot=(1, 1, 1), projection='global.default',
-                bg_color=None, hide_axes=True, **kwargs):
+def plot_h3_data(
+    h3_data,
+    subplot=(1, 1, 1),
+    projection="global.default",
+    bg_color=None,
+    hide_axes=True,
+    **kwargs,
+):
     """Draw a GFW themed map over an H3 data layer
 
     Parameters
@@ -885,7 +971,7 @@ def plot_h3_data(h3_data, subplot=(1, 1, 1), projection='global.default',
     bg_color : str or tuple, optional
     hide_axes : bool
         if `true`, hide x and y axes
-    
+
     Other Parameters
     ----------------
     Keyword args are passed on to add_raster.
@@ -894,16 +980,16 @@ def plot_h3_data(h3_data, subplot=(1, 1, 1), projection='global.default',
     -------
     (GeoAxes, AxesImage)
     """
-    extent = kwargs.pop('extent', None)
+    extent = kwargs.pop("extent", None)
     ax = create_map(subplot, projection, extent, bg_color, hide_axes)
     im = add_h3_data(h3_data, ax=ax, **kwargs)
     add_land(ax)
-    return  ax, im
+    return ax, im
 
 
-def plot_raster_w_colorbar(raster, label='', loc='bottom',
-                hspace=0.05, wspace=0.016,
-                cbformat=None, **kwargs):
+def plot_raster_w_colorbar(
+    raster, label="", loc="bottom", hspace=0.05, wspace=0.016, cbformat=None, **kwargs
+):
     """Draw a GFW themed map over a raster with a colorbar
 
     Parameters
@@ -918,7 +1004,7 @@ def plot_raster_w_colorbar(raster, label='', loc='bottom',
     wspace : float, optional
         horizontal space adjustment
     cbformat : formatter
-    
+
     Other Parameters
     ----------------
     Keyword args are passed on to plot_raster.
@@ -929,12 +1015,12 @@ def plot_raster_w_colorbar(raster, label='', loc='bottom',
     """
     warnings.warn(
         "plot_raster_w_colorbar is deprecated, use plot_raster with add_colorbar instead",
-        DeprecationWarning
-    )    
+        DeprecationWarning,
+    )
 
     ax, im = plot_raster(raster, **kwargs)
-    cb = colorbar.add_colorbar(im, label=label, loc=loc, hspace=hspace, wspace=wspace, format=cbformat)
+    cb = colorbar.add_colorbar(
+        im, label=label, loc=loc, hspace=hspace, wspace=wspace, format=cbformat
+    )
 
     return ax, im, cb
-
-
