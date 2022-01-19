@@ -21,11 +21,10 @@ the blockiness and loss of detail that plague rendering with `imshow`.
 Much code here repurposed from the matplotlib sources for `Axes.imshow` and
 `AxesImage`.
 """
-from collections import Counter
 import numpy as np
 import h3.api.numpy_int as h3
 
-from matplotlib.colors import Normalize 
+from matplotlib.colors import Normalize
 from matplotlib.image import AxesImage
 from matplotlib import rcParams
 from matplotlib import cm
@@ -35,9 +34,25 @@ import warnings
 
 from . import core
 
+with warnings.catch_warnings():
+    # Suppress useless UserWarning about unstable
+    warnings.simplefilter("ignore")
+    from h3.unstable import vect
 
-def h3_show(ax, h3_data, cmap=None, norm=None, aspect=None, 
-            vmin=None, vmax=None, url=None, alpha=1.0, fill=0.0, **kwargs):
+
+def h3_show(
+    ax,
+    h3_data,
+    cmap=None,
+    norm=None,
+    aspect=None,
+    vmin=None,
+    vmax=None,
+    url=None,
+    alpha=1.0,
+    fill=0.0,
+    **kwargs
+):
     """Plot H3 DGG data in a way friendly to projected maps.
 
     This is derived from Axes.imshow.
@@ -46,7 +61,9 @@ def h3_show(ax, h3_data, cmap=None, norm=None, aspect=None,
     ----------
     ax : matplotlib Axes
     h3_data : dict mapping np.uint64 to int or float
-        The key is a H3 ID, while the value is either a count or density.
+        The key is a H3 ID, while the value is either a count, a density,
+        or a color value (sequence of len 3 or 4). The type of value must
+        be consistent across the data.
     cmap, norm, aspect, vmin, vmax, url, alpha, kwargs : see Axes.imshow
     fill : int or None, optional
         Value to use for unspecified H3 locations, see h3_to_raster
@@ -57,14 +74,33 @@ def h3_show(ax, h3_data, cmap=None, norm=None, aspect=None,
     """
     norm = _setup_show(ax, aspect, norm, vmin, vmax)
 
-    im = H3Image(ax, cmap=cmap, norm=norm, extent=ax.get_extent(), interpolation='nearest', 
-                 origin='lower', **kwargs)
+    im = H3Image(
+        ax,
+        cmap=cmap,
+        norm=norm,
+        extent=ax.get_extent(),
+        interpolation="nearest",
+        origin="lower",
+        **kwargs
+    )
 
     return _finalize_show((h3_data, fill), im, ax, alpha, url)
 
 
-def raster_show(ax, raster, extent, origin='upper', cmap=None, norm=None, aspect=None, 
-            vmin=None, vmax=None, url=None, alpha=1.0, **kwargs):
+def raster_show(
+    ax,
+    raster,
+    extent,
+    origin="upper",
+    cmap=None,
+    norm=None,
+    aspect=None,
+    vmin=None,
+    vmax=None,
+    url=None,
+    alpha=1.0,
+    **kwargs
+):
     """
     Plot raster data in a way friendly to projected maps.
 
@@ -86,16 +122,23 @@ def raster_show(ax, raster, extent, origin='upper', cmap=None, norm=None, aspect
     """
     norm = _setup_show(ax, aspect, norm, vmin, vmax)
 
-    im = RasterImage(ax, cmap=cmap, norm=norm, extent=ax.get_extent(), interpolation='nearest', 
-        origin='lower', **kwargs)
+    im = RasterImage(
+        ax,
+        cmap=cmap,
+        norm=norm,
+        extent=ax.get_extent(),
+        interpolation="nearest",
+        origin="lower",
+        **kwargs
+    )
 
     return _finalize_show((raster, extent, origin), im, ax, alpha, url)
 
 
 def _setup_show(ax, aspect, norm, vmin, vmax):
     """Common setup code for show_raster and show_h3
-    
-    This does some error checking, then sets the aspect ratio 
+
+    This does some error checking, then sets the aspect ratio
     and create a Normalize instance if one is not provided.
 
     Parameters
@@ -107,10 +150,10 @@ def _setup_show(ax, aspect, norm, vmin, vmax):
 
     Returns
     -------
-    matplotlib.Normalize 
+    matplotlib.Normalize
     """
     if aspect is None:
-        aspect = rcParams['image.aspect']
+        aspect = rcParams["image.aspect"]
     ax.set_aspect(aspect)
     if norm is not None:
         assert vmin is vmax is None
@@ -122,7 +165,7 @@ def _setup_show(ax, aspect, norm, vmin, vmax):
 def _finalize_show(source_data, im, ax, alpha, url):
     """Common finalization code for show_raster and show_h3
 
-    This sets the data source for the image, then sets up 
+    This sets the data source for the image, then sets up
     clipping, sets a url for the image, sets up the image
     extent correctly, and adds the image to the Axes object.
 
@@ -160,11 +203,13 @@ def h3_to_raster(h3_data, row_locs, col_locs, transform, fill=0.0):
 
     Note that this relies on `h3.unstable`, so might require
     modification to work in the future.
-    
+
     Parameters
     ----------
     h3_data: dict mapping str to number
-        Key is an H3 id, while value is the count or density at that id
+        Key is an H3 id, while value is a count, a density,
+        or a color value (sequence of len 3 or 4). The type of value must
+        be consistent across the data.
     row_locs : array of float
     col_locs : array of float
     transform : function mapping (rows, columns) to (lons, lats)
@@ -175,14 +220,14 @@ def h3_to_raster(h3_data, row_locs, col_locs, transform, fill=0.0):
     -------
     2D array of float
     """
-    # Delay importation of vect, so only get the warning when actually used.
-    with warnings.catch_warnings():
-        # Suppress useless UserWarning about unstable
-        warnings.simplefilter("ignore")            
-        from h3.unstable import vect
+    levels = set(vect.h3_get_resolution(np.array(list(h3_data.keys()))))
+    shapes = set(np.shape(x) for x in h3_data.values())
+    if len(shapes) != 1:
+        raise ValueError("H3 data must be consistent")
+    [shp] = shapes
 
     levels = sorted(set(h3.h3_get_resolution(h3id) for h3id in h3_data))
-    raster = np.empty([len(row_locs), len(col_locs)])
+    raster = np.empty((len(row_locs), len(col_locs)) + shp)
     raster.fill(np.nan if (fill is None) else fill)
     for i, row in enumerate(row_locs):
         lons, lats = transform([row] * len(col_locs), col_locs)
@@ -196,19 +241,18 @@ def h3_to_raster(h3_data, row_locs, col_locs, transform, fill=0.0):
 
 def h3cnts_to_raster(*args, **kwargs):
     warnings.warn(
-            "h3cnts_to_raster is deprecated, use h3_to_raster instead",
-            DeprecationWarning
-        )
+        "h3cnts_to_raster is deprecated, use h3_to_raster instead", DeprecationWarning
+    )
     return h3_to_raster(*args, **kwargs)
 
 
-def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='upper'):
+def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin="upper"):
     """Convert raster defined in lat,lon space to raster in projected coords
 
     Note: the extent cannot cross the dateline. If you have a raster that extends
     across the dateline, it needs to be cut at the dateline and pieces plotted
     separately.
-    
+
     Parameters
     ----------
     raster : 2D array of float
@@ -224,7 +268,7 @@ def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='uppe
     -------
     2D array of float
     """
-    assert origin in ('upper', 'lower')
+    assert origin in ("upper", "lower")
     assert len(raster.shape) in (2, 3)
     if len(raster.shape) == 2:
         projected = np.zeros([len(row_locs), len(col_locs)])
@@ -232,7 +276,7 @@ def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='uppe
         projected = np.zeros([len(row_locs), len(col_locs), raster.shape[-1]])
     counts = np.zeros([len(row_locs), len(col_locs)]) + 1e-10
     lon0, lon1, lat0, lat1 = extent
-    if origin == 'upper':
+    if origin == "upper":
         lat0, lat1 = lat1, lat0
     # TODO: Support second value > first, assuming rightward, but wrapped
     dlat = (lat1 - lat0) / raster.shape[0]
@@ -246,12 +290,12 @@ def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin='uppe
         rr = ((lats - lat0) // dlat + 0.5).astype(int)
         cc = ((lons - lon0) // dlon + 0.5).astype(int)
 
-        valid = (0 <= rr) 
-        valid &= (rr < raster.shape[0])
-        valid &= (0 <= cc)
-        valid &= (cc < raster.shape[1])
+        valid = 0 <= rr
+        valid &= rr < raster.shape[0]
+        valid &= 0 <= cc
+        valid &= cc < raster.shape[1]
 
-        ii.fill(i) 
+        ii.fill(i)
 
         projected[ii[valid], jj[valid]] += raster[rr[valid], cc[valid]]
         counts[ii[valid], jj[valid]] += 1
@@ -300,15 +344,15 @@ class InterpImage(AxesImage):
         Parameters
         ----------
         row_locs, col_locs: array of float
-            Locations of rendered pixels in display coordinates. Note that 
-            the final grid is `len(row_locs)` by `len(col_locs)` in size; 
+            Locations of rendered pixels in display coordinates. Note that
+            the final grid is `len(row_locs)` by `len(col_locs)` in size;
             these care not coordinate pairs such as are used in skimage.draw.
         transform : function mapping (rows, columns) to (lons, lats)
 
-        See `h3_to_raster` and `raster_to_raster` for more details on the 
+        See `h3_to_raster` and `raster_to_raster` for more details on the
         the arguments.
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class H3Image(InterpImage):
@@ -316,9 +360,10 @@ class H3Image(InterpImage):
 
     Typically used through `h3_show`.
     """
+
     def _get_updated_A(self, row_locs, col_locs, transform):
         h3data, fill = self._source_data
-        return h3_to_raster(h3data, row_locs, col_locs, transform, fill=fill) 
+        return h3_to_raster(h3data, row_locs, col_locs, transform, fill=fill)
 
 
 class RasterImage(InterpImage):
@@ -326,10 +371,12 @@ class RasterImage(InterpImage):
 
     Typically used through `raster_show`.
     """
+
     def _get_updated_A(self, row_locs, col_locs, transform):
         raster, extent, origin = self._source_data
-        return raster_to_raster(raster, extent, row_locs, col_locs, transform, 
-                                origin=origin)
+        return raster_to_raster(
+            raster, extent, row_locs, col_locs, transform, origin=origin
+        )
 
 
 def setup_composite_tx(ax):
@@ -353,14 +400,14 @@ def setup_composite_tx(ax):
     row_locs = np.arange(j0, j1)
     (e_i0, e_j0), (e_i1, e_j1) = ax.transData.inverted().transform([(i0, j0), (i1, j1)])
     display_extent = (e_i0, e_i1, e_j0, e_j1)
+
     def composite_tx(rr, cc):
         # rr, cc -> lons, lats
         cr = list(zip(cc, rr))
         data_crds = np.asarray(ax.transData.inverted().transform(cr))
-        lonlat = core.identity.transform_points(ax.projection, 
-                                        data_crds[:, 0], data_crds[:, 1])[:, :2]
+        lonlat = core.identity.transform_points(
+            ax.projection, data_crds[:, 0], data_crds[:, 1]
+        )[:, :2]
         return np.transpose(lonlat)
+
     return row_locs, col_locs, composite_tx, display_extent
-
-
-
