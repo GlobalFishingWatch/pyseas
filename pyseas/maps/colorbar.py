@@ -4,8 +4,21 @@ from . import core
 from .. import styles
 
 
-def add_colorbar(img, *, ax=None, fig=None, label='', loc='bottom', width=0.33, height=0.015, format=None, 
-                 hspace=0.04, wspace=0.016, valign=0.5, right_edge=None):
+def add_colorbar(
+    img,
+    *,
+    ax=None,
+    fig=None,
+    label="",
+    loc="bottom",
+    width=0.33,
+    height=0.015,
+    format=None,
+    hspace=0.04,
+    wspace=0.016,
+    valign=0.5,
+    right_edge=None
+):
     """Add colorbar to a PySeas raster
 
     Parameters
@@ -33,22 +46,36 @@ def add_colorbar(img, *, ax=None, fig=None, label='', loc='bottom', width=0.33, 
     -------
     Colorbar
     """
-    assert loc in ('top', 'bottom')
+    assert loc in ("top", "bottom")
     if ax is None:
         ax = plt.gca()
 
     if right_edge is None:
-        is_global = isinstance(core._last_projection, str) and core._last_projection.startswith('global.')
+        is_global = isinstance(
+            core._last_projection, str
+        ) and core._last_projection.startswith("global.")
         right_edge = 0.78 if is_global else 1.0
     wloc = right_edge - width
-    hloc = 0.98 + hspace if (loc == 'top') else -(height + hspace)   
+    hloc = 0.98 + hspace if (loc == "top") else -(height + hspace)
 
     cb_ax = ax.inset_axes([wloc, hloc, width, height], transform=ax.transAxes)
-    cb = plt.colorbar(img, ax=ax, cax=cb_ax, orientation='horizontal', ticklocation=loc, format=format)
+    cb = plt.colorbar(
+        img, ax=ax, cax=cb_ax, orientation="horizontal", ticklocation=loc, format=format
+    )
 
-    cb_ax.text(-wspace, valign, label, transform=cb_ax.transAxes,
-        fontdict=plt.rcParams.get('pyseas.map.colorbarlabelfont', styles._colorbarlabelfont),
-                    horizontalalignment='right', verticalalignment='center')
+    cb_ax.text(
+        -wspace,
+        valign,
+        label,
+        transform=cb_ax.transAxes,
+        fontdict=plt.rcParams.get(
+            "pyseas.map.colorbarlabelfont", styles._colorbarlabelfont
+        ),
+        horizontalalignment="right",
+        verticalalignment="center",
+    )
+    cb_ax.minorticks_off()
+    cb.outline.set_visible(False)
 
-    plt.sca(ax)     
+    plt.sca(ax)
     return cb_ax

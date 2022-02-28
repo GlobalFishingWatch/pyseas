@@ -731,12 +731,6 @@ with psm.context(psm.styles.light):
     )
     ax.add_patch(rect)
     ax.add_patch(rotated)
-# -
-
-# ## Saving Plots
-#
-# Plots can be saved in the normal way, using `plt.savefig`. If a background is needed,
-# the standard facecolor can be applied as shown below.
 
 # +
 # First plot using `ax.plot`
