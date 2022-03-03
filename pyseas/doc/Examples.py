@@ -533,7 +533,7 @@ with psm.context(psm.styles.dark):
 # ## Bivariate Rasters
 #
 # There is basic support for Bivariate plots, although only TransparencyBivariateColormap
-# has been significantly tested at this time.
+# has been significantly tested at this time. Works for both dark and light themes.
 
 # +
 df = pd.read_csv("data/fishing_effort_known_vs_unknown_2020_1deg.csv.zip")
@@ -580,7 +580,7 @@ with psm.context(psm.styles.dark):
     )
 
 cmap = psm.cm.bivariate.TransparencyBivariateColormap(psm.cm.bivariate.orange_blue)
-with psm.context(psm.styles.dark):
+with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(15, 15))
     ax = psm.create_map()
     psm.add_land(ax)
@@ -804,3 +804,12 @@ with psm.context(psm.styles.light):
 
 # +
 # plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
+# -
+
+# ## Push rendered notebook to `rendered` repo
+# Only uncomment this and run it if you know what you're doing.
+
+# +
+# import rendered
+# rendered.publish_to_github(f'./Examples.ipynb', 
+#                            'pyseas/doc/', action='push')
