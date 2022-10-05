@@ -670,22 +670,20 @@ with psm.context(psm.styles.light):
 # This works nicely with a discretized coloramp, which be be realized using 
 # `Boundary
 
-def make_red_blue_ramp(value=1.0, min_sat=0.4, name="red_blue_bv"):
-    return mpcolors.LinearSegmentedColormap.from_list(
-        name,
-        [
-            mpcolors.hsv_to_rgb((r, value, g))
-            for r, g in zip(
-                np.linspace(0, 0.666, 10, endpoint=True),
-                min_sat + (1 - min_sat) * abs(np.linspace(-1, 1, 10, endpoint=True)),
-            )
-        ],
-    )
+def make_red_green_blue_ramp(L=0.5, min_S_l=0.4, name="red_blue_bv", n=255):
+    colors = []
+    hues = np.linspace(0, 0.666, n, endpoint=True) 
+    sats = min_S_l + (1 - min_S_l) * abs(np.linspace(-1, 1, n, endpoint=True))
+    for H, S_l in zip(hues, sats):
+        V = L + S_l * min(L, 1 - L)
+        S_v = 2 * (1 - L / V)
+        colors.append(mpcolors.hsv_to_rgb((H, S_v, V)))
+    return mpcolors.LinearSegmentedColormap.from_list(name, colors)
 
 
 # +
-red_blue = make_red_blue_ramp(value=0.8, min_sat=0.4)
-    
+red_blue = make_red_green_blue_ramp(min_S_l=0.1)
+
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(15, 15), facecolor="white")
     ax = psm.create_map()

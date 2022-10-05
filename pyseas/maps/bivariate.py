@@ -3,7 +3,7 @@ import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import (BoundaryNorm, Colormap, LinearSegmentedColormap,
-                               LogNorm, Normalize)
+                               LogNorm, Normalize, hsv_to_rgb, rgb_to_hsv)
 
 from .. import props
 from . import core
