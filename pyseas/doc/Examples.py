@@ -205,9 +205,9 @@ with plt.rc_context(psm.styles.dark):
                     projection="country.indonesia",
                     cmap="presence",
                     norm=norm,
-                    origin="lower",
+#                     origin="lower",
                 )
-        psm.add_colorbar(
+        psm.add_left_labeled_colorbar(
             im,
             ax=ax,
             label=r"hours per $\mathregular{km^2}$",
@@ -251,6 +251,68 @@ with psm.context(psm.styles.dark):
         fig, ax = psm.create_maps(projection="country.indonesia", figsize=(14.7, 7.6))
         psm.add_raster(seismic_raster, cmap="presence", norm=norm, origin="lower")
         psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", loc="bottom")
+
+# If you want to make sure to fill the space in the subplots without fiddling with
+# the projections, you can use `ax.set_adjustable("datalim")`.
+#
+# The recipe below plots multiple plots with different locations and zoom levels on
+# different GridSpecs and fills in each plot.
+
+# +
+proj_info = [  # lon_center, lat_center, approximate_size in degrees
+    [(120.0, 0.0, 20.0), (140.99, 37.82, 10.0)],
+    [(-85.0, -2.50, 12.0), (-80.0, -34.63, 20)],
+    [(120.0, 0.0, 13.5), (-80.0, 6.50, 4.0)],
+]
+
+gspecs = [[(0, slice(0, 2)), (slice(0, 2), 2)],
+          [(1, 0), (1, 1)],
+          [(2, slice(0, 2)), (2, 2)]]
+
+fig = plt.figure(figsize=(14, 14))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+gs = gridspec.GridSpec(3, 3)
+with psm.context(psm.styles.dark):
+    with psm.context({"text.color": "white"}):
+        for i in range(3):
+            for j in range(2):
+                xc, yc, dx_x_2 = proj_info[i][j]
+                dx = dx_x_2 / 2
+                prj = cartopy.crs.LambertAzimuthalEqualArea(xc, yc)
+                ax = psm.create_map(subplot=gs[gspecs[i][j]], projection=prj)
+                psm.add_raster(seismic_raster, norm=norm, origin="lower")
+                psm.add_land()
+                ax.set_extent((xc - dx, xc + dx, yc - dx, yc + dx), crs=psm.identity)
+                ax.set_adjustable("datalim")
+
+# +
+proj_info = [  # lon_center, lat_center, approximate_size in degrees
+    [(120.0, 0.0, 20.0), (140.99, 37.82, 10.0)],
+    [(-85.0, -2.50, 12.0), (-80.0, -34.63, 20)],
+    [(120.0, 0.0, 13.5), (-80.0, 6.50, 4.0)],
+]
+
+gspecs = [[(0, slice(0, 2)), (slice(0, 2), 2)],
+          [(1, 0), (1, 1)],
+          [(2, slice(0, 2)), (2, 2)]]
+
+fig = plt.figure(figsize=(14, 14))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+gs = gridspec.GridSpec(3, 3)
+with psm.context(psm.styles.dark):
+    with psm.context({"text.color": "white"}):
+        for i in range(3):
+            for j in range(2):
+                xc, yc, dx_x_2 = proj_info[i][j]
+                dx = dx_x_2 / 2
+                prj = cartopy.crs.LambertAzimuthalEqualArea(xc, yc)
+                ax = psm.create_map(subplot=gs[gspecs[i][j]], projection=prj)
+                psm.add_raster(seismic_raster, norm=norm, origin="lower")
+                psm.add_land()
+                ax.set_extent((xc - dx, xc + dx, yc - dx, yc + dx), crs=psm.identity)
+                ax.set_adjustable("datalim")
+plt.tight_layout()
+# -
 
 # ### H3 Discrete Global Grids
 #
@@ -579,28 +641,73 @@ with psm.context(psm.styles.dark):
         aspect_ratio=2.0,
     )
 
+# Rather than a colorbox, we can also add a colorbar, wince the transparent axis is
+# often not that informative.
+
 cmap = psm.cm.bivariate.TransparencyBivariateColormap(psm.cm.bivariate.orange_blue)
 with psm.context(psm.styles.light):
-    fig = plt.figure(figsize=(15, 15))
+    fig = plt.figure(figsize=(15, 15), facecolor="white")
     ax = psm.create_map()
     psm.add_land(ax)
 
     norm1 = mpcolors.Normalize(vmin=0.0, vmax=1.0, clip=True)
     norm2 = mpcolors.LogNorm(vmin=0.01, vmax=10, clip=True)
 
-    psm.add_bivariate_raster(
+    img = psm.add_bivariate_raster(
         grid_ratio, np.clip(grid_total, 0.01, 10), cmap, norm1, norm2
     )
 
-    cb_ax = psm.add_bivariate_colorbox(
-        cmap,
-        norm1,
-        norm2,
-        xlabel="fraction of matched fishing hours",
-        ylabel="total fishing hours",
-        yformat="{x:.2f}",
-        aspect_ratio=2.0,
+    img.set_cmap(cmap.cmap)
+    psm.add_top_labeled_colorbar(
+        img,
+        left_label=r"$\longleftarrow$ less matched",
+        center_label=r"AIS$\leftrightarrow$registries",
+        right_label=r"more matched $\longrightarrow$",
     )
+    ax.axis("off")
+
+
+# This works nicely with a discretized coloramp, which be be realized using 
+# `Boundary
+
+def make_red_blue_ramp(value=1.0, min_sat=0.4, name="red_blue_bv"):
+    return mpcolors.LinearSegmentedColormap.from_list(
+        name,
+        [
+            mpcolors.hsv_to_rgb((r, value, g))
+            for r, g in zip(
+                np.linspace(0, 0.666, 10, endpoint=True),
+                min_sat + (1 - min_sat) * abs(np.linspace(-1, 1, 10, endpoint=True)),
+            )
+        ],
+    )
+
+
+# +
+red_blue = make_red_blue_ramp(value=0.8, min_sat=0.4)
+    
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(15, 15), facecolor="white")
+    ax = psm.create_map()
+    psm.add_land(ax)
+
+    bounds = np.linspace(0, 1.0, 6, endpoint=True)
+    cmap = psm.cm.bivariate.TransparencyBivariateColormap(red_blue)
+    norm1 = mpcolors.BoundaryNorm(bounds, cmap.cmap.N, clip=True)
+    norm2 = mpcolors.LogNorm(vmin=0.01, vmax=10, clip=True)
+    
+    img = psm.add_bivariate_raster(
+        grid_ratio, np.clip(grid_total, 0.01, 10), cmap, norm1, norm2,
+    )
+    
+    psm.add_top_labeled_colorbar(
+        img,
+        left_label=r"$\longleftarrow$ less matched",
+        center_label=r"AIS$\leftrightarrow$registries",
+        right_label=r"more matched $\longrightarrow$",
+    )
+    ax.axis("off")
+# -
 
 # ## Polar Plots
 #
@@ -808,8 +915,3 @@ with psm.context(psm.styles.light):
 
 # ## Push rendered notebook to `rendered` repo
 # Only uncomment this and run it if you know what you're doing.
-
-# +
-# import rendered
-# rendered.publish_to_github(f'./Examples.ipynb', 
-#                            'pyseas/doc/', action='push')

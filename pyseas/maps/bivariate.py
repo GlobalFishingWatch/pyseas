@@ -1,10 +1,13 @@
-import numpy as np
-from matplotlib.colors import Normalize, LogNorm, LinearSegmentedColormap, Colormap
-import matplotlib.pyplot as plt
 import warnings
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import (BoundaryNorm, Colormap, LinearSegmentedColormap,
+                               LogNorm, Normalize)
+
+from .. import props
 from . import core
 from .projection import projection_info
-from .. import props
 
 
 class BivariateColormap:
@@ -32,8 +35,7 @@ class BivariateColormap:
             information.
         """
 
-    @staticmethod
-    def discretize(x, n):
+    def discretize(self, x, n):
         if n is None:
             return x
         else:
@@ -57,6 +59,12 @@ class TransparencyBivariateColormap(BivariateColormap):
         self.transmap = (lambda x: x) if (transmap is None) else transmap
         self.log_x = log_x
         self.log_y = log_y
+        if n_x is not None or n_y is not None:
+            warnings.warn(
+                "n_x and n_y are deprecated use BoundaryNorm",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.n_x = n_x
         self.n_y = n_y
 
@@ -350,6 +358,12 @@ def add_bivariate_raster(
     if norm2 is None:
         norm2 = Normalize()
 
-    raster = bvcmap(norm1(raster1), norm2(raster2), alpha)
+    normed_raster1 = norm1(raster1)
+    if isinstance(norm1, BoundaryNorm):
+        normed_raster1 = (normed_raster1 + 0.5) / bvcmap.cmap.N
+    raster = bvcmap(normed_raster1, norm2(raster2), alpha)
 
-    return core.add_raster(raster, ax=ax, extent=extent, origin=origin, **kwargs)
+    img = core.add_raster(raster, ax=ax, extent=extent, origin=origin, **kwargs)
+    img.set_cmap(bvcmap.cmap)
+    img.set_norm(norm1)
+    return img
