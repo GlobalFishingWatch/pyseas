@@ -19,6 +19,7 @@ def add_left_labeled_colorbar(
     valign=0.5,
     right_edge=None,
     center=False,
+    **kwargs,
 ):
     """Add colorbar to a PySeas raster
 
@@ -42,6 +43,7 @@ def add_left_labeled_colorbar(
         Vertical alignment of center of text relative to colorbar.
     right_edge : float, optional
         Location of right edge of colorbar in Axes coords.
+    **kwargs: passed to colorbar
 
     Returns
     -------
@@ -78,6 +80,7 @@ def add_left_labeled_colorbar(
         orientation="horizontal",
         ticklocation=loc if (not center) else "bottom",
         format=format,
+        **kwargs,
     )
 
     cb_ax.text(
