@@ -25,29 +25,26 @@ Add a `colorbar` to a raster plot
 See also `contrib.plot_tracks` for examples of using `add_plot`
 
 """
-from ._monkey_patch_cartopy import monkey_patch_cartopy
-import matplotlib.pyplot as plt
-import matplotlib.offsetbox as mplobox
-from matplotlib.lines import Line2D
-from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
-import cartopy
-import cartopy.feature as cfeature
-import cartopy.mpl.gridliner
 import os
 import uuid
 import warnings
 
+import cartopy
+import cartopy.feature as cfeature
+import cartopy.mpl.gridliner
 import geopandas as gpd
+import matplotlib.offsetbox as mplobox
+import matplotlib.pyplot as plt
 import numpy as np
 import shapely
+from matplotlib.lines import Line2D
+from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from shapely.geometry import MultiLineString
-from .. import props
-from .. import styles
-from . import ticks
-from . import rasterize
-from . import colorbar
-from .projection import get_extent, get_projection, ProjectionInfo
 
+from .. import props, styles
+from . import colorbar, rasterize, ticks
+from ._monkey_patch_cartopy import monkey_patch_cartopy
+from .projection import ProjectionInfo, get_extent, get_projection
 
 monkey_patch_cartopy()
 
@@ -519,7 +516,12 @@ def _setup_map_axes(ax, bg_color, extent, hide_axes):
     bg_color = bg_color or plt.rcParams.get(
         "pyseas.ocean.color", props.dark.ocean.color
     )
-    ax.background_patch.set_facecolor(bg_color)
+    try:
+        # cartopy < 0.21
+        ax.background_patch.set_facecolor(bg_color)
+    except AttributeError:
+        # cartopy >= 0.21
+        ax.set_facecolor(bg_color)
     if extent is not None:
         ax.set_extent(extent, crs=identity)
     if hide_axes:

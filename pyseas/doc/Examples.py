@@ -2,6 +2,9 @@
 # # Examples of Plotting with *pyseas*
 
 # +
+# pip install numba
+
+# +
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpcolors
@@ -23,6 +26,330 @@ import pyseas.cm
 # %matplotlib inline
 
 data_dir = Path("..") / "doc" / "data"
+
+# +
+poly =           [
+            [
+              -3.8,
+              -6.8
+            ],
+            [
+              -3.8,
+              7.5
+            ],
+            [
+              13.9,
+              7.5
+            ],
+            [
+              13.9,
+              -6.8
+            ],
+            [
+              -3.8,
+              -6.8
+            ]
+          ]
+
+obj = {
+        "coordinates": [
+          [
+            [
+              -3.8,
+              -6.8
+            ],
+            [
+              -3.8,
+              7.5
+            ],
+            [
+              13.9,
+              7.5
+            ],
+            [
+              13.9,
+              -6.8
+            ],
+            [
+              -3.8,
+              -6.8
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      }
+
+import json
+json.dumps(obj)
+
+# +
+from math import log, tan, radians, cos, pi, floor, degrees, atan, sinh
+from osgeo import gdal, osr
+import urllib.request
+import os
+import glob
+import subprocess
+
+
+# copied from https://jimmyutterstrom.com/blog/2019/06/05/map-tiles-to-geotiff/
+
+
+def sec(x):
+    return(1/cos(x))
+
+def latlon_to_xyz(lat, lon, z):
+    tile_count = pow(2, z)
+    x = (lon + 180) / 360
+    y = (1 - log(tan(radians(lat)) + sec(radians(lat))) / pi) / 2
+    return(tile_count*x, tile_count*y)
+
+
+#---------- CONFIGURATION -----------#
+tile_server = "https://storage.googleapis.com/public-tiles/basemap/bathymetry/{z}/{x}/{y}.png" 
+temp_dir = '../../temp_dir'#os.path.join(os.path.dirname(__file__), 'temp')
+output_dir = '../../output_dir' #os.path.join(os.path.dirname(__file__), 'output')
+#-----------------------------------#
+
+def download_tile(x, y, z, tile_server):
+    url = tile_server.replace(
+        "{x}", str(x)).replace(
+        "{y}", str(y)).replace(
+        "{z}", str(z))
+    path = f'{temp_dir}/{x}_{y}_{z}.png'
+    try:
+        urllib.request.urlretrieve(url, path)
+        return(path)
+    except:
+        print(f"failed to download {url}")
+        return None
+
+    
+ 
+
+def x_to_lat_edges(x, z):
+    tile_count = pow(2, z)
+    unit = 360 / tile_count
+    lon1 = -180 + x * unit
+    lon2 = lon1 + unit
+    return(lon1, lon2)
+
+
+def mercatorToLat(mercatorY):
+    return(degrees(atan(sinh(mercatorY))))
+
+
+def y_to_lat_edges(y, z):
+    tile_count = pow(2, z)
+    unit = 1 / tile_count
+    relative_y1 = y * unit
+    relative_y2 = relative_y1 + unit
+    lat1 = mercatorToLat(pi * (1 - 2 * relative_y1))
+    lat2 = mercatorToLat(pi * (1 - 2 * relative_y2))
+    return(lat1, lat2)
+
+
+def bbox_to_xyz(lon_min, lon_max, lat_min, lat_max, z):
+    x_min, y_max = latlon_to_xyz(lat_min, lon_min, z)
+    x_max, y_min = latlon_to_xyz(lat_max, lon_max, z)
+    return(floor(x_min), floor(x_max),
+           floor(y_min), floor(y_max))
+
+
+def x_to_lon_edges(x, z):
+    tile_count = pow(2, z)
+    unit = 360 / tile_count
+    lon1 = -180 + x * unit
+    lon2 = lon1 + unit
+    return(lon1, lon2)
+
+def mercatorToLat(mercatorY):
+    return(degrees(atan(sinh(mercatorY))))
+
+
+def y_to_lat_edges(y, z):
+    tile_count = pow(2, z)
+    unit = 1 / tile_count
+    relative_y1 = y * unit
+    relative_y2 = relative_y1 + unit
+    lat1 = mercatorToLat(pi * (1 - 2 * relative_y1))
+    lat2 = mercatorToLat(pi * (1 - 2 * relative_y2))
+    return(lat1, lat2)
+
+def tile_edges(x, y, z):
+    lat1, lat2 = y_to_lat_edges(y, z)
+    lon1, lon2 = x_to_lon_edges(x, z)
+    return[lon1, lat1, lon2, lat2]
+
+def georeference_raster_tile(x, y, z, path):
+    bounds = tile_edges(x, y, z)
+    print(bounds)
+    filename, extension = os.path.splitext(path)
+    gdal.Translate(filename + '.tif',
+                   path,
+                   outputSRS='EPSG:4326',
+                   outputBounds=bounds)
+
+
+def merge_tiles(input_pattern, output_path):
+    merge_command = ['gdal_merge.py', '-o', output_path]
+
+    for name in glob.glob(input_pattern):
+        merge_command.append(name)
+
+    subprocess.call(merge_command)
+
+
+def download_tiles(lon_min, lat_min, lon_max, lat_max, zoom):
+    x_min, x_max, y_min, y_max = bbox_to_xyz(
+        lon_min, lon_max, lat_min, lat_max, zoom)
+
+    print(f"Downloading {(x_max - x_min + 1) * (y_max - y_min + 1)} tiles")
+
+    # for x in range(x_min, x_max + 1):
+    #     for y in range(y_min, y_max + 1):
+    #         print(f"{x},{y}")
+    #         download_tile(x, y, zoom, tile_server)
+
+
+    for x in range(x_min, x_max + 1):
+        for y in range(y_min, y_max + 1):
+            print(f"{x},{y}")
+            png_path = download_tile(x, y, zoom, tile_server)
+            if png_path is not None:
+                georeference_raster_tile(x, y, zoom, png_path)
+
+    print("Download complete")
+    print("Merging tiles")
+    merge_tiles(temp_dir + '/*.tif', output_dir + '/merged.tif')
+    print("Merge complete")
+    
+    
+lon_min, lat_min, lon_max, lat_max = -180,-75,180,75
+zoom = 2
+
+# zoom = 7
+# lon_min, lat_min, lon_max, lat_max = 123.65,34.22,138.57,43.77
+download_tiles(lon_min, lat_min, lon_max, lat_max, zoom)
+
+# +
+# fname = '../../output_dir/merged.tif'
+
+# # open raster and get the extent
+# ds = gdal.Open(fname)
+# data = ds.ReadAsArray()
+# gt = ds.GetGeoTransform()
+# proj = ds.GetProjection()
+# gt, proj
+
+# +
+fishing_h3_6 = pd.read_csv(data_dir / "fishing_h3_lvl6.csv.zip")
+h3cnts_6_b = {np.uint64(int(x.h3, 16)): x.cnt for x in fishing_h3_6.itertuples()}
+
+seismic_presence = pd.read_csv(data_dir / "seismic_presence_tenth_degree.csv.zip")
+seismic_raster = psm.rasters.df2raster(
+    seismic_presence,
+    "lon_index",
+    "lat_index",
+    "hours",
+    xyscale=10,
+    origin="lower",
+    per_km2=True,
+)
+
+# +
+import matplotlib.pyplot as plt
+import pyseas.maps as psm
+import pyseas
+import cartopy.crs as ccrs
+from osgeo import gdal, osr
+# import osr
+
+# gdal.UseExceptions()
+
+
+# replace with filename
+fname = '../../output_dir/merged.tif'
+
+# open raster and get the extent
+ds = gdal.Open(fname)
+data = ds.ReadAsArray()
+gt = ds.GetGeoTransform()
+proj = ds.GetProjection()
+
+inproj = osr.SpatialReference()
+inproj.ImportFromWkt(proj)
+
+img_extent = (gt[0], gt[0] + ds.RasterXSize * gt[1],
+          gt[3] + ds.RasterYSize * gt[5], gt[3])
+
+
+# plot over earth
+
+plt.figure(figsize=(8, 8))
+context = {"pyseas.land.color": "#274777", "axes.edgecolor": "#ffffff00"}
+
+proj = ccrs.Orthographic(
+    central_longitude=0, central_latitude=0.0, globe=None
+)
+
+with psm.context(psm.styles.dark):
+    with pyseas.context(context):
+        ax = psm.create_map(
+            projection=proj
+        )
+        psm.add_land()
+        ax.spines["geo"].set_visible(False)
+        ax.set_facecolor((0.0, 0.0, 0.0, 0))
+        img = data[:3, :, :].transpose((1, 2, 0))
+        ax.imshow(img, extent=img_extent, 
+                origin='upper', transform = ccrs.PlateCarree(), zorder=1)
+        psm.add_raster(img, origin='upper', extent=img_extent, ax=ax)   
+        plt.show()
+
+# +
+fname = '../../output_dir/merged.tif'
+ds = gdal.Open(fname)
+data = ds.ReadAsArray()
+gt = ds.GetGeoTransform()
+
+gt
+# -
+
+img.shape, img_extent
+plt.imshow(img)
+gt
+
+# +
+
+
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+norm2 = mpcolors.LogNorm(10, 40000, clip=True)
+with psm.context(psm.styles.dark):
+    ax = psm.create_map(
+        projection=cartopy.crs.LambertAzimuthalEqualArea(
+            central_longitude=10, central_latitude=60
+        ),
+        extent=(3.8, 25.0, 65.0, 75.4),
+    )
+    psm.add_land()
+    im = psm.add_raster(
+            seismic_raster,
+            cmap="presence",
+            norm=norm,
+            origin="lower",
+        )
+    psm.add_h3_data(h3cnts_6_b,   ax=ax,      
+        cmap="Reds",
+        norm=norm2,
+        fill = None
+        )
+
+    
+import time
+t0 = time.perf_counter()
+plt.show()
+print(time.perf_counter() - t0) # NOJIT: 0.82 
 # -
 
 # ## Recomended Style
@@ -670,9 +997,10 @@ with psm.context(psm.styles.light):
 # This works nicely with a discretized coloramp, which be be realized using 
 # `Boundary
 
+# +
 def make_red_green_blue_ramp(L=0.5, min_S_l=0.4, name="red_blue_bv", n=255):
     colors = []
-    hues = np.linspace(0, 0.666, n, endpoint=True) 
+    hues = np.linspace(0, 0.666, n, endpoint=True)
     sats = min_S_l + (1 - min_S_l) * abs(np.linspace(-1, 1, n, endpoint=True))
     for H, S_l in zip(hues, sats):
         V = L + S_l * min(L, 1 - L)
@@ -681,23 +1009,47 @@ def make_red_green_blue_ramp(L=0.5, min_S_l=0.4, name="red_blue_bv", n=255):
     return mpcolors.LinearSegmentedColormap.from_list(name, colors)
 
 
+def piecewise_constant_color_map(colors, name="pccm"):
+    """colors is list[tuple(float, float, float)]"""
+    breaks = np.linspace(0, 1.0, len(colors) + 1, endpoint=True)
+    arg = {"red": [], "green": [], "blue": []}
+    last_clr = colors[0]
+    colors = colors + [colors[-1]]
+    for i, clr in enumerate(colors):
+        arg["red"].append((breaks[i], last_clr[0], clr[0]))
+        arg["green"].append((breaks[i], last_clr[1], clr[1]))
+        arg["blue"].append((breaks[i], last_clr[2], clr[2]))
+        last_clr = clr
+    return mpcolors.LinearSegmentedColormap(name, arg)
+    
+red_blue = piecewise_constant_color_map([(1.0, 0.0, 0.0), (1.0, 0.5, 0.5),
+                                        (0.5, 0.5, 1.0), (0.0, 0.0, 1.0)])
+
 # +
 red_blue = make_red_green_blue_ramp(min_S_l=0.1)
+
+colors = [(1.0, 0.0, 0.0), (0.7, 0.0, 0.7), (0.0, 0.0, 1.0)]
+red_blue = piecewise_constant_color_map(colors)
+
 
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(15, 15), facecolor="white")
     ax = psm.create_map()
     psm.add_land(ax)
 
-    bounds = np.linspace(0, 1.0, 6, endpoint=True)
+    bounds = np.linspace(0, 1.0, len(colors) + 1, endpoint=True)
     cmap = psm.cm.bivariate.TransparencyBivariateColormap(red_blue)
     norm1 = mpcolors.BoundaryNorm(bounds, cmap.cmap.N, clip=True)
     norm2 = mpcolors.LogNorm(vmin=0.01, vmax=10, clip=True)
-    
+
     img = psm.add_bivariate_raster(
-        grid_ratio, np.clip(grid_total, 0.01, 10), cmap, norm1, norm2,
+        grid_ratio,
+        np.clip(grid_total, 0.01, 10),
+        cmap,
+        norm1,
+        norm2,
     )
-    
+
     psm.add_top_labeled_colorbar(
         img,
         left_label=r"$\longleftarrow$ less matched",
@@ -913,3 +1265,5 @@ with psm.context(psm.styles.light):
 
 # ## Push rendered notebook to `rendered` repo
 # Only uncomment this and run it if you know what you're doing.
+
+

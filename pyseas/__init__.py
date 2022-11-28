@@ -1,9 +1,10 @@
-from matplotlib.style import context, use
+import os
+import subprocess
 
-__version__ = "0.4.0"
+from matplotlib.style import context, use  # NOQA
 
+__version__ = "0.8.0"
 
-import os, subprocess
 
 base = os.path.dirname(__file__)
 path = os.path.join(base, "doc", "Examples.ipynb")
