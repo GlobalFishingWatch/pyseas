@@ -269,6 +269,8 @@ def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin="uppe
     -------
     2D array of float
     """
+    if raster.dtype == "uint8":
+        raster = raster / 255
     assert origin in ("upper", "lower")
     assert len(raster.shape) in (2, 3)
     if len(raster.shape) == 2:

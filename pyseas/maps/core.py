@@ -145,9 +145,7 @@ def add_countries(
     return ax.add_feature(land)
 
 
-def add_raster(
-    raster, ax=None, extent=None, origin="upper", interpolation="nearest", **kwargs
-):
+def add_raster(raster, ax=None, extent=None, origin="upper", **kwargs):
     """Add a raster to an existing map
 
     Parameters
@@ -158,9 +156,6 @@ def add_raster(
         (lon_min, lon_max, lat_min, lat_max) of the raster
     origin : str, optional
         Location of the raster origin ['upper' or 'lowers']
-    interpolation : str, optional
-        Uses 'nearest' by default as the standard matplotlib default doesn't work
-        well with projected data at high resolution.
 
     Other Parameters
     ----------------
@@ -512,16 +507,20 @@ def _process_map_args(projection, extent):
     return projection, extent
 
 
+def _set_ax_background(ax, color):
+    try:
+        # cartopy < 0.21
+        ax.background_patch.set_facecolor(color)
+    except AttributeError:
+        # cartopy >= 0.21
+        ax.set_facecolor(color)
+
+
 def _setup_map_axes(ax, bg_color, extent, hide_axes):
     bg_color = bg_color or plt.rcParams.get(
         "pyseas.ocean.color", props.dark.ocean.color
     )
-    try:
-        # cartopy < 0.21
-        ax.background_patch.set_facecolor(bg_color)
-    except AttributeError:
-        # cartopy >= 0.21
-        ax.set_facecolor(bg_color)
+    _set_ax_background(ax, bg_color)
     if extent is not None:
         ax.set_extent(extent, crs=identity)
     if hide_axes:
@@ -764,7 +763,7 @@ def add_miniglobe(
     inset = plt.axes([0, 0, 1, 1], projection=ortho, label=uuid.uuid1().hex)
     inset.set_global()
     bg_color = plt.rcParams.get("pyseas.ocean.color", props.dark.ocean.color)
-    inset.background_patch.set_facecolor(bg_color)
+    _set_ax_background(inset, bg_color)
     add_land(ax=inset, edgecolor="none"),
 
     # Determine appropriate offsets to put mini globe on a corner of the primary
@@ -926,6 +925,7 @@ def plot_raster(
     projection="global.default",
     bg_color=None,
     hide_axes=True,
+    show_land=True,
     **kwargs,
 ):
     """Draw a GFW themed map over a raster
@@ -938,6 +938,8 @@ def plot_raster(
     bg_color : str or tuple, optional
     hide_axes : bool
         if `true`, hide x and y axes
+    show_land : bool
+        if `true` overlay land on the image
 
 
     Other Parameters
@@ -951,7 +953,8 @@ def plot_raster(
     extent = kwargs.get("extent")
     ax = create_map(subplot, projection, extent, bg_color, hide_axes)
     im = add_raster(raster, ax=ax, **kwargs)
-    add_land(ax)
+    if show_land:
+        add_land(ax)
     return ax, im
 
 
@@ -961,6 +964,7 @@ def plot_h3_data(
     projection="global.default",
     bg_color=None,
     hide_axes=True,
+    show_land=True,
     **kwargs,
 ):
     """Draw a GFW themed map over an H3 data layer
@@ -973,6 +977,8 @@ def plot_h3_data(
     bg_color : str or tuple, optional
     hide_axes : bool
         if `true`, hide x and y axes
+    show_land : bool
+        if `true` overlay land on the image
 
     Other Parameters
     ----------------
@@ -985,7 +991,8 @@ def plot_h3_data(
     extent = kwargs.pop("extent", None)
     ax = create_map(subplot, projection, extent, bg_color, hide_axes)
     im = add_h3_data(h3_data, ax=ax, **kwargs)
-    add_land(ax)
+    if add_land:
+        show_land(ax)
     return ax, im
 
 
