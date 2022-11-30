@@ -991,8 +991,8 @@ def plot_h3_data(
     extent = kwargs.pop("extent", None)
     ax = create_map(subplot, projection, extent, bg_color, hide_axes)
     im = add_h3_data(h3_data, ax=ax, **kwargs)
-    if add_land:
-        show_land(ax)
+    if show_land:
+        add_land(ax)
     return ax, im
 
 
