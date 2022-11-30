@@ -970,7 +970,8 @@ downloader =  pyseas.imagery.tiles.TileDownloader(
 #
 # It is sometimes convenient to plot the daytime image so that it look more like night.
 # Simply multiplying all the colors by by `[0.082, 0.365, 0.808]` does a surpisingly good
-# job.
+# job. Note that this assumes that `img` is in floating point with range 0-1. If it's in 
+# uint8 instead, with range 0-255, you'll need to divide by 255 as well.
 
 img = plt.imread("./data/world.png")
 night_img = img * [[[0.082, 0.365, 0.808, 1]]]
