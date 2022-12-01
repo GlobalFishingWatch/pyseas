@@ -992,7 +992,3 @@ ax2.axis('off');
 
 # ## Push rendered notebook to `rendered` repo
 # Only uncomment this and run it if you know what you're doing.
-
-np.array([21, 93, 206]) / 255
-
-

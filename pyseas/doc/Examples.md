@@ -1343,20 +1343,3 @@ the standard facecolor can be applied as shown below.
 
 ## Push rendered notebook to `rendered` repo
 Only uncomment this and run it if you know what you're doing.
-
-
-```python
-np.array([21, 93, 206]) / 255
-```
-
-
-
-
-    array([0.08235294, 0.36470588, 0.80784314])
-
-
-
-
-```python
-
-```
