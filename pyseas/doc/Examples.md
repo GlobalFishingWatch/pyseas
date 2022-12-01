@@ -1332,9 +1332,21 @@ uint8 instead, with range 0-255, you'll need to divide by 255 as well.
 
 
 ```python
+np.array([[[0.082, 0.365, 0.808, 1]]] )* [[[1.5, 1.5, 1.5, 1]]]
+```
+
+
+
+
+    array([[[0.123 , 0.5475, 1.212 , 1.    ]]])
+
+
+
+
+```python
 img = plt.imread("./data/world.png")
 night_img = img * [[[0.082, 0.365, 0.808, 1]]]
-night_img2 = img * [[[0.082, 0.365, 0.808, 1]]] * [[[1.5, 1.5, 1.5, 1]]]
+night_img2 = img * [[[0.123 , 0.5475, 1.0 , 1.    ]]]
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(16, 8))
 ax1.imshow(img)
 ax1.axis('off')
@@ -1344,12 +1356,9 @@ ax3.imshow(night_img2)
 ax3.axis('off');
 ```
 
-    WARNING:matplotlib.image:Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers).
-
-
 
     
-![png](Examples_files/Examples_75_1.png)
+![png](Examples_files/Examples_76_0.png)
     
 
 
