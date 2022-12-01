@@ -8,6 +8,7 @@ from .core import (add_countries, add_eezs, add_figure_background,
                    add_logo, add_miniglobe, add_plot, add_raster, create_map,
                    create_maps, identity, plot, plot_h3_data, plot_raster,
                    plot_raster_w_colorbar)
+from .extent import set_lat_extent, set_lon_extent
 from .projection import find_projection
 from .scalebar import add_scalebar
 

@@ -40,9 +40,19 @@ data_dir = Path("..") / "doc" / "data"
 # light and dark styles, which are activated using `pyseas.context`.
 
 with psm.context(psm.styles.dark):
-    fig = plt.figure(figsize=(18, 6))
+    fig = plt.figure(figsize=(16, 9), facecolor="white")
     psm.create_map(projection="regional.european_union")
     psm.add_land()
+
+# It is often convenient to set either the horizontal or vertical extent and have
+# the map fill the rest of the figure. This can done using `set_lon_extent` or
+# `set_lat_extent`.
+
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(16, 9), facecolor="white")
+    ax = psm.create_map(projection="regional.european_union")
+    psm.add_land()
+    psm.set_lon_extent(-25, 55, central_lat=50)
 
 # In addition to `add_land` there a number of other features that can be added to maps
 # including eezs, grid_lines, countries, logos, etc. If you add a logo, without specifying
@@ -974,12 +984,15 @@ downloader =  pyseas.imagery.tiles.TileDownloader(
 # uint8 instead, with range 0-255, you'll need to divide by 255 as well.
 
 img = plt.imread("./data/world.png")
-night_img = img * [[[0.082, 0.365, 0.808, 1]]] * 1.2
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+night_img = img * [[[0.082, 0.365, 0.808, 1]]]
+night_img2 = img * [[[0.082, 0.365, 0.808, 1]]] * [[[1.5, 1.5, 1.5, 1]]]
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(16, 8))
 ax1.imshow(img)
 ax1.axis('off')
 ax2.imshow(night_img)
 ax2.axis('off');
+ax3.imshow(night_img2)
+ax3.axis('off');
 
 # ## Saving Plots
 #

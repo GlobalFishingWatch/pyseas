@@ -31,6 +31,7 @@ def _reload():
     from pyseas.maps import (
         scalebar,
         core,
+        extent,
         rasters,
         ticks,
         projection,
@@ -56,6 +57,7 @@ def _reload():
     imp.reload(bivariate)
     imp.reload(core)
     imp.reload(maps)
+    imp.reload(extent)
 
     imp.reload(plot_tracks)
     imp.reload(pyseas)
