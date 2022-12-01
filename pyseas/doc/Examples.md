@@ -44,7 +44,7 @@ light and dark styles, which are activated using `pyseas.context`.
 
 ```python
 with psm.context(psm.styles.dark):
-    fig = plt.figure(figsize=(18, 6))
+    fig = plt.figure(figsize=(16, 9), facecolor="white")
     psm.create_map(projection="regional.european_union")
     psm.add_land()
 ```
@@ -52,6 +52,25 @@ with psm.context(psm.styles.dark):
 
     
 ![png](Examples_files/Examples_5_0.png)
+    
+
+
+It is often convenient to set either the horizontal or vertical extent and have
+the map fill the rest of the figure. This can done using `set_lon_extent` or
+`set_lat_extent`.
+
+
+```python
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(16, 9), facecolor="white")
+    ax = psm.create_map(projection="regional.european_union")
+    psm.add_land()
+    psm.set_lon_extent(-25, 55, central_lat=50)
+```
+
+
+    
+![png](Examples_files/Examples_7_0.png)
     
 
 
@@ -74,7 +93,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_7_0.png)
+![png](Examples_files/Examples_9_0.png)
     
 
 
@@ -98,7 +117,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_9_0.png)
+![png](Examples_files/Examples_11_0.png)
     
 
 
@@ -129,7 +148,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_11_0.png)
+![png](Examples_files/Examples_13_0.png)
     
 
 
@@ -150,7 +169,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_13_0.png)
+![png](Examples_files/Examples_15_0.png)
     
 
 
@@ -169,7 +188,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_14_0.png)
+![png](Examples_files/Examples_16_0.png)
     
 
 
@@ -212,7 +231,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_17_0.png)
+![png](Examples_files/Examples_19_0.png)
     
 
 
@@ -257,7 +276,7 @@ with plt.rc_context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_19_0.png)
+![png](Examples_files/Examples_21_0.png)
     
 
 
@@ -286,7 +305,7 @@ with plt.rc_context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_21_0.png)
+![png](Examples_files/Examples_23_0.png)
     
 
 
@@ -323,7 +342,7 @@ with plt.rc_context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_22_0.png)
+![png](Examples_files/Examples_24_0.png)
     
 
 
@@ -358,7 +377,7 @@ with plt.rc_context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_24_0.png)
+![png](Examples_files/Examples_26_0.png)
     
 
 
@@ -380,7 +399,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_25_1.png)
+![png](Examples_files/Examples_27_1.png)
     
 
 
@@ -421,7 +440,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_27_0.png)
+![png](Examples_files/Examples_29_0.png)
     
 
 
@@ -457,7 +476,7 @@ plt.tight_layout()
 
 
     
-![png](Examples_files/Examples_28_0.png)
+![png](Examples_files/Examples_30_0.png)
     
 
 
@@ -504,7 +523,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_31_0.png)
+![png](Examples_files/Examples_33_0.png)
     
 
 
@@ -548,7 +567,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_36_0.png)
+![png](Examples_files/Examples_38_0.png)
     
 
 
@@ -575,7 +594,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_37_0.png)
+![png](Examples_files/Examples_39_0.png)
     
 
 
@@ -602,7 +621,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_39_0.png)
+![png](Examples_files/Examples_41_0.png)
     
 
 
@@ -630,7 +649,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_40_0.png)
+![png](Examples_files/Examples_42_0.png)
     
 
 
@@ -667,7 +686,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_42_0.png)
+![png](Examples_files/Examples_44_0.png)
     
 
 
@@ -721,7 +740,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_43_0.png)
+![png](Examples_files/Examples_45_0.png)
     
 
 
@@ -753,7 +772,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_44_0.png)
+![png](Examples_files/Examples_46_0.png)
     
 
 
@@ -776,7 +795,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_46_0.png)
+![png](Examples_files/Examples_48_0.png)
     
 
 
@@ -801,7 +820,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_48_0.png)
+![png](Examples_files/Examples_50_0.png)
     
 
 
@@ -824,7 +843,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_50_0.png)
+![png](Examples_files/Examples_52_0.png)
     
 
 
@@ -841,7 +860,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_51_0.png)
+![png](Examples_files/Examples_53_0.png)
     
 
 
@@ -905,7 +924,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_55_0.png)
+![png](Examples_files/Examples_57_0.png)
     
 
 
@@ -939,7 +958,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_57_0.png)
+![png](Examples_files/Examples_59_0.png)
     
 
 
@@ -1013,7 +1032,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_60_0.png)
+![png](Examples_files/Examples_62_0.png)
     
 
 
@@ -1069,7 +1088,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_62_0.png)
+![png](Examples_files/Examples_64_0.png)
     
 
 
@@ -1091,86 +1110,6 @@ ll_corners = [
     (lon_min, lat_max),
 ]
 ```
-
-
-```python
-# First plot using `ax.plot`
-
-# When plotting a polygon using ax.plot, you need to include the first corner at the end
-five_corners = ll_corners + ll_corners[:1]
-
-with psm.context(psm.styles.light):
-    fig = plt.figure(figsize=(18, 6))
-    ax = psm.create_map(projection="country.china")
-    psm.add_land()
-    psm.add_countries()
-    ax.plot(
-        [x for (x, y) in five_corners],
-        [y for (x, y) in five_corners],
-        transform=psm.identity,
-        zorder=0,
-    )
-    ax.set_extent(
-        (lon_min - 5, lon_max + 5, lat_min - 5, lat_max + 5), crs=psm.identity
-    )
-```
-
-
-    
-![png](Examples_files/Examples_65_0.png)
-    
-
-
-
-```python
-# Now using a Polygon
-lons = np.array([x for (x, y) in five_corners])
-lats = np.array([y for (x, y) in five_corners])
-
-with psm.context(psm.styles.light):
-    fig = plt.figure(figsize=(18, 6))
-    ax = psm.create_map(projection="country.china")
-
-    xformed = ax.projection.transform_points(psm.identity, lons, lats)[:, :2]
-    xy = xformed[:4]
-
-    rect = mppatches.Polygon(
-        xy,
-        linewidth=1,
-        edgecolor="lime",
-        facecolor=(0, 0, 0, 0.1),
-        transform=ax.transData,
-        zorder=0,
-    )
-
-    # You can also add an affine transform to the a Polygon
-    # as well as controlling the z-order (higher numbers are
-    # drawn on top)
-    cntr = xy.sum(axis=0)
-    xform = Affine2D().rotate_deg_around(*cntr, 20).scale(0.2)
-    rotated = mppatches.Polygon(
-        xy,
-        linewidth=1,
-        edgecolor="lime",
-        facecolor=(0, 0, 1.0, 0.2),
-        transform=xform + ax.transData,
-        zorder=9,
-    )
-
-    psm.add_land()
-    psm.add_countries()
-    ax.set_extent(
-        (lon_min - 5, lon_max + 5, lat_min - 5, lat_max + 5), crs=psm.identity
-    )
-    ax.add_patch(rect)
-    ax.add_patch(rotated)
-```
-
-
-    
-![png](Examples_files/Examples_66_0.png)
-    
-
 
 
 ```python
@@ -1252,6 +1191,86 @@ with psm.context(psm.styles.light):
     
 
 
+
+```python
+# First plot using `ax.plot`
+
+# When plotting a polygon using ax.plot, you need to include the first corner at the end
+five_corners = ll_corners + ll_corners[:1]
+
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    ax = psm.create_map(projection="country.china")
+    psm.add_land()
+    psm.add_countries()
+    ax.plot(
+        [x for (x, y) in five_corners],
+        [y for (x, y) in five_corners],
+        transform=psm.identity,
+        zorder=0,
+    )
+    ax.set_extent(
+        (lon_min - 5, lon_max + 5, lat_min - 5, lat_max + 5), crs=psm.identity
+    )
+```
+
+
+    
+![png](Examples_files/Examples_69_0.png)
+    
+
+
+
+```python
+# Now using a Polygon
+lons = np.array([x for (x, y) in five_corners])
+lats = np.array([y for (x, y) in five_corners])
+
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    ax = psm.create_map(projection="country.china")
+
+    xformed = ax.projection.transform_points(psm.identity, lons, lats)[:, :2]
+    xy = xformed[:4]
+
+    rect = mppatches.Polygon(
+        xy,
+        linewidth=1,
+        edgecolor="lime",
+        facecolor=(0, 0, 0, 0.1),
+        transform=ax.transData,
+        zorder=0,
+    )
+
+    # You can also add an affine transform to the a Polygon
+    # as well as controlling the z-order (higher numbers are
+    # drawn on top)
+    cntr = xy.sum(axis=0)
+    xform = Affine2D().rotate_deg_around(*cntr, 20).scale(0.2)
+    rotated = mppatches.Polygon(
+        xy,
+        linewidth=1,
+        edgecolor="lime",
+        facecolor=(0, 0, 1.0, 0.2),
+        transform=xform + ax.transData,
+        zorder=9,
+    )
+
+    psm.add_land()
+    psm.add_countries()
+    ax.set_extent(
+        (lon_min - 5, lon_max + 5, lat_min - 5, lat_max + 5), crs=psm.identity
+    )
+    ax.add_patch(rect)
+    ax.add_patch(rotated)
+```
+
+
+    
+![png](Examples_files/Examples_70_0.png)
+    
+
+
 ## Tiles
 
 
@@ -1279,7 +1298,7 @@ extent
 
 
     
-![png](Examples_files/Examples_70_1.png)
+![png](Examples_files/Examples_72_1.png)
     
 
 
@@ -1314,12 +1333,15 @@ uint8 instead, with range 0-255, you'll need to divide by 255 as well.
 
 ```python
 img = plt.imread("./data/world.png")
-night_img = img * [[[0.082, 0.365, 0.808, 1]]] * 1.2
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+night_img = img * [[[0.082, 0.365, 0.808, 1]]]
+night_img2 = img * [[[0.082, 0.365, 0.808, 1]]] * [[[1.5, 1.5, 1.5, 1]]]
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(16, 8))
 ax1.imshow(img)
 ax1.axis('off')
 ax2.imshow(night_img)
 ax2.axis('off');
+ax3.imshow(night_img2)
+ax3.axis('off');
 ```
 
     WARNING:matplotlib.image:Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers).
@@ -1327,7 +1349,7 @@ ax2.axis('off');
 
 
     
-![png](Examples_files/Examples_73_1.png)
+![png](Examples_files/Examples_75_1.png)
     
 
 
