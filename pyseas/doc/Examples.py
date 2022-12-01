@@ -40,7 +40,7 @@ data_dir = Path("..") / "doc" / "data"
 # light and dark styles, which are activated using `pyseas.context`.
 
 with psm.context(psm.styles.dark):
-    fig = plt.figure(figsize=(16, 9), facecolor="white")
+    fig = plt.figure(figsize=(16, 9))
     psm.create_map(projection="regional.european_union")
     psm.add_land()
 
@@ -49,7 +49,7 @@ with psm.context(psm.styles.dark):
 # `set_lat_extent`.
 
 with psm.context(psm.styles.dark):
-    fig = plt.figure(figsize=(16, 9), facecolor="white")
+    fig = plt.figure(figsize=(16, 9))
     ax = psm.create_map(projection="regional.european_union")
     psm.add_land()
     psm.set_lon_extent(-25, 55, central_lat=50)

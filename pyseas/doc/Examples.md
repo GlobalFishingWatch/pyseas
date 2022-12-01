@@ -44,7 +44,7 @@ light and dark styles, which are activated using `pyseas.context`.
 
 ```python
 with psm.context(psm.styles.dark):
-    fig = plt.figure(figsize=(16, 9), facecolor="white")
+    fig = plt.figure(figsize=(16, 9))
     psm.create_map(projection="regional.european_union")
     psm.add_land()
 ```
@@ -62,7 +62,7 @@ the map fill the rest of the figure. This can done using `set_lon_extent` or
 
 ```python
 with psm.context(psm.styles.dark):
-    fig = plt.figure(figsize=(16, 9), facecolor="white")
+    fig = plt.figure(figsize=(16, 9))
     ax = psm.create_map(projection="regional.european_union")
     psm.add_land()
     psm.set_lon_extent(-25, 55, central_lat=50)
