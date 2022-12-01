@@ -2,6 +2,11 @@
 
 
 ```python
+# pip install numba
+```
+
+
+```python
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpcolors
@@ -19,6 +24,7 @@ register_matplotlib_converters()
 import pyseas.maps as psm
 import pyseas.contrib as psc
 import pyseas.cm
+import pyseas.imagery.tiles
 
 %matplotlib inline
 
@@ -45,7 +51,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_4_0.png)
+![png](Examples_files/Examples_5_0.png)
     
 
 
@@ -68,7 +74,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_6_0.png)
+![png](Examples_files/Examples_7_0.png)
     
 
 
@@ -92,7 +98,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_8_0.png)
+![png](Examples_files/Examples_9_0.png)
     
 
 
@@ -123,7 +129,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_10_0.png)
+![png](Examples_files/Examples_11_0.png)
     
 
 
@@ -144,7 +150,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_12_0.png)
+![png](Examples_files/Examples_13_0.png)
     
 
 
@@ -163,7 +169,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_13_0.png)
+![png](Examples_files/Examples_14_0.png)
     
 
 
@@ -206,7 +212,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_16_0.png)
+![png](Examples_files/Examples_17_0.png)
     
 
 
@@ -218,7 +224,8 @@ cbax.collections
 
 
 
-    <Axes.ArtistList of 2 collections>
+    [<matplotlib.collections.LineCollection at 0x1aacb6df0>,
+     <matplotlib.collections.QuadMesh at 0x1aacc0670>]
 
 
 
@@ -250,7 +257,7 @@ with plt.rc_context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_18_0.png)
+![png](Examples_files/Examples_19_0.png)
     
 
 
@@ -279,7 +286,7 @@ with plt.rc_context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_20_0.png)
+![png](Examples_files/Examples_21_0.png)
     
 
 
@@ -300,7 +307,7 @@ with plt.rc_context(psm.styles.dark):
                     norm=norm,
 #                     origin="lower",
                 )
-        psm.add_left_labeled_colorbar(
+        cbax = psm.add_left_labeled_colorbar(
             im,
             ax=ax,
             label=r"hours per $\mathregular{km^2}$",
@@ -308,12 +315,15 @@ with plt.rc_context(psm.styles.dark):
             height=0.035,
             wspace=0.0025,
             valign=0.2,
+            ticks=[2e-3, 2e-2, 2e-1, 2],
+            format="%4.e"
         )
+#         cbax.set_xtick_las([2e-3, 2e-2, 2e-1])
 ```
 
 
     
-![png](Examples_files/Examples_21_0.png)
+![png](Examples_files/Examples_22_0.png)
     
 
 
@@ -348,7 +358,7 @@ with plt.rc_context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_23_0.png)
+![png](Examples_files/Examples_24_0.png)
     
 
 
@@ -370,7 +380,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_24_1.png)
+![png](Examples_files/Examples_25_1.png)
     
 
 
@@ -411,7 +421,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_26_0.png)
+![png](Examples_files/Examples_27_0.png)
     
 
 
@@ -445,12 +455,9 @@ with psm.context(psm.styles.dark):
 plt.tight_layout()
 ```
 
-    /Users/timothyhochberg/anaconda3/envs/pyseas/lib/python3.7/site-packages/ipykernel_launcher.py:26: UserWarning: Tight layout not applied. The left and right margins cannot be made large enough to accommodate all axes decorations.
-
-
 
     
-![png](Examples_files/Examples_27_1.png)
+![png](Examples_files/Examples_28_0.png)
     
 
 
@@ -497,7 +504,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_30_0.png)
+![png](Examples_files/Examples_31_0.png)
     
 
 
@@ -541,7 +548,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_35_0.png)
+![png](Examples_files/Examples_36_0.png)
     
 
 
@@ -568,7 +575,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_36_0.png)
+![png](Examples_files/Examples_37_0.png)
     
 
 
@@ -595,7 +602,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_38_0.png)
+![png](Examples_files/Examples_39_0.png)
     
 
 
@@ -623,7 +630,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_39_0.png)
+![png](Examples_files/Examples_40_0.png)
     
 
 
@@ -660,7 +667,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_41_0.png)
+![png](Examples_files/Examples_42_0.png)
     
 
 
@@ -714,7 +721,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_42_0.png)
+![png](Examples_files/Examples_43_0.png)
     
 
 
@@ -746,7 +753,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_43_0.png)
+![png](Examples_files/Examples_44_0.png)
     
 
 
@@ -769,7 +776,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_45_0.png)
+![png](Examples_files/Examples_46_0.png)
     
 
 
@@ -794,7 +801,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_47_0.png)
+![png](Examples_files/Examples_48_0.png)
     
 
 
@@ -817,7 +824,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_49_0.png)
+![png](Examples_files/Examples_50_0.png)
     
 
 
@@ -834,7 +841,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_50_0.png)
+![png](Examples_files/Examples_51_0.png)
     
 
 
@@ -898,7 +905,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_54_0.png)
+![png](Examples_files/Examples_55_0.png)
     
 
 
@@ -932,7 +939,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_56_0.png)
+![png](Examples_files/Examples_57_0.png)
     
 
 
@@ -943,33 +950,58 @@ This works nicely with a discretized coloramp, which be be realized using
 ```python
 def make_red_green_blue_ramp(L=0.5, min_S_l=0.4, name="red_blue_bv", n=255):
     colors = []
-    hues = np.linspace(0, 0.666, n, endpoint=True) 
+    hues = np.linspace(0, 0.666, n, endpoint=True)
     sats = min_S_l + (1 - min_S_l) * abs(np.linspace(-1, 1, n, endpoint=True))
     for H, S_l in zip(hues, sats):
         V = L + S_l * min(L, 1 - L)
         S_v = 2 * (1 - L / V)
         colors.append(mpcolors.hsv_to_rgb((H, S_v, V)))
     return mpcolors.LinearSegmentedColormap.from_list(name, colors)
+
+
+def piecewise_constant_color_map(colors, name="pccm"):
+    """colors is list[tuple(float, float, float)]"""
+    breaks = np.linspace(0, 1.0, len(colors) + 1, endpoint=True)
+    arg = {"red": [], "green": [], "blue": []}
+    last_clr = colors[0]
+    colors = colors + [colors[-1]]
+    for i, clr in enumerate(colors):
+        arg["red"].append((breaks[i], last_clr[0], clr[0]))
+        arg["green"].append((breaks[i], last_clr[1], clr[1]))
+        arg["blue"].append((breaks[i], last_clr[2], clr[2]))
+        last_clr = clr
+    return mpcolors.LinearSegmentedColormap(name, arg)
+    
+red_blue = piecewise_constant_color_map([(1.0, 0.0, 0.0), (1.0, 0.5, 0.5),
+                                        (0.5, 0.5, 1.0), (0.0, 0.0, 1.0)])
 ```
 
 
 ```python
 red_blue = make_red_green_blue_ramp(min_S_l=0.1)
 
+colors = [(1.0, 0.0, 0.0), (0.7, 0.0, 0.7), (0.0, 0.0, 1.0)]
+red_blue = piecewise_constant_color_map(colors)
+
+
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(15, 15), facecolor="white")
     ax = psm.create_map()
     psm.add_land(ax)
 
-    bounds = np.linspace(0, 1.0, 6, endpoint=True)
+    bounds = np.linspace(0, 1.0, len(colors) + 1, endpoint=True)
     cmap = psm.cm.bivariate.TransparencyBivariateColormap(red_blue)
     norm1 = mpcolors.BoundaryNorm(bounds, cmap.cmap.N, clip=True)
     norm2 = mpcolors.LogNorm(vmin=0.01, vmax=10, clip=True)
-    
+
     img = psm.add_bivariate_raster(
-        grid_ratio, np.clip(grid_total, 0.01, 10), cmap, norm1, norm2,
+        grid_ratio,
+        np.clip(grid_total, 0.01, 10),
+        cmap,
+        norm1,
+        norm2,
     )
-    
+
     psm.add_top_labeled_colorbar(
         img,
         left_label=r"$\longleftarrow$ less matched",
@@ -981,7 +1013,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_59_0.png)
+![png](Examples_files/Examples_60_0.png)
     
 
 
@@ -1037,7 +1069,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_61_0.png)
+![png](Examples_files/Examples_62_0.png)
     
 
 
@@ -1085,7 +1117,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_64_0.png)
+![png](Examples_files/Examples_65_0.png)
     
 
 
@@ -1136,7 +1168,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_65_0.png)
+![png](Examples_files/Examples_66_0.png)
     
 
 
@@ -1165,7 +1197,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_66_0.png)
+![png](Examples_files/Examples_67_0.png)
     
 
 
@@ -1216,7 +1248,86 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_67_0.png)
+![png](Examples_files/Examples_68_0.png)
+    
+
+
+## Tiles
+
+
+```python
+downloader = pyseas.imagery.tiles.TileDownloader(
+    server_url="https://storage.googleapis.com/public-tiles/basemap/bathymetry/{z}/{x}/{y}.png",
+)
+
+img, extent = downloader.download(extent=([123.65, 138.57, 34.22, 43.77]), zoom=6)
+
+# Note that this is *just* bathymetry, so looks like open ocean
+plt.imshow(img)
+
+# Note that the final extent will typically be larger than input extent since the
+# downloaded tiles are not trimmed
+extent
+```
+
+
+
+
+    (118.125, 146.25, 27.059125784374054, 45.089035564831015)
+
+
+
+
+    
+![png](Examples_files/Examples_70_1.png)
+    
+
+
+
+```python
+# If the server needs authentication headers, you can specify the headers in the
+# constructor:
+
+import imp; imp.reload(pyseas.imagery.tiles)
+
+server_url = "https://my/server/tile?x={x}&y={y}&z={z}"
+api_token = "MY_TOKEN"
+
+downloader =  pyseas.imagery.tiles.TileDownloader(
+    server_url=server_url,
+    headers= [("Authorization", f"Bearer {api_token}")],
+    max_tiles=128,
+)
+```
+
+    /var/folders/9f/lxqlbzzx48x_szcfst2xf7540000gn/T/ipykernel_97106/1891529295.py:4: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+      import imp; imp.reload(pyseas.imagery.tiles)
+
+
+## Night Tinting
+
+It is sometimes convenient to plot the daytime image so that it look more like night.
+Simply multiplying all the colors by by `[0.082, 0.365, 0.808]` does a surpisingly good
+job. Note that this assumes that `img` is in floating point with range 0-1. If it's in 
+uint8 instead, with range 0-255, you'll need to divide by 255 as well.
+
+
+```python
+img = plt.imread("./data/world.png")
+night_img = img * [[[0.082, 0.365, 0.808, 1]]] * 1.2
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+ax1.imshow(img)
+ax1.axis('off')
+ax2.imshow(night_img)
+ax2.axis('off');
+```
+
+    WARNING:matplotlib.image:Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers).
+
+
+
+    
+![png](Examples_files/Examples_73_1.png)
     
 
 
@@ -1232,3 +1343,20 @@ the standard facecolor can be applied as shown below.
 
 ## Push rendered notebook to `rendered` repo
 Only uncomment this and run it if you know what you're doing.
+
+
+```python
+np.array([21, 93, 206]) / 255
+```
+
+
+
+
+    array([0.08235294, 0.36470588, 0.80784314])
+
+
+
+
+```python
+
+```

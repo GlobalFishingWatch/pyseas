@@ -974,7 +974,7 @@ downloader =  pyseas.imagery.tiles.TileDownloader(
 # uint8 instead, with range 0-255, you'll need to divide by 255 as well.
 
 img = plt.imread("./data/world.png")
-night_img = img * [[[0.082, 0.365, 0.808, 1]]]
+night_img = img * [[[0.082, 0.365, 0.808, 1]]] * 1.2
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
 ax1.imshow(img)
 ax1.axis('off')
