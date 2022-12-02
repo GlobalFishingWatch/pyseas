@@ -963,9 +963,6 @@ extent
 # +
 # If the server needs authentication headers, you can specify the headers in the
 # constructor:
-
-import imp; imp.reload(pyseas.imagery.tiles)
-
 server_url = "https://my/server/tile?x={x}&y={y}&z={z}"
 api_token = "MY_TOKEN"
 
