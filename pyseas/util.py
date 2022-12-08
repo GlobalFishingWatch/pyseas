@@ -25,7 +25,6 @@ def lon_avg(lons):
     return np.degrees(np.arctan2(sinlon, coslon))
 
 
-
 def is_sorted(values):
     """Returns True if sequence is sorted else False"""
     is_first = True
@@ -36,4 +35,3 @@ def is_sorted(values):
             return False
         last = x
     return True
-

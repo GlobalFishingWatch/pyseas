@@ -61,6 +61,5 @@ def _reload():
 
     imp.reload(plot_tracks)
     imp.reload(pyseas)
-    imp.reload(projection)
     imp.reload(overlays)
     contrib._reload()

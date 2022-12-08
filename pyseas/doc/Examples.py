@@ -2,9 +2,6 @@
 # # Examples of Plotting with *pyseas*
 
 # +
-# pip install numba
-
-# +
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpcolors
@@ -43,6 +40,16 @@ with psm.context(psm.styles.dark):
     fig = plt.figure(figsize=(16, 9))
     psm.create_map(projection="regional.european_union")
     psm.add_land()
+
+# `psm.context` sets the background color of the figure, which means that the call to
+# `plt.figure` must occur inside the context block. For example, to set the figure
+# background to red, one could do:
+
+with psm.context(psm.styles.dark):
+    with psm.context({"figure.facecolor" : (1, 0, 0, 1)}):
+        fig = plt.figure(figsize=(16, 9))
+        psm.create_map(projection="regional.european_union")
+        psm.add_land()
 
 # It is often convenient to set either the horizontal or vertical extent and have
 # the map fill the rest of the figure. This can done using `set_lon_extent` or
@@ -147,10 +154,10 @@ seismic_raster = psm.rasters.df2raster(
 )
 
 # Display a raster along with standard colorbar.
-fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with psm.context(psm.styles.dark):
     with psm.context({"text.color": "white"}):
+        fig = plt.figure(figsize=(14, 7))
         ax, im = psm.plot_raster(
             seismic_raster,
             projection="country.indonesia",
@@ -161,12 +168,9 @@ with psm.context(psm.styles.dark):
         cbax = psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", width=0.5)
         cbax.tick_params(labelsize=16)
 
-cbax.collections
-
-# Display a raster along with standard colorbar.
-fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
-with plt.rc_context(psm.styles.dark):
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(14, 7))
     ax, im = psm.plot_raster(
         seismic_raster,
         projection="country.indonesia",
@@ -189,11 +193,11 @@ with plt.rc_context(psm.styles.dark):
 # `add_colorbar` can be used with subplots. Here we just plot the same
 # thing twice and add a colorbar to the last plot.
 
-fig = plt.figure(figsize=(14, 14))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 1)
 with plt.rc_context(psm.styles.dark):
     with psm.context({"text.color": "white"}):
+        fig = plt.figure(figsize=(14, 14))
         for i in range(2):
             ax, im = psm.plot_raster(
                 seismic_raster,
@@ -206,11 +210,14 @@ with plt.rc_context(psm.styles.dark):
             ax.set_title(f"Seismic Vessel Presence Near Indonesia - {i + 1}")
         psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$ ")
 
-fig = plt.figure(figsize=(14.7, 7.6))
+# +
+pyseas._reload()
+
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 2, hspace=0, wspace=0.02)
 with plt.rc_context(psm.styles.dark):
     with psm.context({"text.color": (0.5, 0.5, 0.5)}):
+        fig = plt.figure(figsize=(14.7, 7.6))
         for i in range(2):
             for j in range(2):
                 ax, im = psm.plot_raster(
@@ -219,7 +226,6 @@ with plt.rc_context(psm.styles.dark):
                     projection="country.indonesia",
                     cmap="presence",
                     norm=norm,
-#                     origin="lower",
                 )
         cbax = psm.add_left_labeled_colorbar(
             im,
@@ -230,9 +236,9 @@ with plt.rc_context(psm.styles.dark):
             wspace=0.0025,
             valign=0.2,
             ticks=[2e-3, 2e-2, 2e-1, 2],
-            format="%4.e"
+            formatter="%4.e"
         )
-#         cbax.set_xtick_las([2e-3, 2e-2, 2e-1])
+# -
 
 # If a grid of maps using the same projection is being plotted, one can instead
 # use `create_maps`, which mirrors the interface of `plt.subplots`
@@ -261,9 +267,9 @@ with plt.rc_context(psm.styles.dark):
         plt.subplots_adjust(hspace=0, wspace=0.02)
 
 # Display a raster along with standard colorbar.
-fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(14, 7))
     with psm.context({"text.color": "white"}):
         fig, ax = psm.create_maps(projection="country.indonesia", figsize=(14.7, 7.6))
         psm.add_raster(seismic_raster, cmap="presence", norm=norm, origin="lower")
@@ -286,11 +292,11 @@ gspecs = [[(0, slice(0, 2)), (slice(0, 2), 2)],
           [(1, 0), (1, 1)],
           [(2, slice(0, 2)), (2, 2)]]
 
-fig = plt.figure(figsize=(14, 14))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(3, 3)
 with psm.context(psm.styles.dark):
     with psm.context({"text.color": "white"}):
+        fig = plt.figure(figsize=(14, 14))
         for i in range(3):
             for j in range(2):
                 xc, yc, dx_x_2 = proj_info[i][j]
@@ -313,11 +319,11 @@ gspecs = [[(0, slice(0, 2)), (slice(0, 2), 2)],
           [(1, 0), (1, 1)],
           [(2, slice(0, 2)), (2, 2)]]
 
-fig = plt.figure(figsize=(14, 14))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(3, 3)
 with psm.context(psm.styles.dark):
     with psm.context({"text.color": "white"}):
+        fig = plt.figure(figsize=(14, 14))
         for i in range(3):
             for j in range(2):
                 xc, yc, dx_x_2 = proj_info[i][j]
@@ -340,9 +346,9 @@ plt.tight_layout()
 fishing_h3_6 = pd.read_csv(data_dir / "fishing_h3_lvl6.csv.zip")
 h3cnts_6_b = {np.uint64(int(x.h3, 16)): x.cnt for x in fishing_h3_6.itertuples()}
 
-fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(1, 40000)
 with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(14, 7))
     ax, im = psm.plot_h3_data(
         h3cnts_6_b,
         projection=cartopy.crs.LambertAzimuthalEqualArea(
@@ -658,7 +664,7 @@ with psm.context(psm.styles.dark):
         aspect_ratio=2.0,
     )
 
-# Rather than a colorbox, we can also add a colorbar, wince the transparent axis is
+# Rather than a colorbox, we can also add a colorbar, since the transparent axis is
 # often not that informative.
 
 cmap = psm.cm.bivariate.TransparencyBivariateColormap(psm.cm.bivariate.orange_blue)
@@ -773,9 +779,9 @@ with psm.context(psm.styles.light):
 polar_fishing_h3_7 = pd.read_csv("data/polar_fishing_h3_7.csv.zip")
 polar_h3cnts_7 = {np.uint64(int(x.h3, 16)): x.cnt for x in polar_fishing_h3_7.itertuples()}
 
-fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(1, 5000)
 with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(14, 7))
     ax, im = psm.plot_h3_data(
         polar_h3cnts_7,
         projection=cartopy.crs.Stereographic(

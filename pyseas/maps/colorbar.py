@@ -8,12 +8,11 @@ def add_left_labeled_colorbar(
     img,
     *,
     ax=None,
-    fig=None,
     label="",
     loc="bottom",
     width=None,
     height=0.015,
-    format=None,
+    formatter=None,
     hspace=0.04,
     wspace=0.016,
     valign=0.5,
@@ -27,7 +26,6 @@ def add_left_labeled_colorbar(
     ----------
     img : matplotlib Image
     ax : matplotlib Axes, optional
-    fig : matplotlib Figure, optional
     label : str, optional
     loc : str, optional
         'top' or 'bottom'
@@ -49,7 +47,7 @@ def add_left_labeled_colorbar(
     -------
     Colorbar
     """
-    not center and label
+    assert not (center and label)
     assert loc in ("top", "bottom")
     if ax is None:
         ax = plt.gca()
@@ -79,7 +77,7 @@ def add_left_labeled_colorbar(
         cax=cb_ax,
         orientation="horizontal",
         ticklocation=loc if (not center) else "bottom",
-        format=format,
+        format=formatter,
         **kwargs,
     )
 
@@ -106,14 +104,13 @@ def add_top_labeled_colorbar(
     img,
     *,
     ax=None,
-    fig=None,
     left_label="",
     center_label="",
     right_label="",
     loc="bottom",
     width=None,
     height=0.015,
-    format=None,
+    formatter=None,
     vertical_space=0.04,
     **kwargs,
 ):
@@ -123,7 +120,6 @@ def add_top_labeled_colorbar(
     ----------
     img : matplotlib Image
     ax : matplotlib Axes, optional
-    fig : matplotlib Figure, optional
     left_label : str, optional
     center_label : str, optional
     right_labels : str, optional
@@ -131,7 +127,7 @@ def add_top_labeled_colorbar(
         'top' or 'bottom'
     width, height : float
         Size of colorbar in Axes coordinates
-    format : matplotlib formatter
+    formatter : matplotlib formatter
         Formatter for colorbar labels.
     vertical_space : float, optional
         Vertical space between colorbar and label.
@@ -159,7 +155,7 @@ def add_top_labeled_colorbar(
         cax=cb_ax,
         orientation="horizontal",
         ticklocation="bottom",
-        format=format,
+        format=formatter,
         **kwargs,
     )
 

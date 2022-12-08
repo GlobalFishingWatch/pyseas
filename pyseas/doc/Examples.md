@@ -2,11 +2,6 @@
 
 
 ```python
-# pip install numba
-```
-
-
-```python
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpcolors
@@ -51,7 +46,26 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_5_0.png)
+![png](Examples_files/Examples_4_0.png)
+    
+
+
+`psm.context` sets the background color of the figure, which means that the call to
+`plt.figure` must occur inside the context block. For example, to set the figure
+background to red, one could do:
+
+
+```python
+with psm.context(psm.styles.dark):
+    with psm.context({"figure.facecolor" : (1, 0, 0, 1)}):
+        fig = plt.figure(figsize=(16, 9))
+        psm.create_map(projection="regional.european_union")
+        psm.add_land()
+```
+
+
+    
+![png](Examples_files/Examples_6_0.png)
     
 
 
@@ -70,7 +84,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_7_0.png)
+![png](Examples_files/Examples_8_0.png)
     
 
 
@@ -93,7 +107,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_9_0.png)
+![png](Examples_files/Examples_10_0.png)
     
 
 
@@ -117,7 +131,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_11_0.png)
+![png](Examples_files/Examples_12_0.png)
     
 
 
@@ -148,7 +162,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_13_0.png)
+![png](Examples_files/Examples_14_0.png)
     
 
 
@@ -169,7 +183,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_15_0.png)
+![png](Examples_files/Examples_16_0.png)
     
 
 
@@ -188,7 +202,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_16_0.png)
+![png](Examples_files/Examples_17_0.png)
     
 
 
@@ -214,10 +228,10 @@ seismic_raster = psm.rasters.df2raster(
 
 ```python
 # Display a raster along with standard colorbar.
-fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with psm.context(psm.styles.dark):
     with psm.context({"text.color": "white"}):
+        fig = plt.figure(figsize=(14, 7))
         ax, im = psm.plot_raster(
             seismic_raster,
             projection="country.indonesia",
@@ -231,29 +245,15 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_19_0.png)
+![png](Examples_files/Examples_20_0.png)
     
 
 
 
 ```python
-cbax.collections
-```
-
-
-
-
-    [<matplotlib.collections.LineCollection at 0x1aacb6df0>,
-     <matplotlib.collections.QuadMesh at 0x1aacc0670>]
-
-
-
-
-```python
-# Display a raster along with standard colorbar.
-fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
-with plt.rc_context(psm.styles.dark):
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(14, 7))
     ax, im = psm.plot_raster(
         seismic_raster,
         projection="country.indonesia",
@@ -285,11 +285,11 @@ thing twice and add a colorbar to the last plot.
 
 
 ```python
-fig = plt.figure(figsize=(14, 14))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 1)
 with plt.rc_context(psm.styles.dark):
     with psm.context({"text.color": "white"}):
+        fig = plt.figure(figsize=(14, 14))
         for i in range(2):
             ax, im = psm.plot_raster(
                 seismic_raster,
@@ -311,11 +311,13 @@ with plt.rc_context(psm.styles.dark):
 
 
 ```python
-fig = plt.figure(figsize=(14.7, 7.6))
+pyseas._reload()
+
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 2, hspace=0, wspace=0.02)
 with plt.rc_context(psm.styles.dark):
     with psm.context({"text.color": (0.5, 0.5, 0.5)}):
+        fig = plt.figure(figsize=(14.7, 7.6))
         for i in range(2):
             for j in range(2):
                 ax, im = psm.plot_raster(
@@ -324,7 +326,6 @@ with plt.rc_context(psm.styles.dark):
                     projection="country.indonesia",
                     cmap="presence",
                     norm=norm,
-#                     origin="lower",
                 )
         cbax = psm.add_left_labeled_colorbar(
             im,
@@ -335,9 +336,8 @@ with plt.rc_context(psm.styles.dark):
             wspace=0.0025,
             valign=0.2,
             ticks=[2e-3, 2e-2, 2e-1, 2],
-            format="%4.e"
+            formatter="%4.e"
         )
-#         cbax.set_xtick_las([2e-3, 2e-2, 2e-1])
 ```
 
 
@@ -384,9 +384,9 @@ with plt.rc_context(psm.styles.dark):
 
 ```python
 # Display a raster along with standard colorbar.
-fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(14, 7))
     with psm.context({"text.color": "white"}):
         fig, ax = psm.create_maps(projection="country.indonesia", figsize=(14.7, 7.6))
         psm.add_raster(seismic_raster, cmap="presence", norm=norm, origin="lower")
@@ -421,11 +421,11 @@ gspecs = [[(0, slice(0, 2)), (slice(0, 2), 2)],
           [(1, 0), (1, 1)],
           [(2, slice(0, 2)), (2, 2)]]
 
-fig = plt.figure(figsize=(14, 14))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(3, 3)
 with psm.context(psm.styles.dark):
     with psm.context({"text.color": "white"}):
+        fig = plt.figure(figsize=(14, 14))
         for i in range(3):
             for j in range(2):
                 xc, yc, dx_x_2 = proj_info[i][j]
@@ -456,11 +456,11 @@ gspecs = [[(0, slice(0, 2)), (slice(0, 2), 2)],
           [(1, 0), (1, 1)],
           [(2, slice(0, 2)), (2, 2)]]
 
-fig = plt.figure(figsize=(14, 14))
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(3, 3)
 with psm.context(psm.styles.dark):
     with psm.context({"text.color": "white"}):
+        fig = plt.figure(figsize=(14, 14))
         for i in range(3):
             for j in range(2):
                 xc, yc, dx_x_2 = proj_info[i][j]
@@ -474,9 +474,12 @@ with psm.context(psm.styles.dark):
 plt.tight_layout()
 ```
 
+    /Users/timothyhochberg/anaconda3/envs/pyseas/lib/python3.7/site-packages/ipykernel_launcher.py:26: UserWarning: Tight layout not applied. The left and right margins cannot be made large enough to accommodate all axes decorations.
+
+
 
     
-![png](Examples_files/Examples_30_0.png)
+![png](Examples_files/Examples_30_1.png)
     
 
 
@@ -494,9 +497,9 @@ h3cnts_6_b = {np.uint64(int(x.h3, 16)): x.cnt for x in fishing_h3_6.itertuples()
 
 
 ```python
-fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(1, 40000)
 with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(14, 7))
     ax, im = psm.plot_h3_data(
         h3cnts_6_b,
         projection=cartopy.crs.LambertAzimuthalEqualArea(
@@ -928,7 +931,7 @@ with psm.context(psm.styles.dark):
     
 
 
-Rather than a colorbox, we can also add a colorbar, wince the transparent axis is
+Rather than a colorbox, we can also add a colorbar, since the transparent axis is
 often not that informative.
 
 
@@ -1061,9 +1064,9 @@ Then:
 polar_fishing_h3_7 = pd.read_csv("data/polar_fishing_h3_7.csv.zip")
 polar_h3cnts_7 = {np.uint64(int(x.h3, 16)): x.cnt for x in polar_fishing_h3_7.itertuples()}
 
-fig = plt.figure(figsize=(14, 7))
 norm = mpcolors.LogNorm(1, 5000)
 with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(14, 7))
     ax, im = psm.plot_h3_data(
         polar_h3cnts_7,
         projection=cartopy.crs.Stereographic(
@@ -1306,9 +1309,6 @@ extent
 ```python
 # If the server needs authentication headers, you can specify the headers in the
 # constructor:
-
-import imp; imp.reload(pyseas.imagery.tiles)
-
 server_url = "https://my/server/tile?x={x}&y={y}&z={z}"
 api_token = "MY_TOKEN"
 
@@ -1318,10 +1318,6 @@ downloader =  pyseas.imagery.tiles.TileDownloader(
     max_tiles=128,
 )
 ```
-
-    /var/folders/9f/lxqlbzzx48x_szcfst2xf7540000gn/T/ipykernel_97106/1891529295.py:4: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
-      import imp; imp.reload(pyseas.imagery.tiles)
-
 
 ## Night Tinting
 
