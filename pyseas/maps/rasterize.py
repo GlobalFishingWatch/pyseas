@@ -21,16 +21,15 @@ the blockiness and loss of detail that plague rendering with `imshow`.
 Much code here repurposed from the matplotlib sources for `Axes.imshow` and
 `AxesImage`.
 """
-import numpy as np
-import h3.api.numpy_int as h3
+import warnings
 
+import h3.api.numpy_int as h3
+import matplotlib.artist as martist
+import matplotlib.cbook as cbook
+import numpy as np
+from matplotlib import cm, rcParams
 from matplotlib.colors import Normalize
 from matplotlib.image import AxesImage
-from matplotlib import rcParams
-from matplotlib import cm
-import matplotlib.cbook as cbook
-import matplotlib.artist as martist
-import warnings
 
 from . import core
 
@@ -84,7 +83,7 @@ def h3_show(
         **kwargs
     )
 
-    return _finalize_show((h3_data, fill), im, ax, alpha, url)
+    return _finalize_show((h3_data, fill), im, ax, alpha, url, cmap, norm)
 
 
 def raster_show(
@@ -132,7 +131,7 @@ def raster_show(
         **kwargs
     )
 
-    return _finalize_show((raster, extent, origin), im, ax, alpha, url)
+    return _finalize_show((raster, extent, origin), im, ax, alpha, url, cmap, norm)
 
 
 def _setup_show(ax, aspect, norm, vmin, vmax):
@@ -162,7 +161,7 @@ def _setup_show(ax, aspect, norm, vmin, vmax):
     return norm
 
 
-def _finalize_show(source_data, im, ax, alpha, url):
+def _finalize_show(source_data, im, ax, alpha, url, cmap, norm):
     """Common finalization code for show_raster and show_h3
 
     This sets the data source for the image, then sets up
@@ -191,6 +190,8 @@ def _finalize_show(source_data, im, ax, alpha, url):
     # to tightly fit the image, regardless of dataLim.
     im.set_extent(im.get_extent())
     ax.add_image(im)
+    im.set_cmap(cmap)
+    im.set_norm(norm)
     return im
 
 
@@ -268,6 +269,8 @@ def raster_to_raster(raster, extent, row_locs, col_locs, transform, origin="uppe
     -------
     2D array of float
     """
+    if raster.dtype == "uint8":
+        raster = raster / 255
     assert origin in ("upper", "lower")
     assert len(raster.shape) in (2, 3)
     if len(raster.shape) == 2:

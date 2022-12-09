@@ -25,29 +25,26 @@ Add a `colorbar` to a raster plot
 See also `contrib.plot_tracks` for examples of using `add_plot`
 
 """
-from ._monkey_patch_cartopy import monkey_patch_cartopy
-import matplotlib.pyplot as plt
-import matplotlib.offsetbox as mplobox
-from matplotlib.lines import Line2D
-from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
-import cartopy
-import cartopy.feature as cfeature
-import cartopy.mpl.gridliner
 import os
 import uuid
 import warnings
 
+import cartopy
+import cartopy.feature as cfeature
+import cartopy.mpl.gridliner
 import geopandas as gpd
+import matplotlib.offsetbox as mplobox
+import matplotlib.pyplot as plt
 import numpy as np
 import shapely
+from matplotlib.lines import Line2D
+from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from shapely.geometry import MultiLineString
-from .. import props
-from .. import styles
-from . import ticks
-from . import rasterize
-from . import colorbar
-from .projection import get_extent, get_projection, ProjectionInfo
 
+from .. import props, styles
+from . import colorbar, rasterize, ticks
+from ._monkey_patch_cartopy import monkey_patch_cartopy
+from .projection import ProjectionInfo, get_extent, get_projection
 
 monkey_patch_cartopy()
 
@@ -148,9 +145,7 @@ def add_countries(
     return ax.add_feature(land)
 
 
-def add_raster(
-    raster, ax=None, extent=None, origin="upper", interpolation="nearest", **kwargs
-):
+def add_raster(raster, ax=None, extent=None, origin="upper", **kwargs):
     """Add a raster to an existing map
 
     Parameters
@@ -161,9 +156,6 @@ def add_raster(
         (lon_min, lon_max, lat_min, lat_max) of the raster
     origin : str, optional
         Location of the raster origin ['upper' or 'lowers']
-    interpolation : str, optional
-        Uses 'nearest' by default as the standard matplotlib default doesn't work
-        well with projected data at high resolution.
 
     Other Parameters
     ----------------
@@ -515,11 +507,20 @@ def _process_map_args(projection, extent):
     return projection, extent
 
 
+def _set_ax_background(ax, color):
+    try:
+        # cartopy < 0.21
+        ax.background_patch.set_facecolor(color)
+    except AttributeError:
+        # cartopy >= 0.21
+        ax.set_facecolor(color)
+
+
 def _setup_map_axes(ax, bg_color, extent, hide_axes):
     bg_color = bg_color or plt.rcParams.get(
         "pyseas.ocean.color", props.dark.ocean.color
     )
-    ax.background_patch.set_facecolor(bg_color)
+    _set_ax_background(ax, bg_color)
     if extent is not None:
         ax.set_extent(extent, crs=identity)
     if hide_axes:
@@ -762,7 +763,7 @@ def add_miniglobe(
     inset = plt.axes([0, 0, 1, 1], projection=ortho, label=uuid.uuid1().hex)
     inset.set_global()
     bg_color = plt.rcParams.get("pyseas.ocean.color", props.dark.ocean.color)
-    inset.background_patch.set_facecolor(bg_color)
+    _set_ax_background(inset, bg_color)
     add_land(ax=inset, edgecolor="none"),
 
     # Determine appropriate offsets to put mini globe on a corner of the primary
@@ -924,6 +925,7 @@ def plot_raster(
     projection="global.default",
     bg_color=None,
     hide_axes=True,
+    show_land=True,
     **kwargs,
 ):
     """Draw a GFW themed map over a raster
@@ -936,6 +938,8 @@ def plot_raster(
     bg_color : str or tuple, optional
     hide_axes : bool
         if `true`, hide x and y axes
+    show_land : bool
+        if `true` overlay land on the image
 
 
     Other Parameters
@@ -949,7 +953,8 @@ def plot_raster(
     extent = kwargs.get("extent")
     ax = create_map(subplot, projection, extent, bg_color, hide_axes)
     im = add_raster(raster, ax=ax, **kwargs)
-    add_land(ax)
+    if show_land:
+        add_land(ax)
     return ax, im
 
 
@@ -959,6 +964,7 @@ def plot_h3_data(
     projection="global.default",
     bg_color=None,
     hide_axes=True,
+    show_land=True,
     **kwargs,
 ):
     """Draw a GFW themed map over an H3 data layer
@@ -971,6 +977,8 @@ def plot_h3_data(
     bg_color : str or tuple, optional
     hide_axes : bool
         if `true`, hide x and y axes
+    show_land : bool
+        if `true` overlay land on the image
 
     Other Parameters
     ----------------
@@ -983,7 +991,8 @@ def plot_h3_data(
     extent = kwargs.pop("extent", None)
     ax = create_map(subplot, projection, extent, bg_color, hide_axes)
     im = add_h3_data(h3_data, ax=ax, **kwargs)
-    add_land(ax)
+    if show_land:
+        add_land(ax)
     return ax, im
 
 

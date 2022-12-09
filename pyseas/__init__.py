@@ -1,9 +1,10 @@
-from matplotlib.style import context, use
+import os
+import subprocess
 
-__version__ = "0.4.0"
+from matplotlib.style import context, use  # NOQA
 
+__version__ = "0.8.0"
 
-import os, subprocess
 
 base = os.path.dirname(__file__)
 path = os.path.join(base, "doc", "Examples.ipynb")
@@ -30,6 +31,7 @@ def _reload():
     from pyseas.maps import (
         scalebar,
         core,
+        extent,
         rasters,
         ticks,
         projection,
@@ -55,9 +57,9 @@ def _reload():
     imp.reload(bivariate)
     imp.reload(core)
     imp.reload(maps)
+    imp.reload(extent)
 
     imp.reload(plot_tracks)
     imp.reload(pyseas)
-    imp.reload(projection)
     imp.reload(overlays)
     contrib._reload()

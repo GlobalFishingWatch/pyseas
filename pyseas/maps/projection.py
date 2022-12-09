@@ -1,11 +1,11 @@
-from collections import namedtuple
 import json
-import math
-import numpy as np
 import os
-import cartopy.crs
-from ..util import asarray, lon_avg
+from collections import namedtuple
 
+import cartopy.crs
+import numpy as np
+
+from ..util import asarray, lon_avg
 
 identity = cartopy.crs.PlateCarree()
 
@@ -20,7 +20,6 @@ _projections = {
 
 
 def load_projections():
-
     path = os.path.join(root, "pyseas/data/projection_info.json")
     with open(path) as f:
         info = json.load(f)
