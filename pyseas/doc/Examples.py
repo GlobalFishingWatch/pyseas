@@ -52,6 +52,20 @@ with psm.context(psm.styles.dark):
         psm.create_map(projection="regional.european_union")
         psm.add_land()
 
+# In some cases it's desirable to turn off the axes, for example if there is allready a contrasting background.
+# This can be done using `ax.axes.off()`.
+
+# +
+pyseas._reload()
+
+with psm.context(psm.styles.dark):
+    with psm.context({"figure.facecolor" : "grey"}):
+        fig = plt.figure(figsize=(16, 9))
+        ax = psm.create_map(projection="regional.european_union")
+        psm.add_land()
+        ax.spl
+# -
+
 # It is often convenient to set either the horizontal or vertical extent and have
 # the map fill the rest of the figure. This can done using `set_lon_extent` or
 # `set_lat_extent`.
@@ -688,7 +702,6 @@ with psm.context(psm.styles.light):
         center_label=r"AIS$\leftrightarrow$registries",
         right_label=r"more matched $\longrightarrow$",
     )
-    ax.axis("off")
 
 
 # This works nicely with a discretized coloramp, which be be realized using 
@@ -753,7 +766,6 @@ with psm.context(psm.styles.light):
         center_label=r"AIS$\leftrightarrow$registries",
         right_label=r"more matched $\longrightarrow$",
     )
-    ax.axis("off")
 # -
 
 # ## Polar Plots
