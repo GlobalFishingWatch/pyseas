@@ -50,14 +50,15 @@ with psm.context(psm.styles.dark):
     
 
 
-`psm.context` sets the background color of the figure, which means that the call to
-`plt.figure` must occur inside the context block. For example, to set the figure
-background to red, one could do:
+By default`psm.context` sets the background color of the figure to match the ocean color, 
+which means that the call to
+`plt.figure` must occur inside the context block. To overide this, for example to set the figure
+background to transparent, one could do:
 
 
 ```python
 with psm.context(psm.styles.dark):
-    with psm.context({"figure.facecolor" : (1, 0, 0, 1)}):
+    with psm.context({"figure.facecolor" : (0, 0, 0, 0)}):
         fig = plt.figure(figsize=(16, 9))
         psm.create_map(projection="regional.european_union")
         psm.add_land()

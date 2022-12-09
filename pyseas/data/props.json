@@ -3,7 +3,7 @@
         "land" : {"color" : "#374a6d"},
         "ocean" : {"color" : "#0a1738"},
         "border" : {"color" : "#222d4b", "width" : 0.4},
-        "background" : {"color" : "#0a0a0a"},
+        "background" : {"color" : "#0a1738"},
         "highlight" : {"color" : "#0a1738"},
         "title" : {"color" : "white"},
         "eez" : {"color" : "#374a6d", "width" : 0.4},
