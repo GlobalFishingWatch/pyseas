@@ -100,7 +100,12 @@ def add_land(
 
 
 def add_countries(
-    ax=None, scale="10m", edgecolor=None, facecolor=None, linewidth=None, **kwargs
+    ax=None,
+    scale="10m",
+    edgecolor=None,
+    facecolor=(0, 0, 0, 0),
+    linewidth=None,
+    **kwargs,
 ):
     """Add land to an existing map
 
@@ -343,7 +348,16 @@ def plot(*args, **kwargs):
 _eezs = {}
 
 
-def add_eezs(ax=None, facecolor="none", edgecolor=None, linewidth=None, alpha=1):
+def add_eezs(
+    ax=None,
+    *,
+    facecolor="none",
+    edgecolor=None,
+    linewidth=None,
+    alpha=1,
+    include=None,
+    exclude=None,
+):
     """Add EEZs to an existing map
 
     Parameters
@@ -355,6 +369,8 @@ def add_eezs(ax=None, facecolor="none", edgecolor=None, linewidth=None, alpha=1)
     linewidth: float, optional
         Can be styled with 'pyseas.eez.linewidth'
     alpha: float, optional
+    included: optional, set-like: if set, filter lines to only those that are in included
+    excluded: optional, set-like: if set, remove lines that are in excluded
 
 
     Returns
@@ -376,6 +392,10 @@ def add_eezs(ax=None, facecolor="none", edgecolor=None, linewidth=None, alpha=1)
             )
 
     eezs = _eezs[path]
+    if include is not None:
+        eezs = eezs[eezs.LINE_TYPE.isin(include)]
+    if exclude is not None:
+        eezs = eezs[~eezs.LINE_TYPE.isin(exclude)]
     edgecolor = edgecolor or plt.rcParams.get(
         "pyseas.eez.bordercolor", props.dark.eez.color
     )
