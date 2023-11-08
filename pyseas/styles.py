@@ -103,7 +103,7 @@ def create_props(kinds, colors=None, interstitial_color=(0.5, 0.5, 0.5, 1)):
     elif isinstance(colors, _Cycler):
         prop_cycle = colors
     else:
-        raise ValueError(f"don't know how to handle props of type {type(props)}")
+        raise ValueError(f"don't know how to handle colors of type {type(colors)}")
     prop_cycle = prop_cycle()
     props = {}
     for k1 in kinds:
