@@ -31,6 +31,29 @@ print("You are using PySeas version", pyseas.__version__)
 # ## Recomended Style
 #
 #      import pyseas.maps as psm
+#      
+#      
+# ### Setting Parameters
+#
+# It is not recomended to set values in `rcParams` directly. This tends to be brittle, particularly since
+# PySeas overrides values when using styles which can be surprising. Instead, set parameters using `psm.context`
+# or directly in contructors / functions. For example, to set the figure dpi, use either:
+#
+#
+# ```python
+# with psm.context(psm.styles.dark), {"figure.dpi": FIGURE_DPI}:
+#     fig = plt.figure(...)
+#     ...
+# ```
+#
+# or
+#
+# ```python
+# fig = plt.figure(dpi=FIGURE_DPI, ...)
+# ...
+# ```
+#
+#
 
 # ## Basic Mapping
 #
@@ -297,7 +320,7 @@ with psm.context(psm.styles.dark):
 
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 1)
-with plt.rc_context(psm.styles.dark):
+with psm.context(psm.styles.dark):
     with psm.context({"text.color": "white"}):
         fig = plt.figure(figsize=(14, 14))
         for i in range(2):
@@ -317,7 +340,7 @@ pyseas._reload()
 
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 2, hspace=0, wspace=0.02)
-with plt.rc_context(psm.styles.dark):
+with psm.context(psm.styles.dark):
     with psm.context({"text.color": (0.5, 0.5, 0.5)}):
         fig = plt.figure(figsize=(14.7, 7.6))
         for i in range(2):
@@ -477,55 +500,7 @@ with psm.context(psm.styles.dark):
                              show_land=False)
     ax.spines['geo'].set_visible(False)
 
-plt.savefig("global_ais_2017_2021_pacific.png",dpi=1200,bbox_inches='tight')
-# -
-
-fishing_h3_6 = pd.read_csv(data_dir / "global_ais_2017_2021_h3_lvl6.csv.zip")
-h3cnts_6_b = {np.uint64(int(x.h3, 16)): x.cnt for x in fishing_h3_6.itertuples()}
-
-# +
-fig = plt.figure(figsize=(14, 7))
-norm = mpcolors.LogNorm(1, 100000)
-with psm.context(psm.styles.dark):
-    ax = psm.create_map(projection=cartopy.crs.EqualEarth(central_longitude=21))
-    im = psm.add_h3_data(h3cnts_6_b, 
-                              cmap='presence',
-                              norm=norm)
-    ax.spines['geo'].set_visible(False)
-    psm.add_land(facecolor="black", edgecolor="black")
-
-#     psm.add_countries()
-#     psm.add_eezs()
-#     ax.set_title('H3 data example')
-#     fig.colorbar(im, ax=ax, 
-#                       orientation='horizontal',
-#                       fraction=0.02,
-#                       aspect=40,
-#                       pad=0.04,
-#                      )
-plt.savefig("global_ais_2017_2021_pacific.png",dpi=1200,bbox_inches='tight')
-
-# +
-fig = plt.figure(figsize=(14, 7))
-norm = mpcolors.LogNorm(1, 100000)
-with psm.context(psm.styles.dark):
-    ax = psm.create_map(projection=cartopy.crs.EqualEarth(central_longitude=21))
-    im = psm.add_h3_data(h3cnts_6_b, 
-                              cmap='presence',
-                              norm=norm)
-    ax.spines['geo'].set_visible(False)
-#     psm.add_land(facecolor="black", edgecolor="black")
-
-#     psm.add_countries()
-#     psm.add_eezs()
-#     ax.set_title('H3 data example')
-#     fig.colorbar(im, ax=ax, 
-#                       orientation='horizontal',
-#                       fraction=0.02,
-#                       aspect=40,
-#                       pad=0.04,
-#                      )
-plt.savefig("global_ais_2017_2021_pacific_blue.png",dpi=1200,bbox_inches='tight')
+# plt.savefig("global_ais_2017_2021_pacific.png",dpi=1200,bbox_inches='tight')
 # -
 
 norm = mpcolors.LogNorm(1, 40000)
@@ -1190,5 +1165,36 @@ ax3.axis('off');
 # plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
 # -
 
-# ## Push rendered notebook to `rendered` repo
-# Only uncomment this and run it if you know what you're doing.
+# ### PDF
+#
+# #### Rasters
+#
+# When saving to PDF, the internal resolution is always 72 DPI, which breaks the rendering used by
+# `add_raster` and `plot_raster`. To fix this, add a `fig.canvas.draw()` directly before `plot.savefig` 
+# and set `dpi='figure'`.
+# This ensures that rasters are rendered at the figure DPI, which can be set using `context` or during
+# figure creation. For example:
+#
+# ```python
+#
+# fig = plt.figure(dpi=600, ...)
+# ax = psm.plot_raster(my_raster, ...)
+#
+# fig.canvas.draw()
+# plt.savefig('/path/to/file.pdf', dpi='figure', ...)
+# ```
+#
+# #### Embedding Fonts
+#
+# To embed true type fonts in a PDF document. First you need to ensure that true type fonts of all fonts
+# used in Matplotlib. PySeas styles use Roboto fonts by default, although this may not be completely supported 
+# inside LaTeX equations. You will also need to set the `pdf.fonttype` to 42:
+# ```python
+#
+# with psm.context(psm.styles.dark), {"pdf.fonttype": 42}:
+#     fig = plt.figure(...)
+#     ...
+#     plt.savefig(...)
+# ```
+
+
