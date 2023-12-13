@@ -24,11 +24,36 @@ import pyseas.imagery.tiles
 # %matplotlib inline
 
 data_dir = Path("..") / "doc" / "data"
+
+print("You are using PySeas version", pyseas.__version__)
 # -
 
 # ## Recomended Style
 #
 #      import pyseas.maps as psm
+#      
+#      
+# ### Setting Parameters
+#
+# It is not recomended to set values in `rcParams` directly. This tends to be brittle, particularly since
+# PySeas overrides values when using styles which can be surprising. Instead, set parameters using `psm.context`
+# or directly in contructors / functions. For example, to set the figure dpi, use either:
+#
+#
+# ```python
+# with psm.context(psm.styles.dark), {"figure.dpi": FIGURE_DPI}:
+#     fig = plt.figure(...)
+#     ...
+# ```
+#
+# or
+#
+# ```python
+# fig = plt.figure(dpi=FIGURE_DPI, ...)
+# ...
+# ```
+#
+#
 
 # ## Basic Mapping
 #
@@ -39,7 +64,7 @@ data_dir = Path("..") / "doc" / "data"
 with psm.context(psm.styles.dark):
     fig = plt.figure(figsize=(16, 9))
     psm.create_map(projection="regional.european_union")
-    psm.add_land()
+    psm.add_land(edgecolor="red", facecolor=(0, 0, 0))
 
 # By default`psm.context` sets the background color of the figure to match the ocean color, 
 # which means that the call to
@@ -53,18 +78,14 @@ with psm.context(psm.styles.dark):
         psm.add_land()
 
 # In some cases it's desirable to turn off the axes, for example if there is allready a contrasting background.
-# This can be done using `ax.axes.off()`.
-
-# +
-pyseas._reload()
+# This can be done using `ax.spines['geo'].set_visible(False)`.
 
 with psm.context(psm.styles.dark):
     with psm.context({"figure.facecolor" : "grey"}):
         fig = plt.figure(figsize=(16, 9))
         ax = psm.create_map(projection="regional.european_union")
         psm.add_land()
-        ax.spl
-# -
+        ax.spines['geo'].set_visible(False)
 
 # It is often convenient to set either the horizontal or vertical extent and have
 # the map fill the rest of the figure. This can done using `set_lon_extent` or
@@ -77,18 +98,36 @@ with psm.context(psm.styles.dark):
     psm.set_lon_extent(-25, 55, central_lat=50)
 
 # In addition to `add_land` there a number of other features that can be added to maps
-# including eezs, grid_lines, countries, logos, etc. If you add a logo, without specifying
+# including eezs, grid_lines, countries, logos, scalebar, etc. If you add a logo, without specifying
 # the image to use, you'll get the PySeas logo.
 
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(18, 6))
     psm.create_map(projection="country.china")
     psm.add_land()
-    psm.add_countries()
+    psm.add_countries(facecolor=(0, 0, 0, 0))
     psm.add_eezs()
     psm.add_gridlines()
     psm.add_gridlabels()
     psm.add_logo(loc="upper left")
+    psm.add_scalebar()
+
+# When displaying EEZs, it may be useful to exclude the "Straight Baseline".
+
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    psm.create_map(projection="country.china")
+    psm.add_land()
+    psm.add_countries(facecolor=(0, 0, 0, 0))
+    psm.add_eezs(exclude={"Straight Baseline"})
+    psm.add_gridlines()
+    psm.add_gridlabels()
+    psm.add_logo(loc="upper left")
+
+eezs = psm.core._eezs
+[key] = eezs.keys()
+eez = eezs[key]
+eez.LINE_TYPE.unique()
 
 # More commonly you'll want to either specify a custom logo as shown here, or set the default
 # logo as shown below.
@@ -147,7 +186,7 @@ with psm.context(psm.styles.light):
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(18, 6))
     psm.create_map(projection="global.pacific_157w")
-    psm.add_land()
+    psm.add_land(facecolor="black")
     psm.add_countries()
     psm.add_eezs()
     psm.add_gridlines()
@@ -168,20 +207,91 @@ seismic_raster = psm.rasters.df2raster(
     per_km2=True,
 )
 
-# Display a raster along with standard colorbar.
-norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
-with psm.context(psm.styles.dark):
-    with psm.context({"text.color": "white"}):
-        fig = plt.figure(figsize=(14, 7))
-        ax, im = psm.plot_raster(
-            seismic_raster,
-            projection="country.indonesia",
-            cmap="presence",
+import pandas as pd
+from pathlib import Path
+data_dir = Path("..") / "doc" / "data"
+seismic_raster.shape
+
+# +
+from matplotlib.gridspec import GridSpec
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors as mpcolors
+import cartopy
+import pyseas.maps as psm
+
+with psm.context(psm.styles.light):
+    dummy_raster = np.zeros((1800, 3600))
+
+    fig = plt.figure(figsize=(14, 6.5 * 3), tight_layout=True)
+
+    grid1 = GridSpec(
+        2,
+        2,
+        height_ratios=[1.05, 0.95],
+        top=1,
+        bottom=0.35,
+        wspace=0.01,
+        hspace=0.015,
+        left=0.01,
+        right=0.98,
+    )
+
+    sub2 = grid1[(1, 0)]
+    sub3 = grid1[(1, 1)]
+
+    count = 0
+
+    for sub, raster in zip([sub2, sub3], [dummy_raster, dummy_raster]):
+
+        xc, yc, dx_x_2 = (5.0, 56.3, 10.5)  # x, y, zoom
+        dx = dx_x_2 / 2
+        extent = (xc - dx, xc + dx, yc - dx, yc + dx)
+
+        prj = cartopy.crs.LambertAzimuthalEqualArea(xc, yc)
+        ax = psm.create_map(subplot=sub, projection=prj)
+
+        ax.set_extent(extent, crs=psm.identity)
+        ax.set_adjustable("datalim")
+        psm.add_land(ax=ax, color="0.8")
+
+        norm = mpcolors.LogNorm(vmin=1e-2, vmax=1e2)
+
+        im = psm.add_raster(
+            raster,
+            ax=ax,
+            cmap="YlGnBu",
             norm=norm,
             origin="lower",
         )
-        cbax = psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", width=0.5)
-        cbax.tick_params(labelsize=16)
+
+        if count == 0:
+            ax.text(
+                0.97,
+                -0.066,
+                "Hours of vessel activity per km$^2$",
+                ha="right",
+                color="k",
+                fontsize=16,
+                transform=ax.transAxes,
+            )
+        elif count == 1:
+            cb = psm.add_colorbar(
+                im,
+                ax=ax,
+                label="",
+                loc="bottom",
+                width=1,
+                height=0.03,
+                hspace=0.04,
+                wspace=0.016,
+                valign=0.5,
+                right_edge=None,
+                center=False,
+            )
+        count += 1
+
+# -
 
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with psm.context(psm.styles.dark):
@@ -210,7 +320,7 @@ with psm.context(psm.styles.dark):
 
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 1)
-with plt.rc_context(psm.styles.dark):
+with psm.context(psm.styles.dark):
     with psm.context({"text.color": "white"}):
         fig = plt.figure(figsize=(14, 14))
         for i in range(2):
@@ -230,7 +340,7 @@ pyseas._reload()
 
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 2, hspace=0, wspace=0.02)
-with plt.rc_context(psm.styles.dark):
+with psm.context(psm.styles.dark):
     with psm.context({"text.color": (0.5, 0.5, 0.5)}):
         fig = plt.figure(figsize=(14.7, 7.6))
         for i in range(2):
@@ -253,6 +363,24 @@ with plt.rc_context(psm.styles.dark):
             ticks=[2e-3, 2e-2, 2e-1, 2],
             formatter="%4.e"
         )
+
+# +
+pyseas._reload()
+
+# Display a raster along with standard colorbar.
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+with psm.context(psm.styles.dark), psm.context({"xtick.labelsize": 20}):
+        fig = plt.figure(figsize=(14, 7))
+        ax, im = psm.plot_raster(
+            seismic_raster,
+            projection="country.indonesia",
+            cmap="presence",
+            norm=norm,
+            origin="lower",
+        )
+        cbax = psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", width=0.5)
+        ax.images[-1].colorbar.minorticks_off()
+
 # -
 
 # If a grid of maps using the same projection is being plotted, one can instead
@@ -361,6 +489,20 @@ plt.tight_layout()
 fishing_h3_6 = pd.read_csv(data_dir / "fishing_h3_lvl6.csv.zip")
 h3cnts_6_b = {np.uint64(int(x.h3, 16)): x.cnt for x in fishing_h3_6.itertuples()}
 
+# +
+fig = plt.figure(figsize=(14, 7))
+norm = mpcolors.LogNorm(1, 100000)
+with psm.context(psm.styles.dark):
+    ax, im = psm.plot_h3_data(h3cnts_6_b, 
+                              cmap='presence',
+                              norm=norm,
+                             projection=cartopy.crs.EqualEarth(central_longitude=21),
+                             show_land=False)
+    ax.spines['geo'].set_visible(False)
+
+# plt.savefig("global_ais_2017_2021_pacific.png",dpi=1200,bbox_inches='tight')
+# -
+
 norm = mpcolors.LogNorm(1, 40000)
 with psm.context(psm.styles.dark):
     fig = plt.figure(figsize=(14, 7))
@@ -372,7 +514,9 @@ with psm.context(psm.styles.dark):
         extent=(3.8, 25.0, 65.0, 75.4),
         cmap="presence",
         norm=norm,
+        show_land=False
     )
+    psm.add_land(facecolor="black", edgecolor="black")
     psm.add_countries()
     psm.add_eezs()
     ax.set_title("H3 data example")
@@ -1021,5 +1165,36 @@ ax3.axis('off');
 # plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
 # -
 
-# ## Push rendered notebook to `rendered` repo
-# Only uncomment this and run it if you know what you're doing.
+# ### PDF
+#
+# #### Rasters
+#
+# When saving to PDF, the internal resolution is always 72 DPI, which breaks the rendering used by
+# `add_raster` and `plot_raster`. To fix this, add a `fig.canvas.draw()` directly before `plot.savefig` 
+# and set `dpi='figure'`.
+# This ensures that rasters are rendered at the figure DPI, which can be set using `context` or during
+# figure creation. For example:
+#
+# ```python
+#
+# fig = plt.figure(dpi=600, ...)
+# ax = psm.plot_raster(my_raster, ...)
+#
+# fig.canvas.draw()
+# plt.savefig('/path/to/file.pdf', dpi='figure', ...)
+# ```
+#
+# #### Embedding Fonts
+#
+# To embed true type fonts in a PDF document. First you need to ensure that true type fonts of all fonts
+# used in Matplotlib. PySeas styles use Roboto fonts by default, although this may not be completely supported 
+# inside LaTeX equations. You will also need to set the `pdf.fonttype` to 42:
+# ```python
+#
+# with psm.context(psm.styles.dark), {"pdf.fonttype": 42}:
+#     fig = plt.figure(...)
+#     ...
+#     plt.savefig(...)
+# ```
+
+

@@ -1,8 +1,10 @@
-import numpy as np
+import warnings
+
 import cartopy.crs as ccrs
 import cartopy.geodesic as cgeo
 import matplotlib.pyplot as plt
-import warnings
+import numpy as np
+
 from . import core
 
 
@@ -60,8 +62,10 @@ def _distance_along_line(start, end, distance, dist_func, tol):
     """
     initial_distance = dist_func(start, end)
     if initial_distance < distance:
-        raise ValueError(f"End is closer to start ({initial_distance}) than "
-                         f"given distance ({distance}).")
+        raise ValueError(
+            f"End is closer to start ({initial_distance}) than "
+            f"given distance ({distance})."
+        )
 
     if tol <= 0:
         raise ValueError(f"Tolerance is not positive: {tol}")
@@ -73,9 +77,11 @@ def _distance_along_line(start, end, distance, dist_func, tol):
     while not np.isclose(dist_func(start, right), distance, rtol=tol):
         midpoint = (left + right) / 2
         # If midpoint is too close, search in second half.
-        current_distance = dist_func(start, midpoint) 
+        current_distance = dist_func(start, midpoint)
         if np.isnan(current_distance):
-            raise ValueError('NaN encountered when calculating scalebar length. `extent` may be too large')
+            raise ValueError(
+                "NaN encountered when calculating scalebar length. `extent` may be too large"
+            )
         if current_distance < distance:
             left = midpoint
         # Otherwise the midpoint is too far, so search in first half.
@@ -108,17 +114,35 @@ def _point_along_line(ax, start, distance, angle=0, tol=0.01):
 
         # Geodesic().inverse returns a NumPy MemoryView like [[distance,
         # start azimuth, end azimuth]].
-        return geodesic.inverse(a_phys, b_phys).base[0, 0]
+        try:
+            # Older versions of cartopy require this version
+            return geodesic.inverse(a_phys, b_phys).base[0, 0]
+        except TypeError:
+            # But in newer versions inverse.base is None this simpler version is required
+            return geodesic.inverse(a_phys, b_phys)[0, 0]
 
     end = _upper_bound(start, direction, distance, dist_func)
 
     return _distance_along_line(start, end, distance, dist_func, tol)
 
 
-def scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
-              tol=0.01, angle=0, color='black', linewidth=3, text_offset=0.01,
-              ha='center', va='bottom', plot_kwargs=None, text_kwargs=None,
-              **kwargs):
+def scale_bar(
+    ax,
+    location,
+    length,
+    metres_per_unit=1000,
+    unit_name="km",
+    tol=0.01,
+    angle=0,
+    color="black",
+    linewidth=3,
+    text_offset=0.01,
+    ha="center",
+    va="bottom",
+    plot_kwargs=None,
+    text_kwargs=None,
+    **kwargs,
+):
     """Add a scale bar to CartoPy axes.
     For angles between 0 and 90 the text and line may be plotted at
     slightly different angles for unknown reasons. To work around this,
@@ -147,10 +171,15 @@ def scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
     if text_kwargs is None:
         text_kwargs = {}
 
-    plot_kwargs = {'linewidth': linewidth, 'color': color, 
-                   **plot_kwargs, **kwargs}
-    text_kwargs = {'ha': ha, 'va': va, 'rotation': angle, 'color': color,
-                   **text_kwargs, **kwargs}
+    plot_kwargs = {"linewidth": linewidth, "color": color, **plot_kwargs, **kwargs}
+    text_kwargs = {
+        "ha": ha,
+        "va": va,
+        "rotation": angle,
+        "color": color,
+        **text_kwargs,
+        **kwargs,
+    }
 
     # Convert all units and types.
     location = np.asarray(location)  # For vector addition.
@@ -158,8 +187,7 @@ def scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
     angle_rad = angle * np.pi / 180
 
     # End-point of bar.
-    end = _point_along_line(ax, location, length_metres, angle=angle_rad,
-                            tol=tol)
+    end = _point_along_line(ax, location, length_metres, angle=angle_rad, tol=tol)
 
     # Coordinates are currently in axes coordinates, so use transAxes to
     # put into data coordinates. *zip(a, b) produces a list of x-coords,
@@ -172,8 +200,13 @@ def scale_bar(ax, location, length, metres_per_unit=1000, unit_name='km',
     text_location = midpoint + offset
 
     # 'rotation' keyword argument is in text_kwargs.
-    ax.text(*text_location, f"{length} {unit_name}", rotation_mode='anchor',
-            transform=ax.transAxes, **text_kwargs)
+    ax.text(
+        *text_location,
+        f"{length} {unit_name}",
+        rotation_mode="anchor",
+        transform=ax.transAxes,
+        **text_kwargs,
+    )
 
 
 # ## Add a dynamic scale bar
@@ -188,7 +221,14 @@ KM_PER_DEG_LON0 = 111.320
 MAX_SENSIBLE_EXTENT = 25.0
 NoValue = object()
 
-def add_scalebar(ax=None, extent=NoValue, location=(0.05, 0.05), color=None, skip_when_extent_large=False):
+
+def add_scalebar(
+    ax=None,
+    extent=NoValue,
+    location=(0.05, 0.05),
+    color=None,
+    skip_when_extent_large=False,
+):
     if ax is None:
         ax = plt.gca()
     if extent is NoValue:
@@ -197,17 +237,21 @@ def add_scalebar(ax=None, extent=NoValue, location=(0.05, 0.05), color=None, ski
         if skip_when_extent_large:
             return ax
         else:
-            raise ValueError('cannot create scalebar for `None` extent,'
-                             'consider setting `skip_when_extent_large=True`')
+            raise ValueError(
+                "cannot create scalebar for `None` extent,"
+                "consider setting `skip_when_extent_large=True`"
+            )
     lat_extent = (extent[3] - extent[2]) / 2.0
     lon_extent = (extent[1] - extent[0]) / 2.0
 
-    if abs(lat_extent) > MAX_SENSIBLE_EXTENT or abs(lon_extent) > MAX_SENSIBLE_EXTENT:
+    if abs(lat_extent) > MAX_SENSIBLE_EXTENT:
         if skip_when_extent_large:
             return ax
         else:
-            warnings.warn('extent is large enough that scalebar may be inaccurate')
-    
+            warnings.warn(
+                "latidude extent is large enough that scalebar may be inaccurate"
+            )
+
     if (lat_extent > 0) & (lon_extent > 0):
         #
         # Roughly 1/3 of the horizontal extent of the plot (no need to be too accurate)
@@ -215,22 +259,29 @@ def add_scalebar(ax=None, extent=NoValue, location=(0.05, 0.05), color=None, ski
         #
         # Find the power of 10 in kilometers smaller than the distance
         # and adjust to meters if the scale is less than a kilometer
-        bar_length =  10 ** round(np.log10(dist))
+        bar_length = 10 ** round(np.log10(dist))
         if bar_length >= 1:
             bar_length = int(bar_length)
             metres_per_unit = 1000
-            unit_name = 'km'
+            unit_name = "km"
         else:
             bar_length = int(bar_length * 1000)
             metres_per_unit = 1
-            unit_name = 'm'
-        
+            unit_name = "m"
+
         if color is None:
-            color = plt.rcParams['axes.labelcolor']
+            color = plt.rcParams["axes.labelcolor"]
 
         # if location == 'lower right':
         #     location = ()
 
-        scale_bar(ax, location, bar_length, metres_per_unit, unit_name, 
-            color=color, text_kwargs={'size' : 11, 'weight' : 'medium'})
+        scale_bar(
+            ax,
+            location,
+            bar_length,
+            metres_per_unit,
+            unit_name,
+            color=color,
+            text_kwargs={"size": 11, "weight": "medium"},
+        )
     return ax
