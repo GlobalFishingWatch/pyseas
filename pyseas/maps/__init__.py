@@ -1,5 +1,6 @@
 # flake8: noqa
-from .. import cm, context, styles, use
+from .. import cm, styles
+from ..__init__ import context, use
 from . import overlays, rasters
 from .bivariate import add_bivariate_colorbox, add_bivariate_raster
 from .colorbar import add_left_labeled_colorbar, add_top_labeled_colorbar
