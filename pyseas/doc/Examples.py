@@ -55,6 +55,19 @@ print("You are using PySeas version", pyseas.__version__)
 #
 #
 
+# +
+import pyseas.maps as psm
+import numpy as np
+import matplotlib.pyplot as plt
+import pyseas
+pyseas._reload()
+
+with psm.context(psm.styles.chart_style):
+    plt.plot(np.arange(10), np.arange(10), '--.', label='line')
+    plt.xlim(0, 8)
+    plt.legend()
+# -
+
 # ## Basic Mapping
 #
 # Projections can be specified by using any of the names found in the acompanying
@@ -1197,4 +1210,115 @@ ax3.axis('off');
 #     plt.savefig(...)
 # ```
 
+# +
+presence_raster = np.load('../../../ocean_centered_projections/untracked/presence_ours.npz')['presence']
+bathymetry_raster = np.load('../../../ocean_centered_projections/untracked/bathymetry_ours.npz')['bathymetry']
+h, w = presence_raster.shape
+
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(18, 6), facecolor='black', dpi=100)
+    psm.create_map(projection="global.pacific_157w")
+    psm.add_land(facecolor="black")
+    psm.add_raster(presence_raster[::-1], 
+                   cmap='plasma', norm=mpcolors.LogNorm(vmin=1, vmax=10000, clip=True))
+# +
+presence_raster = np.load('../../../ocean_centered_projections/untracked/presence_ours.npz')['presence']
+bathymetry_raster = np.load('../../../ocean_centered_projections/untracked/bathymetry_ours.npz')['bathymetry']
+h, w = presence_raster.shape
+
+
+from skimage import draw
+import matplotlib.pyplot as plt
+
+def create_tissot_raster(scale=10, delta_deg=4, R=9):
+    raster = np.empty((180 * scale + 1, 360 * scale))
+    raster.fill(-1)
+    delta = 10
+    base_count = 360 // delta_deg
+    for lat in np.linspace(-90 + delta_deg, 90 - delta_deg, 180 // delta_deg - 1):
+        r0 = (90 + lat) * scale
+        stretch = 1 / np.cos(np.radians(lat))
+        h = R
+        w = R * stretch
+        n = round(base_count / stretch)
+        for lon in np.linspace(-180, 180, n, endpoint=True):
+            c0 = (180 + lon) * scale
+            rr, cc = draw.ellipse(r0, c0, h, w, shape=raster.shape)
+            raster[rr, cc] = 1
+            rr, cc = draw.ellipse(r0, c0, h // 2, w // 3, shape=raster.shape)
+            raster[rr, cc] = 0
+            # rr, cc = draw.ellipse(r0, c0, h // 4, w // 4, shape=raster.shape)
+            # raster[rr, cc] = 1
+    return raster
+
+tissot_raster = create_tissot_raster(delta_deg=15, R=51)
+plt.imshow(tissot_raster)
+plt.title('Distortion ellipses in Plate Caree projection')
+ax = plt.gca()
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.spines["bottom"].set_visible(False)
+ax.spines["left"].set_visible(False)
+ax.get_xaxis().set_ticks([])
+ax.get_yaxis().set_ticks([]);
+
+
+# +
+tissot_raster[tissot_raster <= 0] = np.nan
+
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(18, 6), facecolor='black', dpi=200)
+    psm.create_map(projection="global.pacific_157w")
+    psm.add_land(facecolor="black")
+    psm.add_raster(presence_raster[::-1] > -1, 
+                   cmap='Blues', norm=mpcolors.Normalize(vmin=0, vmax=1.2))
+    psm.add_raster(tissot_raster[::-1], 
+                   cmap='Reds', norm=mpcolors.Normalize(vmin=0, vmax=2.0, clip=False), zorder=2)
+# -
+
+tissot_raster.min()
+
+# +
+import cmocean
+from numpy.typing import NDArray
+
+def load_interruptions(filename: str) -> tuple[NDArray[float], list[NDArray[float]]]:
+	""" load a cuts_*.txt file and break it up into its key components
+	    :param filename: the relative filepath to load
+	    :return: the glue tripoint where the sections are to be bound together, and
+	             the set of interruptions, radiating out from a common point and arranged clockwise
+	"""
+	data = np.loadtxt(filename)
+	glue_tripoint = data[0, :]
+	cut_tripoint = data[1, :]
+	starts, = np.nonzero(np.all(data == cut_tripoint, axis=1))
+	endpoints = np.concatenate([starts, [None]])
+	cuts = []
+	for h in range(starts.size):
+		cuts.append(data[endpoints[h]:endpoints[h + 1]])
+	return glue_tripoint, cuts
+
+
+presence_raster = np.load('../../../ocean_centered_projections/untracked/presence_ours.npz')['presence']
+bathymetry_raster = np.load('../../../ocean_centered_projections/untracked/bathymetry_ours.npz')['bathymetry']
+ints_2 = load_interruptions("../../../elastik/resources/cuts_mountains.txt")
+# ints_x = load_interruptions("../../../elastik/resources/cuts_mountains_preserving_australia.txt")
+ints_x = load_interruptions("../../../elastik/resources/cuts_mountains_2_region.txt")
+
+h, w = presence_raster.shape
+
+with psm.context(psm.styles.dark):
+    fig = plt.figure(figsize=(18, 6), facecolor='black', dpi=100)
+    ax = psm.create_map(projection="global.pacific_centered")
+    psm.add_land()
+    psm.add_countries()
+    for x in ints_2[1]:
+        plt.plot(x[:, 1] % 360, x[:, 0], 'r:', transform=psm.identity)
+    for x in ints_x[1]:
+        plt.plot(x[:, 1] % 360, x[:, 0], 'r-', transform=psm.identity)
+    ax.set_global()
+    # psm.add_raster(bathymetry_raster[::-1], 
+    #                cmap=cmocean.cm.topo, norm=mpcolors.Normalize(vmin=-5000, vmax=5000, clip=True))
+# -
+with psm
 
