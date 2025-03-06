@@ -30,13 +30,12 @@ The chart style is a light theme but could create a dark version in the future.
 chart_style = {
     "font.family": "sans-serif",
     "font.sans-serif": ["Roboto", "Arial"],
-    "figure.facecolor": "#F7F7F7",
+    "figure.facecolor": "#FFFFFF",
     ### Axes
     "axes.grid": True,  # Turns on grid
-    "axes.linewidth": 0,  # Turns off axis lines
     "axes.axisbelow": True,  # Makes grid go behind data
     "grid.color": "#E6E7EB",
-    "axes.facecolor": "#F7F7F7",
+    "axes.facecolor": "#FFFFFF",
     "axes.labelweight": "bold",
     "axes.labelsize": 14,
     "axes.labelcolor": "#848B9B",
@@ -44,6 +43,8 @@ chart_style = {
     "xtick.labelsize": 12,
     "ytick.color": "#848B9B",
     "ytick.labelsize": 12,
+    "axes.spines.right": False,
+    "axes.spines.top": False,
     ### Titles/Labels
     "figure.titleweight": "bold",
     "figure.titlesize": 20,
@@ -55,6 +56,8 @@ chart_style = {
     "legend.fontsize": 14,
     # how to make legend text a 848B9B???
     "figure.subplot.hspace": 0.4,
+    ### Plots
+    "legend.frameon" : False,
 }
 
 
