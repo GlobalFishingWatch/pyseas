@@ -31,8 +31,8 @@ print("You are using PySeas version", pyseas.__version__)
 # ## Recomended Style
 #
 #      import pyseas.maps as psm
-#      
-#      
+#
+#
 # ### Setting Parameters
 #
 # It is not recomended to set values in `rcParams` directly. This tends to be brittle, particularly since
@@ -66,7 +66,7 @@ with psm.context(psm.styles.dark):
     psm.create_map(projection="regional.european_union")
     psm.add_land(edgecolor="red", facecolor=(0, 0, 0))
 
-# By default`psm.context` sets the background color of the figure to match the ocean color, 
+# By default`psm.context` sets the background color of the figure to match the ocean color,
 # which means that the call to
 # `plt.figure` must occur inside the context block. To overide this, for example to set the figure
 # background to transparent, one could do:
@@ -335,9 +335,6 @@ with psm.context(psm.styles.dark):
             ax.set_title(f"Seismic Vessel Presence Near Indonesia - {i + 1}")
         psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$ ")
 
-# +
-pyseas._reload()
-
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 2, hspace=0, wspace=0.02)
 with psm.context(psm.styles.dark):
@@ -364,9 +361,6 @@ with psm.context(psm.styles.dark):
             formatter="%4.e"
         )
 
-# +
-pyseas._reload()
-
 # Display a raster along with standard colorbar.
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 with psm.context(psm.styles.dark), psm.context({"xtick.labelsize": 20}):
@@ -381,7 +375,6 @@ with psm.context(psm.styles.dark), psm.context({"xtick.labelsize": 20}):
         cbax = psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", width=0.5)
         ax.images[-1].colorbar.minorticks_off()
 
-# -
 
 # If a grid of maps using the same projection is being plotted, one can instead
 # use `create_maps`, which mirrors the interface of `plt.subplots`
@@ -488,20 +481,6 @@ plt.tight_layout()
 
 fishing_h3_6 = pd.read_csv(data_dir / "fishing_h3_lvl6.csv.zip")
 h3cnts_6_b = {np.uint64(int(x.h3, 16)): x.cnt for x in fishing_h3_6.itertuples()}
-
-# +
-fig = plt.figure(figsize=(14, 7))
-norm = mpcolors.LogNorm(1, 100000)
-with psm.context(psm.styles.dark):
-    ax, im = psm.plot_h3_data(h3cnts_6_b, 
-                              cmap='presence',
-                              norm=norm,
-                             projection=cartopy.crs.EqualEarth(central_longitude=21),
-                             show_land=False)
-    ax.spines['geo'].set_visible(False)
-
-# plt.savefig("global_ais_2017_2021_pacific.png",dpi=1200,bbox_inches='tight')
-# -
 
 norm = mpcolors.LogNorm(1, 40000)
 with psm.context(psm.styles.dark):
@@ -848,7 +827,7 @@ with psm.context(psm.styles.light):
     )
 
 
-# This works nicely with a discretized coloramp, which be be realized using 
+# This works nicely with a discretized coloramp, which be be realized using
 # `Boundary
 
 # +
@@ -875,7 +854,7 @@ def piecewise_constant_color_map(colors, name="pccm"):
         arg["blue"].append((breaks[i], last_clr[2], clr[2]))
         last_clr = clr
     return mpcolors.LinearSegmentedColormap(name, arg)
-    
+
 red_blue = piecewise_constant_color_map([(1.0, 0.0, 0.0), (1.0, 0.5, 0.5),
                                         (0.5, 0.5, 1.0), (0.0, 0.0, 1.0)])
 
@@ -1140,7 +1119,7 @@ downloader =  pyseas.imagery.tiles.TileDownloader(
 #
 # It is sometimes convenient to plot the daytime image so that it look more like night.
 # Simply multiplying all the colors by by `[0.082, 0.365, 0.808]` does a surpisingly good
-# job. Note that this assumes that `img` is in floating point with range 0-1. If it's in 
+# job. Note that this assumes that `img` is in floating point with range 0-1. If it's in
 # uint8 instead, with range 0-255, you'll need to divide by 255 as well.
 
 np.array([[[0.082, 0.365, 0.808, 1]]] )* [[[1.5, 1.5, 1.5, 1]]]
@@ -1170,7 +1149,7 @@ ax3.axis('off');
 # #### Rasters
 #
 # When saving to PDF, the internal resolution is always 72 DPI, which breaks the rendering used by
-# `add_raster` and `plot_raster`. To fix this, add a `fig.canvas.draw()` directly before `plot.savefig` 
+# `add_raster` and `plot_raster`. To fix this, add a `fig.canvas.draw()` directly before `plot.savefig`
 # and set `dpi='figure'`.
 # This ensures that rasters are rendered at the figure DPI, which can be set using `context` or during
 # figure creation. For example:
@@ -1187,7 +1166,7 @@ ax3.axis('off');
 # #### Embedding Fonts
 #
 # To embed true type fonts in a PDF document. First you need to ensure that true type fonts of all fonts
-# used in Matplotlib. PySeas styles use Roboto fonts by default, although this may not be completely supported 
+# used in Matplotlib. PySeas styles use Roboto fonts by default, although this may not be completely supported
 # inside LaTeX equations. You will also need to set the `pdf.fonttype` to 42:
 # ```python
 #
@@ -1196,5 +1175,3 @@ ax3.axis('off');
 #     ...
 #     plt.savefig(...)
 # ```
-
-

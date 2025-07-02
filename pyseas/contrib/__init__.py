@@ -7,9 +7,9 @@ def _reload():
 
     Note: Not 100% reliable!
     """
-    import imp
+    from importlib import reload
     from . import plot_tracks
     from pyseas import contrib
 
-    imp.reload(plot_tracks)
-    imp.reload(contrib)
+    reload(plot_tracks)
+    reload(contrib)
