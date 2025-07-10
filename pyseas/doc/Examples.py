@@ -66,7 +66,7 @@ pyseas._reload()
 with psm.context(psm.styles.dark), psm.context({'pyseas.land.color' : 'white', 'pyseas.ocean.color' : 'black'}):
     plt.figure(frameon=False)
     # prj = cartopy.crs.LambertAzimuthalEqualArea(105, 16.)
-    ax = psm.create_map(projection='global.pacific_157w')
+    ax = psm.create_map(projection='regional.mediterranean	')
         # projection=prj)
     psm.add_land(zorder=10)
     psm.add_countries(zorder=10)
