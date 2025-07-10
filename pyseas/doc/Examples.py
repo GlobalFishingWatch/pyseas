@@ -13,6 +13,7 @@ import skimage.io
 import pandas as pd
 import cartopy
 from pandas.plotting import register_matplotlib_converters
+from importlib.metadata import version
 
 register_matplotlib_converters()
 
@@ -25,7 +26,7 @@ import pyseas.imagery.tiles
 
 data_dir = Path("..") / "doc" / "data"
 
-print("You are using PySeas version", pyseas.__version__)
+print("You are using PySeas version", version('pyseas'))
 # -
 
 # ## Recomended Style
@@ -60,6 +61,21 @@ print("You are using PySeas version", pyseas.__version__)
 # Projections can be specified by using any of the names found in the acompanying
 # `projection_info.md` document, or with any Cartopy projection. There are built in
 # light and dark styles, which are activated using `pyseas.context`.
+
+pyseas._reload()
+with psm.context(psm.styles.dark), psm.context({'pyseas.land.color' : 'white', 'pyseas.ocean.color' : 'black'}):
+    plt.figure(frameon=False)
+    # prj = cartopy.crs.LambertAzimuthalEqualArea(105, 16.)
+    ax = psm.create_map(projection='global.pacific_157w')
+        # projection=prj)
+    psm.add_land(zorder=10)
+    psm.add_countries(zorder=10)
+    ax.gridlines()
+    # ax.set_extent((99.0, 114.0, 5.0, 22.1), crs=psm.identity)
+    # ax.set_adjustable("datalim")
+    plt.tight_layout()
+a, b, c, d = ax.get_extent()
+print((a - b) / (c - d))
 
 with psm.context(psm.styles.dark):
     fig = plt.figure(figsize=(16, 9))

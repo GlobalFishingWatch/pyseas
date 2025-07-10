@@ -3,9 +3,6 @@ import subprocess
 
 from matplotlib.style import context, use  # NOQA
 
-__version__ = "0.8.2"
-
-
 base = os.path.dirname(__file__)
 path = os.path.join(base, "doc", "Examples.ipynb")
 
