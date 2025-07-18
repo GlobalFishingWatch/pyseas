@@ -1,6 +1,42 @@
-[build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
+[project]
+authors = [
+    { name = "Tim Hochberg", email = "bitsofbits@users.noreply.github.com" },
 ]
-build-backend = "setuptools.build_meta"
+name = "pyseas"
+requires-python = ">= 3.11"
+version = "0.9.0"
+dependencies = [
+    "cartopy>=0.24.1,<0.25",
+    "cmocean>=4.0.3,<5",
+    "haversine>=2.9.0,<3",
+    "jupytext>=1.17.2,<2",
+    "jupyter>=1.1.1,<2",
+    "matplotlib>=3.10.3,<4",
+    "pandas>=2.3.0,<3",
+    "pandas-gbq>=0.29.1,<0.30",
+    "scikit-image>=0.25.2,<0.26",
+    "google-cloud-bigquery>=3.34.0,<4",
+    "geopandas>=1.1.1,<2",
+    "geos>=0.2.3,<0.3",
+    "h3>=4.3.0,<5",
+    "gcsfs>=2025.5.1,<2026",
+]
+
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "osx-64"]
+
+[tool.pixi.pypi-dependencies]
+pyseas = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+gdal = ">=3.11.1,<4"
+pytables = ">=3.10.2,<4"
+h3 = ">=4.3.0,<5"

@@ -1,323 +1,248 @@
 {
-    "global.default": {
-        "projection": "EqualEarth",
-        "args": {
-            "central_longitude": 0
-        },
-        "extent": null,
-        "description": "EqualEarth @ 0\u00b0E",
-        "aspect_ratio" : 2.1
+  "global.default": {
+    "projection": "EqualEarth",
+    "args": {
+      "central_longitude": 0
     },
-    "global.dateline_centered": {
-        "projection": "EqualEarth",
-        "args": {
-            "central_longitude": 180
-        },
-        "extent": null,
-        "description": "EqualEarth @ 180\u00b0E",
-        "aspect_ratio" : 2.1
+    "extent": null,
+    "description": "EqualEarth @ 0\u00b0E",
+    "aspect_ratio": 2.1
+  },
+  "global.dateline_centered": {
+    "projection": "EqualEarth",
+    "args": {
+      "central_longitude": 180
     },
-    "global.atlantic_centered": {
-        "projection": "EqualEarth",
-        "args": {
-            "central_longitude": -40
-        },
-        "extent": null,
-        "description": "EqualEarth @ 40\u00b0W",
-        "aspect_ratio" : 2.1
+    "extent": null,
+    "description": "EqualEarth @ 180\u00b0E",
+    "aspect_ratio": 2.1
+  },
+  "global.atlantic_centered": {
+    "projection": "EqualEarth",
+    "args": {
+      "central_longitude": -40
     },
-    "global.pacific_centered": {
-        "projection": "EqualEarth",
-        "args": {
-            "central_longitude": 150
-        },
-        "extent": null,
-        "description": "EqualEarth @ 150\u00b0E",
-        "aspect_ratio" : 2.1
+    "extent": null,
+    "description": "EqualEarth @ 40\u00b0W",
+    "aspect_ratio": 2.1
+  },
+  "global.pacific_centered": {
+    "projection": "EqualEarth",
+    "args": {
+      "central_longitude": 150
     },
-    "global.pacific_157w": {
-        "projection": "EqualEarth",
-        "args": {
-            "central_longitude": -157
-        },
-        "extent": null,
-        "description": "EqualEarth @ 157\u00b0W",
-        "aspect_ratio" : 2.1
+    "extent": null,
+    "description": "EqualEarth @ 150\u00b0E",
+    "aspect_ratio": 2.1
+  },
+  "global.pacific_157w": {
+    "projection": "EqualEarth",
+    "args": {
+      "central_longitude": -157
     },
-    "global.indian_centered": {
-        "projection": "EqualEarth",
-        "args": {
-            "central_longitude": 70
-        },
-        "extent": null,
-        "description": "EqualEarth @ 70\u00b0E",
-        "aspect_ratio" : 2.1
+    "extent": null,
+    "description": "EqualEarth @ 157\u00b0W",
+    "aspect_ratio": 2.1
+  },
+  "global.indian_centered": {
+    "projection": "EqualEarth",
+    "args": {
+      "central_longitude": 70
     },
-    "regional.north_pacific": {
-        "projection": "LambertAzimuthalEqualArea",
-        "args": {
-            "central_longitude": -165,
-            "central_latitude": 25
-        },
-        "extent": [
-            -250,
-            -70,
-            -10,
-            60
-        ],
-        "description": "Lambert azimuthal equal area @ 165\u00b0E,25\u00b0N",
-        "proj-string" : "+proj=laea +lat_0=25 +lon_0=-160",
-        "aspect_ratio" : 1.8
-
+    "extent": null,
+    "description": "EqualEarth @ 70\u00b0E",
+    "aspect_ratio": 2.1
+  },
+  "regional.north_pacific": {
+    "projection": "LambertAzimuthalEqualArea",
+    "args": {
+      "central_longitude": -165,
+      "central_latitude": 25
     },
-    "regional.south_pacific": {
-        "projection": "LambertAzimuthalEqualArea",
-        "args": {
-            "central_longitude": -160,
-            "central_latitude": -30
-        },
-        "extent": [
-            -250,
-            -70,
-            -70,
-            10
-        ],
-        "description": "Lambert azimuthal equal area @ 140\u00b0W,0\u00b0S",
-        "proj-string" : "+proj=laea +lat_0=-30 +lon_0=-160",
-        "aspect_ratio" : 1.8
+    "extent": [-250, -70, -10, 60],
+    "description": "Lambert azimuthal equal area @ 165\u00b0E,25\u00b0N",
+    "proj-string": "+proj=laea +lat_0=25 +lon_0=-160",
+    "aspect_ratio": 1.8
+  },
+  "regional.south_pacific": {
+    "projection": "LambertAzimuthalEqualArea",
+    "args": {
+      "central_longitude": -160,
+      "central_latitude": -30
     },
-    "regional.pacific": {
-        "projection": "LambertAzimuthalEqualArea",
-        "args": {
-            "central_longitude": -165
-        },
-        "extent": [
-            -250,
-            -70,
-            -65,
-            65
-        ],
-        "description": "Lambert azimuthal equal area @ 165\u00b0W,0\u00b0N",
-        "proj-string" : "+proj=laea +lat_0=0 +lon_0=-160",
-        "aspect_ratio" : 1.1
+    "extent": [-250, -70, -70, 10],
+    "description": "Lambert azimuthal equal area @ 140\u00b0W,0\u00b0S",
+    "proj-string": "+proj=laea +lat_0=-30 +lon_0=-160",
+    "aspect_ratio": 1.8
+  },
+  "regional.pacific": {
+    "projection": "LambertAzimuthalEqualArea",
+    "args": {
+      "central_longitude": -165
     },
-    "regional.atlantic": {
-        "projection": "LambertAzimuthalEqualArea",
-        "args": {
-            "central_longitude": -30
-        },
-        "extent": [
-            -80,
-            20,
-            -75,
-            75
-        ],
-        "description": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S",
-        "proj-string" : "+proj=laea +lat_0=0 +lon_0=-30",
-        "aspect_ratio" : 0.7
+    "extent": [-250, -70, -65, 65],
+    "description": "Lambert azimuthal equal area @ 165\u00b0W,0\u00b0N",
+    "proj-string": "+proj=laea +lat_0=0 +lon_0=-160",
+    "aspect_ratio": 1.1
+  },
+  "regional.atlantic": {
+    "projection": "LambertAzimuthalEqualArea",
+    "args": {
+      "central_longitude": -30
     },
-    "regional.north_atlantic": {
-        "projection": "LambertAzimuthalEqualArea",
-        "args": {
-            "central_longitude": -30,
-            "central_latitude": 35
-        },
-        "extent": [
-            -80,
-            20,
-            -5,
-            75
-        ],
-        "description": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S",
-        "proj-string" : "+proj=laea +lat_0=35 +lon_0=-30",
-        "aspect_ratio" : 1.2
+    "extent": [-80, 20, -75, 75],
+    "description": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S",
+    "proj-string": "+proj=laea +lat_0=0 +lon_0=-30",
+    "aspect_ratio": 0.7
+  },
+  "regional.north_atlantic": {
+    "projection": "LambertAzimuthalEqualArea",
+    "args": {
+      "central_longitude": -30,
+      "central_latitude": 35
     },
-    "regional.south_atlantic": {
-        "projection": "LambertAzimuthalEqualArea",
-        "args": {
-            "central_longitude": -20,
-            "central_latitude": -35
-        },
-        "extent": [
-            -55,
-            15,
-            -55,
-            5
-        ],
-        "description": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S",
-        "proj-string" : "+proj=laea +lat_0=-35 +lon_0=-20",
-        "aspect_ratio" : 1.2
+    "extent": [-80, 20, -5, 75],
+    "description": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S",
+    "proj-string": "+proj=laea +lat_0=35 +lon_0=-30",
+    "aspect_ratio": 1.2
+  },
+  "regional.south_atlantic": {
+    "projection": "LambertAzimuthalEqualArea",
+    "args": {
+      "central_longitude": -20,
+      "central_latitude": -35
     },
-    "regional.indian": {
-        "projection": "LambertAzimuthalEqualArea",
-        "args": {
-            "central_longitude": 75
-        },
-        "extent": [
-            20,
-            140,
-            -30,
-            70
-        ],
-        "description": "Lambert azimuthal equal area @ 75\u00b0E,0\u00b0N",
-        "proj-string" : "+proj=laea +lat_0=-20 +lon_0=80",
-        "aspect_ratio" : 1.1
+    "extent": [-55, 15, -55, 5],
+    "description": "Lambert azimuthal equal area @ 30\u00b0W,0\u00b0S",
+    "proj-string": "+proj=laea +lat_0=-35 +lon_0=-20",
+    "aspect_ratio": 1.2
+  },
+  "regional.indian": {
+    "projection": "LambertAzimuthalEqualArea",
+    "args": {
+      "central_longitude": 75
     },
-    "regional.european_union": {
-        "projection": "AlbersEqualArea",
-        "args": {
-            "central_longitude": 15,
-            "central_latitude": 50
-        },
-        "extent": [
-            -25,
-            55,
-            25,
-            75
-        ],
-        "description": "Albers equal area conic @ 15\u00b0E,50\u00b0N",
-        "proj-string" : "=proj=aea +lat_1=33 +lat_2=67 +lon_0=15",
-        "aspect_ratio" : 1.4
+    "extent": [20, 140, -30, 70],
+    "description": "Lambert azimuthal equal area @ 75\u00b0E,0\u00b0N",
+    "proj-string": "+proj=laea +lat_0=-20 +lon_0=80",
+    "aspect_ratio": 1.1
+  },
+  "regional.european_union": {
+    "projection": "AlbersEqualArea",
+    "args": {
+      "central_longitude": 15,
+      "central_latitude": 50
     },
-    "regional.mediterranean" : {
-        "projection": "AlbersEqualArea",
-        "args": {
-            "central_longitude": 17,
-            "central_latitude": 38.5
-        },
-        "extent": [
-            -7.5,
-            39,
-            29,
-            47.5
-        ],
-        "description": "Albers equal area conic @ 20\u00b0E,120\u00b0N",
-        "proj-string" : "+proj=aea +lon_0=17 +lat_1=32.1666667 +lat_2=44.8333333 +lat_0=38.5 +datum=WGS84 +units=m +no_defs",
-        "aspect_ratio" : 1.9
+    "extent": [-25, 55, 25, 75],
+    "description": "Albers equal area conic @ 15\u00b0E,50\u00b0N",
+    "proj-string": "=proj=aea +lat_1=33 +lat_2=67 +lon_0=15",
+    "aspect_ratio": 1.4
+  },
+  "regional.mediterranean": {
+    "projection": "AlbersEqualArea",
+    "args": {
+      "central_longitude": 17,
+      "central_latitude": 38.5
     },
-    "regional.china": {
-        "projection": "LambertAzimuthalEqualArea",
-        "args": {
-            "central_longitude": 120,
-            "central_latitude": 22.5
-        },
-        "extent": [
-            100,
-            140,
-            0,
-            45
-        ],
-        "description": "Lambert azimuthal equal area @ 120\u00b0E,22.5\u00b0N",
-        "proj-string" : "=proj=laea +lon_0=120 +lat_0=22.5",
-        "aspect_ratio" : 0.9,
-        "notes" : "This is an extended version of 'country.china' that includes all of the waters claimed by China."
+    "extent": [-7.5, 39, 29, 47.5],
+    "description": "Albers equal area conic @ 20\u00b0E,120\u00b0N",
+    "proj-string": "+proj=aea +lon_0=17 +lat_1=32.1666667 +lat_2=44.8333333 +lat_0=38.5 +datum=WGS84 +units=m +no_defs",
+    "aspect_ratio": 1.9
+  },
+  "regional.china": {
+    "projection": "LambertAzimuthalEqualArea",
+    "args": {
+      "central_longitude": 120,
+      "central_latitude": 22.5
     },
-    "country.indonesia": {
-        "projection": "LambertCylindrical",
-        "args": {
-            "central_longitude": 120
-        },
-        "extent": [
-            80,
-            160,
-            -20,
-            20
-        ],
-        "description": "Lambert cylindrical @ 120\u00b0E",
-        "proj-string" : "+proj=cea +lat_ts=0 +lon_0=-240",
-        "aspect_ratio" : 2.1
+    "extent": [100, 140, 0, 45],
+    "description": "Lambert azimuthal equal area @ 120\u00b0E,22.5\u00b0N",
+    "proj-string": "=proj=laea +lon_0=120 +lat_0=22.5",
+    "aspect_ratio": 0.9,
+    "notes": "This is an extended version of 'country.china' that includes all of the waters claimed by China."
+  },
+  "country.indonesia": {
+    "projection": "LambertCylindrical",
+    "args": {
+      "central_longitude": 120
     },
-    "country.ecuador_with_galapagos": {
-        "projection": "LambertCylindrical",
-        "args": {
-            "central_longitude": -85
-        },
-        "extent": [
-            -97,
-            -73,
-            -10,
-            5
-        ],
-        "description": "Lambert cylindrical @ 85\u00b0W",
-        "proj-string" : "+proj=cea +lat_ts=0 +lon_0=-85",
-        "aspect_ratio" : 1.6
+    "extent": [80, 160, -20, 20],
+    "description": "Lambert cylindrical @ 120\u00b0E",
+    "proj-string": "+proj=cea +lat_ts=0 +lon_0=-240",
+    "aspect_ratio": 2.1
+  },
+  "country.ecuador_with_galapagos": {
+    "projection": "LambertCylindrical",
+    "args": {
+      "central_longitude": -85
     },
-    "country.japan": {
-        "projection": "LambertAzimuthalEqualArea",
-        "args": {
-            "central_longitude": 137,
-            "central_latitude": 38
-        },
-        "extent": [
-            125,
-            155,
-            26,
-            50
-        ],
-        "description": "Lambert azimuthal equal area @ 137\u00b0E,38\u00b0N",
-        "proj-string" : "+proj=laea +lat_0=38 +lon_0=140",
-        "aspect_ratio" : 1.1
+    "extent": [-97, -73, -10, 5],
+    "description": "Lambert cylindrical @ 85\u00b0W",
+    "proj-string": "+proj=cea +lat_ts=0 +lon_0=-85",
+    "aspect_ratio": 1.6
+  },
+  "country.japan": {
+    "projection": "LambertAzimuthalEqualArea",
+    "args": {
+      "central_longitude": 137,
+      "central_latitude": 38
     },
-    "country.china": {
-        "projection": "AlbersEqualArea",
-        "args": {
-            "central_longitude": 120,
-            "central_latitude": 20
-        },
-        "extent": [
-            100,
-            140,
-            15,
-            45
-        ],
-        "description": "Albers equal area conic @ 20\u00b0E,120\u00b0N",
-        "proj-string" : "+proj=aea +lon_0=120 +lat_1=20 +lat_2=40",
-        "aspect_ratio" : 1.2
+    "extent": [125, 155, 26, 50],
+    "description": "Lambert azimuthal equal area @ 137\u00b0E,38\u00b0N",
+    "proj-string": "+proj=laea +lat_0=38 +lon_0=140",
+    "aspect_ratio": 1.1
+  },
+  "country.china": {
+    "projection": "AlbersEqualArea",
+    "args": {
+      "central_longitude": 120,
+      "central_latitude": 20
     },
-    "country.chile": {
-        "projection": "LambertAzimuthalEqualArea",
-        "args": {
-            "central_longitude": -80,
-            "central_latitude": -35
-        },
-        "extent": [
-            -100,
-            -60,
-            -60,
-            -10
-        ],
-        "description": "Lambert azimuthal equal area @ 80\u00b0W",
-        "proj-string" : "+proj=laea +lat_0=-35 +lon_0=-80",
-        "aspect_ratio" : 0.8
+    "extent": [100, 140, 15, 45],
+    "description": "Albers equal area conic @ 20\u00b0E,120\u00b0N",
+    "proj-string": "+proj=aea +lon_0=120 +lat_1=20 +lat_2=40",
+    "aspect_ratio": 1.2
+  },
+  "country.chile": {
+    "projection": "LambertAzimuthalEqualArea",
+    "args": {
+      "central_longitude": -80,
+      "central_latitude": -35
     },
-    "country.peru": {
-        "projection": "LambertAzimuthalEqualArea",
-        "args": {
-            "central_longitude": -80
-        },
-        "extent": [
-            -95,
-            -65,
-            -25,
-            5
-        ],
-        "description": "Lambert azimuthal equal area @ 80\u00b0W",
-        "proj-string" : "+proj=laea +lon_0=-80",
-        "aspect_ratio" : 1.0
+    "extent": [-100, -60, -60, -10],
+    "description": "Lambert azimuthal equal area @ 80\u00b0W,35\u00b0S",
+    "proj-string": "+proj=laea +lat_0=-35 +lon_0=-80",
+    "aspect_ratio": 0.8
+  },
+  "country.vietnam": {
+    "projection": "LambertAzimuthalEqualArea",
+    "args": {
+      "central_longitude": 105.0,
+      "central_latitude": 16.0
     },
-    "country.panama": {
-        "projection": "LambertAzimuthalEqualArea",
-        "args": {
-            "central_longitude": -80
-        },
-        "extent": [
-            -88,
-            -72,
-            -2,
-            15
-        ],
-        "description": "Lambert azimuthal equal area @ 80\u00b0W",
-        "proj-string" : "+proj=laea +lon_0=-80",
-        "aspect_ratio" : 0.9
-    }
+    "extent": [99, 114, 5, 22.1],
+    "description": "Lambert azimuthal equal area @ 105\u00b0E,16\u00b0N",
+    "proj-string": "+proj=laea +lat_0=16 +lon_0=105",
+    "aspect_ratio": 0.88
+  },
+  "country.peru": {
+    "projection": "LambertAzimuthalEqualArea",
+    "args": {
+      "central_longitude": -80
+    },
+    "extent": [-95, -65, -25, 5],
+    "description": "Lambert azimuthal equal area @ 80\u00b0W",
+    "proj-string": "+proj=laea +lon_0=-80",
+    "aspect_ratio": 1.0
+  },
+  "country.panama": {
+    "projection": "LambertAzimuthalEqualArea",
+    "args": {
+      "central_longitude": -80
+    },
+    "extent": [-88, -72, -2, 15],
+    "description": "Lambert azimuthal equal area @ 80\u00b0W",
+    "proj-string": "+proj=laea +lon_0=-80",
+    "aspect_ratio": 0.9
+  }
 }

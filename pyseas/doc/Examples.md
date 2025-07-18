@@ -13,6 +13,7 @@ import skimage.io
 import pandas as pd
 import cartopy
 from pandas.plotting import register_matplotlib_converters
+from importlib.metadata import version
 
 register_matplotlib_converters()
 
@@ -24,11 +25,39 @@ import pyseas.imagery.tiles
 %matplotlib inline
 
 data_dir = Path("..") / "doc" / "data"
+
+print("You are using PySeas version", version('pyseas'))
 ```
+
+    You are using PySeas version 0.9.0
+
 
 ## Recomended Style
 
      import pyseas.maps as psm
+
+
+### Setting Parameters
+
+It is not recomended to set values in `rcParams` directly. This tends to be brittle, particularly since
+PySeas overrides values when using styles which can be surprising. Instead, set parameters using `psm.context`
+or directly in contructors / functions. For example, to set the figure dpi, use either:
+
+
+```python
+with psm.context(psm.styles.dark), {"figure.dpi": FIGURE_DPI}:
+    fig = plt.figure(...)
+    ...
+```
+
+or
+
+```python
+fig = plt.figure(dpi=FIGURE_DPI, ...)
+...
+```
+
+
 
 ## Basic Mapping
 
@@ -38,19 +67,46 @@ light and dark styles, which are activated using `pyseas.context`.
 
 
 ```python
+pyseas._reload()
+with psm.context(psm.styles.dark), psm.context({'pyseas.land.color' : 'white', 'pyseas.ocean.color' : 'black'}):
+    plt.figure(frameon=False)
+    # prj = cartopy.crs.LambertAzimuthalEqualArea(105, 16.)
+    ax = psm.create_map(projection='regional.mediterranean')
+        # projection=prj)
+    psm.add_land(zorder=10)
+    psm.add_countries(zorder=10)
+    ax.gridlines()
+    # ax.set_extent((99.0, 114.0, 5.0, 22.1), crs=psm.identity)
+    # ax.set_adjustable("datalim")
+    plt.tight_layout()
+a, b, c, d = ax.get_extent()
+print((a - b) / (c - d))
+```
+
+    1.8868378559014622
+
+
+
+    
+![png](Examples_files/Examples_4_1.png)
+    
+
+
+
+```python
 with psm.context(psm.styles.dark):
     fig = plt.figure(figsize=(16, 9))
     psm.create_map(projection="regional.european_union")
-    psm.add_land()
+    psm.add_land(edgecolor="red", facecolor=(0, 0, 0))
 ```
 
 
     
-![png](Examples_files/Examples_4_0.png)
+![png](Examples_files/Examples_5_0.png)
     
 
 
-By default`psm.context` sets the background color of the figure to match the ocean color, 
+By default`psm.context` sets the background color of the figure to match the ocean color,
 which means that the call to
 `plt.figure` must occur inside the context block. To overide this, for example to set the figure
 background to transparent, one could do:
@@ -66,31 +122,26 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_6_0.png)
+![png](Examples_files/Examples_7_0.png)
     
 
 
 In some cases it's desirable to turn off the axes, for example if there is allready a contrasting background.
-This can be done using `ax.axes.off()`.
+This can be done using `ax.spines['geo'].set_visible(False)`.
 
 
 ```python
-pyseas._reload()
-
 with psm.context(psm.styles.dark):
     with psm.context({"figure.facecolor" : "grey"}):
         fig = plt.figure(figsize=(16, 9))
         ax = psm.create_map(projection="regional.european_union")
         psm.add_land()
-        ax.spl
+        ax.spines['geo'].set_visible(False)
 ```
-
-    #0a1738
-
 
 
     
-![png](Examples_files/Examples_8_1.png)
+![png](Examples_files/Examples_9_0.png)
     
 
 
@@ -107,14 +158,17 @@ with psm.context(psm.styles.dark):
     psm.set_lon_extent(-25, 55, central_lat=50)
 ```
 
+    Ignoring fixed y limits to fulfill fixed data aspect with adjustable data limits.
+
+
 
     
-![png](Examples_files/Examples_10_0.png)
+![png](Examples_files/Examples_11_1.png)
     
 
 
 In addition to `add_land` there a number of other features that can be added to maps
-including eezs, grid_lines, countries, logos, etc. If you add a logo, without specifying
+including eezs, grid_lines, countries, logos, scalebar, etc. If you add a logo, without specifying
 the image to use, you'll get the PySeas logo.
 
 
@@ -123,8 +177,30 @@ with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(18, 6))
     psm.create_map(projection="country.china")
     psm.add_land()
-    psm.add_countries()
+    psm.add_countries(facecolor=(0, 0, 0, 0))
     psm.add_eezs()
+    psm.add_gridlines()
+    psm.add_gridlabels()
+    psm.add_logo(loc="upper left")
+    psm.add_scalebar()
+```
+
+
+    
+![png](Examples_files/Examples_13_0.png)
+    
+
+
+When displaying EEZs, it may be useful to exclude the "Straight Baseline".
+
+
+```python
+with psm.context(psm.styles.light):
+    fig = plt.figure(figsize=(18, 6))
+    psm.create_map(projection="country.china")
+    psm.add_land()
+    psm.add_countries(facecolor=(0, 0, 0, 0))
+    psm.add_eezs(exclude={"Straight Baseline"})
     psm.add_gridlines()
     psm.add_gridlabels()
     psm.add_logo(loc="upper left")
@@ -132,8 +208,26 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_12_0.png)
+![png](Examples_files/Examples_15_0.png)
     
+
+
+
+```python
+eezs = psm.core._eezs
+[key] = eezs.keys()
+eez = eezs[key]
+eez.LINE_TYPE.unique()
+```
+
+
+
+
+    array(['Unsettled median line', 'Treaty', 'Joint regime',
+           'Unilateral claim (undisputed)', 'Unsettled', '200 NM',
+           'Connection line', 'Median line', 'Straight Baseline',
+           'Archipelagic Baseline'], dtype=object)
+
 
 
 More commonly you'll want to either specify a custom logo as shown here, or set the default
@@ -156,7 +250,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_14_0.png)
+![png](Examples_files/Examples_18_0.png)
     
 
 
@@ -187,7 +281,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_16_0.png)
+![png](Examples_files/Examples_20_0.png)
     
 
 
@@ -208,7 +302,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_18_0.png)
+![png](Examples_files/Examples_22_0.png)
     
 
 
@@ -219,7 +313,7 @@ with psm.context(psm.styles.light):
 with psm.context(psm.styles.light):
     fig = plt.figure(figsize=(18, 6))
     psm.create_map(projection="global.pacific_157w")
-    psm.add_land()
+    psm.add_land(facecolor="black")
     psm.add_countries()
     psm.add_eezs()
     psm.add_gridlines()
@@ -227,7 +321,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_19_0.png)
+![png](Examples_files/Examples_23_0.png)
     
 
 
@@ -252,25 +346,112 @@ seismic_raster = psm.rasters.df2raster(
 
 
 ```python
-# Display a raster along with standard colorbar.
-norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
-with psm.context(psm.styles.dark):
-    with psm.context({"text.color": "white"}):
-        fig = plt.figure(figsize=(14, 7))
-        ax, im = psm.plot_raster(
-            seismic_raster,
-            projection="country.indonesia",
-            cmap="presence",
-            norm=norm,
-            origin="lower",
-        )
-        cbax = psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", width=0.5)
-        cbax.tick_params(labelsize=16)
+import pandas as pd
+from pathlib import Path
+data_dir = Path("..") / "doc" / "data"
+seismic_raster.shape
 ```
 
 
+
+
+    (1800, 3600)
+
+
+
+
+```python
+from matplotlib.gridspec import GridSpec
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors as mpcolors
+import cartopy
+import pyseas.maps as psm
+
+with psm.context(psm.styles.light):
+    dummy_raster = np.zeros((1800, 3600))
+
+    fig = plt.figure(figsize=(14, 6.5 * 3), tight_layout=True)
+
+    grid1 = GridSpec(
+        2,
+        2,
+        height_ratios=[1.05, 0.95],
+        top=1,
+        bottom=0.35,
+        wspace=0.01,
+        hspace=0.015,
+        left=0.01,
+        right=0.98,
+    )
+
+    sub2 = grid1[(1, 0)]
+    sub3 = grid1[(1, 1)]
+
+    count = 0
+
+    for sub, raster in zip([sub2, sub3], [dummy_raster, dummy_raster]):
+
+        xc, yc, dx_x_2 = (5.0, 56.3, 10.5)  # x, y, zoom
+        dx = dx_x_2 / 2
+        extent = (xc - dx, xc + dx, yc - dx, yc + dx)
+
+        prj = cartopy.crs.LambertAzimuthalEqualArea(xc, yc)
+        ax = psm.create_map(subplot=sub, projection=prj)
+
+        ax.set_extent(extent, crs=psm.identity)
+        ax.set_adjustable("datalim")
+        psm.add_land(ax=ax, color="0.8")
+
+        norm = mpcolors.LogNorm(vmin=1e-2, vmax=1e2)
+
+        im = psm.add_raster(
+            raster,
+            ax=ax,
+            cmap="YlGnBu",
+            norm=norm,
+            origin="lower",
+        )
+
+        if count == 0:
+            ax.text(
+                0.97,
+                -0.066,
+                "Hours of vessel activity per km$^2$",
+                ha="right",
+                color="k",
+                fontsize=16,
+                transform=ax.transAxes,
+            )
+        elif count == 1:
+            cb = psm.add_colorbar(
+                im,
+                ax=ax,
+                label="",
+                loc="bottom",
+                width=1,
+                height=0.03,
+                hspace=0.04,
+                wspace=0.016,
+                valign=0.5,
+                right_edge=None,
+                center=False,
+            )
+        count += 1
+
+```
+
+    Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+    Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+    /Users/timothyhochberg/miniforge3/envs/pyseas-test/lib/python3.11/site-packages/IPython/core/events.py:82: UserWarning: This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.
+      func(*args, **kwargs)
+    /Users/timothyhochberg/miniforge3/envs/pyseas-test/lib/python3.11/site-packages/IPython/core/pylabtools.py:170: UserWarning: This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.
+      fig.canvas.print_figure(bytes_io, **kw)
+
+
+
     
-![png](Examples_files/Examples_22_0.png)
+![png](Examples_files/Examples_27_1.png)
     
 
 
@@ -301,7 +482,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_23_0.png)
+![png](Examples_files/Examples_28_0.png)
     
 
 
@@ -312,7 +493,7 @@ thing twice and add a colorbar to the last plot.
 ```python
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 1)
-with plt.rc_context(psm.styles.dark):
+with psm.context(psm.styles.dark):
     with psm.context({"text.color": "white"}):
         fig = plt.figure(figsize=(14, 14))
         for i in range(2):
@@ -330,17 +511,15 @@ with plt.rc_context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_25_0.png)
+![png](Examples_files/Examples_30_0.png)
     
 
 
 
 ```python
-pyseas._reload()
-
 norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
 gs = gridspec.GridSpec(2, 2, hspace=0, wspace=0.02)
-with plt.rc_context(psm.styles.dark):
+with psm.context(psm.styles.dark):
     with psm.context({"text.color": (0.5, 0.5, 0.5)}):
         fig = plt.figure(figsize=(14.7, 7.6))
         for i in range(2):
@@ -367,7 +546,30 @@ with plt.rc_context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_26_0.png)
+![png](Examples_files/Examples_31_0.png)
+    
+
+
+
+```python
+# Display a raster along with standard colorbar.
+norm = mpcolors.LogNorm(vmin=0.001, vmax=10)
+with psm.context(psm.styles.dark), psm.context({"xtick.labelsize": 20}):
+        fig = plt.figure(figsize=(14, 7))
+        ax, im = psm.plot_raster(
+            seismic_raster,
+            projection="country.indonesia",
+            cmap="presence",
+            norm=norm,
+            origin="lower",
+        )
+        cbax = psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", width=0.5)
+        ax.images[-1].colorbar.minorticks_off()
+```
+
+
+    
+![png](Examples_files/Examples_32_0.png)
     
 
 
@@ -402,7 +604,7 @@ with plt.rc_context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_28_0.png)
+![png](Examples_files/Examples_34_0.png)
     
 
 
@@ -418,13 +620,17 @@ with psm.context(psm.styles.dark):
         psm.add_colorbar(im, label=r"hours per $\mathregular{km^2}$", loc="bottom")
 ```
 
+    /Users/timothyhochberg/Documents/GlobalFishingWatch/GFW-Code/mapping-projects/pyseas/pyseas/maps/colorbar.py:74: UserWarning: Adding colorbar to a different Figure <Figure size 1470x760 with 4 Axes> than <Figure size 1470x760 with 1 Axes> which fig.colorbar is called on.
+      cb = plt.colorbar(
 
-    <Figure size 1008x504 with 0 Axes>
+
+
+    <Figure size 1400x700 with 0 Axes>
 
 
 
     
-![png](Examples_files/Examples_29_1.png)
+![png](Examples_files/Examples_35_2.png)
     
 
 
@@ -463,9 +669,15 @@ with psm.context(psm.styles.dark):
                 ax.set_adjustable("datalim")
 ```
 
+    Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+    Ignoring fixed y limits to fulfill fixed data aspect with adjustable data limits.
+    Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+    Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+
+
 
     
-![png](Examples_files/Examples_31_0.png)
+![png](Examples_files/Examples_37_1.png)
     
 
 
@@ -499,12 +711,19 @@ with psm.context(psm.styles.dark):
 plt.tight_layout()
 ```
 
-    /Users/timothyhochberg/anaconda3/envs/pyseas/lib/python3.7/site-packages/ipykernel_launcher.py:26: UserWarning: Tight layout not applied. The left and right margins cannot be made large enough to accommodate all axes decorations.
+    Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+    Ignoring fixed y limits to fulfill fixed data aspect with adjustable data limits.
+    Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+    Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+    Ignoring fixed y limits to fulfill fixed data aspect with adjustable data limits.
+    Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+    Ignoring fixed y limits to fulfill fixed data aspect with adjustable data limits.
+    Ignoring fixed y limits to fulfill fixed data aspect with adjustable data limits.
 
 
 
     
-![png](Examples_files/Examples_32_1.png)
+![png](Examples_files/Examples_38_1.png)
     
 
 
@@ -533,7 +752,9 @@ with psm.context(psm.styles.dark):
         extent=(3.8, 25.0, 65.0, 75.4),
         cmap="presence",
         norm=norm,
+        show_land=False
     )
+    psm.add_land(facecolor="black", edgecolor="black")
     psm.add_countries()
     psm.add_eezs()
     ax.set_title("H3 data example")
@@ -551,7 +772,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_35_0.png)
+![png](Examples_files/Examples_41_0.png)
     
 
 
@@ -595,7 +816,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_40_0.png)
+![png](Examples_files/Examples_46_0.png)
     
 
 
@@ -622,7 +843,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_41_0.png)
+![png](Examples_files/Examples_47_0.png)
     
 
 
@@ -649,7 +870,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_43_0.png)
+![png](Examples_files/Examples_49_0.png)
     
 
 
@@ -677,7 +898,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_44_0.png)
+![png](Examples_files/Examples_50_0.png)
     
 
 
@@ -714,7 +935,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_46_0.png)
+![png](Examples_files/Examples_52_0.png)
     
 
 
@@ -768,7 +989,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_47_0.png)
+![png](Examples_files/Examples_53_0.png)
     
 
 
@@ -800,7 +1021,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_48_0.png)
+![png](Examples_files/Examples_54_0.png)
     
 
 
@@ -823,7 +1044,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_50_0.png)
+![png](Examples_files/Examples_56_0.png)
     
 
 
@@ -848,7 +1069,7 @@ with psm.context(psm.styles.panel):
 
 
     
-![png](Examples_files/Examples_52_0.png)
+![png](Examples_files/Examples_58_0.png)
     
 
 
@@ -871,7 +1092,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_54_0.png)
+![png](Examples_files/Examples_60_0.png)
     
 
 
@@ -888,7 +1109,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_55_0.png)
+![png](Examples_files/Examples_61_0.png)
     
 
 
@@ -952,7 +1173,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_59_0.png)
+![png](Examples_files/Examples_65_0.png)
     
 
 
@@ -985,11 +1206,11 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_61_0.png)
+![png](Examples_files/Examples_67_0.png)
     
 
 
-This works nicely with a discretized coloramp, which be be realized using 
+This works nicely with a discretized coloramp, which be be realized using
 `Boundary
 
 
@@ -1017,7 +1238,7 @@ def piecewise_constant_color_map(colors, name="pccm"):
         arg["blue"].append((breaks[i], last_clr[2], clr[2]))
         last_clr = clr
     return mpcolors.LinearSegmentedColormap(name, arg)
-    
+
 red_blue = piecewise_constant_color_map([(1.0, 0.0, 0.0), (1.0, 0.5, 0.5),
                                         (0.5, 0.5, 1.0), (0.0, 0.0, 1.0)])
 ```
@@ -1058,7 +1279,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_64_0.png)
+![png](Examples_files/Examples_70_0.png)
     
 
 
@@ -1114,7 +1335,7 @@ with psm.context(psm.styles.dark):
 
 
     
-![png](Examples_files/Examples_66_0.png)
+![png](Examples_files/Examples_72_0.png)
     
 
 
@@ -1162,7 +1383,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_69_0.png)
+![png](Examples_files/Examples_75_0.png)
     
 
 
@@ -1213,7 +1434,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_70_0.png)
+![png](Examples_files/Examples_76_0.png)
     
 
 
@@ -1242,7 +1463,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_71_0.png)
+![png](Examples_files/Examples_77_0.png)
     
 
 
@@ -1293,7 +1514,7 @@ with psm.context(psm.styles.light):
 
 
     
-![png](Examples_files/Examples_72_0.png)
+![png](Examples_files/Examples_78_0.png)
     
 
 
@@ -1315,16 +1536,20 @@ plt.imshow(img)
 extent
 ```
 
+    /Users/timothyhochberg/miniforge3/envs/pyseas-test/lib/python3.11/site-packages/osgeo/gdal.py:330: FutureWarning: Neither gdal.UseExceptions() nor gdal.DontUseExceptions() has been explicitly called. In GDAL 4.0, exceptions will be enabled by default.
+      warnings.warn(
 
 
 
-    (118.125, 146.25, 27.059125784374054, 45.089035564831015)
+
+
+    (118.125, 146.25, 27.059125784374057, 45.089035564831015)
 
 
 
 
     
-![png](Examples_files/Examples_74_1.png)
+![png](Examples_files/Examples_80_2.png)
     
 
 
@@ -1346,7 +1571,7 @@ downloader =  pyseas.imagery.tiles.TileDownloader(
 
 It is sometimes convenient to plot the daytime image so that it look more like night.
 Simply multiplying all the colors by by `[0.082, 0.365, 0.808]` does a surpisingly good
-job. Note that this assumes that `img` is in floating point with range 0-1. If it's in 
+job. Note that this assumes that `img` is in floating point with range 0-1. If it's in
 uint8 instead, with range 0-255, you'll need to divide by 255 as well.
 
 
@@ -1377,7 +1602,7 @@ ax3.axis('off');
 
 
     
-![png](Examples_files/Examples_78_0.png)
+![png](Examples_files/Examples_84_0.png)
     
 
 
@@ -1391,5 +1616,34 @@ the standard facecolor can be applied as shown below.
 # plt.savefig('/path/to/file.png', dpi=300, facecolor=plt.rcParams['pyseas.fig.background'])
 ```
 
-## Push rendered notebook to `rendered` repo
-Only uncomment this and run it if you know what you're doing.
+### PDF
+
+#### Rasters
+
+When saving to PDF, the internal resolution is always 72 DPI, which breaks the rendering used by
+`add_raster` and `plot_raster`. To fix this, add a `fig.canvas.draw()` directly before `plot.savefig`
+and set `dpi='figure'`.
+This ensures that rasters are rendered at the figure DPI, which can be set using `context` or during
+figure creation. For example:
+
+```python
+
+fig = plt.figure(dpi=600, ...)
+ax = psm.plot_raster(my_raster, ...)
+
+fig.canvas.draw()
+plt.savefig('/path/to/file.pdf', dpi='figure', ...)
+```
+
+#### Embedding Fonts
+
+To embed true type fonts in a PDF document. First you need to ensure that true type fonts of all fonts
+used in Matplotlib. PySeas styles use Roboto fonts by default, although this may not be completely supported
+inside LaTeX equations. You will also need to set the `pdf.fonttype` to 42:
+```python
+
+with psm.context(psm.styles.dark), {"pdf.fonttype": 42}:
+    fig = plt.figure(...)
+    ...
+    plt.savefig(...)
+```

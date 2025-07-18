@@ -1,4 +1,4 @@
-"""Plotting routines for GFW 
+"""Plotting routines for GFW
 
 
 Examples
@@ -31,14 +31,12 @@ import warnings
 
 import cartopy
 import cartopy.feature as cfeature
-import cartopy.mpl.gridliner
 import geopandas as gpd
 import matplotlib.offsetbox as mplobox
 import matplotlib.pyplot as plt
 import numpy as np
 import shapely
 from matplotlib.lines import Line2D
-from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from shapely.geometry import MultiLineString
 
 from .. import props, styles
@@ -778,14 +776,6 @@ def add_miniglobe(
         proj, np.array([xcen]), np.array([ycen])
     )
 
-    # Create the mini globe, with continents
-    ortho = cartopy.crs.Orthographic(central_latitude=lat, central_longitude=lon)
-    inset = plt.axes([0, 0, 1, 1], projection=ortho, label=uuid.uuid1().hex)
-    inset.set_global()
-    bg_color = plt.rcParams.get("pyseas.ocean.color", props.dark.ocean.color)
-    _set_ax_background(inset, bg_color)
-    add_land(ax=inset, edgecolor="none"),
-
     # Determine appropriate offsets to put mini globe on a corner of the primary
     # plot, then use InsetPosition to place it there.
     try:
@@ -796,16 +786,24 @@ def add_miniglobe(
         raise ValueError('illegal `loc`: "{}"'.format(loc))
     dx = x1 - x0
     dy = y1 - y0
-    ip = InsetPosition(
-        ax,
-        [
+    ortho = cartopy.crs.Orthographic(central_latitude=lat, central_longitude=lon)
+    inset = ax.inset_axes(
+        (
             loc_x - (loc_x - sgn_x * offset) * size * max(dy, dx) / dx,
             loc_y - (loc_y - sgn_y * offset) * size * max(dy, dx) / dy,
             size * dy / min(dy, dx),
             size * dx / min(dy, dx),
-        ],
+        ),
+        projection=ortho,
+        label=uuid.uuid1().hex
     )
-    inset.set_axes_locator(ip)
+    # Create the mini globe, with continents
+    # inset = plt.axes([0, 0, 1, 1], projection=ortho, label=uuid.uuid1().hex)
+    bg_color = plt.rcParams.get("pyseas.ocean.color", props.dark.ocean.color)
+    _set_ax_background(inset, bg_color)
+    add_land(ax=inset, edgecolor="none"),
+
+    inset.set_global()
 
     if central_marker is not None:
         if marker_color is None:
@@ -883,6 +881,7 @@ def add_minimap_aoi(from_ax, to_ax):
     # being projected to infinity when we project back to ortho coordinates.
     outside_poly = shapely.geometry.Polygon(outside_data_proj)
     raw_inside_coords = np.c_[xs, ys]
+
     if outside_poly.is_valid:
         inside_data_primary = (
             shapely.geometry.Polygon(raw_inside_coords)
@@ -916,8 +915,7 @@ def add_minimap_aoi(from_ax, to_ax):
     inner_width = plt.rcParams.get(
         "pyseas.miniglobe.innerwidth", props.dark.miniglobe.inner_width
     )
-    # TODO: inner width should be applied to inner polygon only, so separate polygon with only
-    # inside datas
+
     inset.add_geometries([poly], ortho, facecolor=hlc, edgecolor=None)
     if inner_width > 0:
         poly = shapely.geometry.Polygon(inside_data)

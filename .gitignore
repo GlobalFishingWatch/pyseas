@@ -142,3 +142,5 @@ dmypy.json
 
 # Ignore VSCode environment
 .vscode/
+# pixi environments
+.pixi

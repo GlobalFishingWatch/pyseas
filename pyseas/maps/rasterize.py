@@ -6,7 +6,7 @@ Plotting using `interpolation="nearest"` helps some with this, but still
 results in loss of detail. The functions in this module render rasters and
 H3 data to Cartopy GeoAxes with improved results.
 
-The two main entry points in the module are `raster_show` and `h3_show`. 
+The two main entry points in the module are `raster_show` and `h3_show`.
 `raster_show` has the same interface as `imshow`. `h3_show` is similar
 except it accepts H3 Discrete Global Grid data.
 
@@ -23,7 +23,7 @@ Much code here repurposed from the matplotlib sources for `Axes.imshow` and
 """
 import warnings
 
-import h3.api.numpy_int as h3
+import h3.api.memview_int as h3
 import matplotlib.artist as martist
 import matplotlib.cbook as cbook
 import numpy as np
@@ -32,11 +32,6 @@ from matplotlib.colors import Normalize
 from matplotlib.image import AxesImage
 
 from . import core
-
-with warnings.catch_warnings():
-    # Suppress useless UserWarning about unstable
-    warnings.simplefilter("ignore")
-    from h3.unstable import vect
 
 
 def h3_show(
@@ -202,9 +197,6 @@ def h3_to_raster(h3_data, row_locs, col_locs, transform, fill=0.0):
     are plotted from lowest resolution to highest resolution,
     putting the high resolution cells on top.
 
-    Note that this relies on `h3.unstable`, so might require
-    modification to work in the future.
-
     Parameters
     ----------
     h3_data: dict mapping str to number
@@ -221,20 +213,22 @@ def h3_to_raster(h3_data, row_locs, col_locs, transform, fill=0.0):
     -------
     2D array of float
     """
-    levels = set(vect.h3_get_resolution(np.array(list(h3_data.keys()))))
+    levels = set(h3.get_resolution(x) for x in h3_data.keys())
     shapes = set(np.shape(x) for x in h3_data.values())
     if len(shapes) != 1:
         raise ValueError("H3 data must be consistent")
     [shp] = shapes
 
-    levels = sorted(set(h3.h3_get_resolution(h3id) for h3id in h3_data))
+    levels = sorted(set(h3.get_resolution(h3id) for h3id in h3_data))
     raster = np.empty((len(row_locs), len(col_locs)) + shp)
     raster.fill(np.nan if (fill is None) else fill)
     for i, row in enumerate(row_locs):
         lons, lats = transform([row] * len(col_locs), col_locs)
         for level in levels:
-            h3_indices = vect.geo_to_h3(lats, lons, level)
-            for j, h3ndx in enumerate(h3_indices):
+            for j, (lat, lon) in enumerate(zip(lats, lons)):
+            # h3_indices = vect.geo_to_h3(lats, lons, level)
+            # for j, h3ndx in enumerate(h3_indices):
+                h3ndx = h3.latlng_to_cell(lat, lon, level)
                 if h3ndx in h3_data:
                     raster[i, j] = h3_data[h3ndx]
     return raster
