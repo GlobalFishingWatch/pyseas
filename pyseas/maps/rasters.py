@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 KM_PER_DEG_LAT = 110.574
 KM_PER_DEG_LON0 = 111.320
@@ -28,7 +29,7 @@ class LinearScalar(object):
 
 def df2raster(df, x_label, y_label, v_label, xyscale,
               scale=1, extent=(-180, 180, -90, 90),
-              origin='upper', per_km2=False, nodata='zeroes'):
+              origin='upper', per_km2=False, fill=0.0):
     """
     Convert a DataFrame to raster.
 
@@ -60,8 +61,10 @@ def df2raster(df, x_label, y_label, v_label, xyscale,
         adjustment is to correct for the varying sizes of grid cells
         by latitude. Note that this is not appropriate for quantities
         such as reception quality that do not scale with area.
-    nodata : {'zeroes','nans'}, optional
-        Whether to return zero or nan for cells with no data.  
+    fill : float, optional
+        Fill the grid cells that have no corresponding values in the 
+        dataframe with this value. Defaults to zero. Can be helpful to
+        specify fill=np.nan for gridded data with missing values.
 
     Returns
     -------
@@ -69,18 +72,13 @@ def df2raster(df, x_label, y_label, v_label, xyscale,
     """
     if origin not in ('upper','lower'):
         raise ValueError(f"origin must be 'upper' or 'lower', got {origin!r}")
-    if nodata not in ('zeroes','nans'):
-        raise ValueError(f"nodata must be 'zeroes' or 'nans', got {nodata!r}")
 
     is_upper = (origin == 'upper')
     min_x, max_x, min_y, max_y = [x * xyscale for x in extent]
     ny = int(max_y - min_y)
     nx = int(max_x - min_x)
 
-    if nodata == 'zeroes':
-        grid = np.zeros((ny, nx), dtype=float)
-    else:
-        grid = np.full((ny, nx), np.nan, dtype=float)
+    grid = np.full((ny, nx), np.nan, dtype=float)
 
     scaler = LonLat2Km2Scaler(xyscale, scale) if per_km2 else LinearScalar(scale)
 
@@ -96,10 +94,13 @@ def df2raster(df, x_label, y_label, v_label, xyscale,
             yi = ny - 1 - yi
         if 0 <= xi < nx and 0 <= yi < ny:
             val = scaler(row[xi_col], row[yi_col], row[vi_col])
-            if np.isnan(grid[yi, xi]):
+            if pd.isna(grid[yi, xi]):
                 grid[yi, xi] = val
-            else:
+            elif pd.notna(val):
                 grid[yi, xi] += val
+
+    if fill is not None:
+        grid = np.where(np.isnan(grid), fill, grid)
 
     return grid
 
