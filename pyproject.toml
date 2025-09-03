@@ -27,6 +27,9 @@ dependencies = [
 build-backend = "hatchling.build"
 requires = ["hatchling"]
 
+[tool.setuptools.package-data]
+"pyseas" = ["data/eezs/*", "data/fonts/*", "data/logos/*"]
+
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["osx-arm64", "osx-64"]
