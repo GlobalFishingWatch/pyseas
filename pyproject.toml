@@ -26,14 +26,8 @@ dependencies = [
 where = ["."]
 
 [tool.setuptools.package-data]
-"*" = [
-        '*.ttf',
-        '*.gpkg',
-        '*.md',
-        '*.json',
-        '*.sql',
-        '*.png',
-    ]
+"pyseas" = ["data/eezs/*", "data/fonts/*", "data/logos/*"]
+
 
 [build-system]
 build-backend = "hatchling.build"
