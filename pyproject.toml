@@ -22,9 +22,6 @@ dependencies = [
     "gcsfs>=2025.5.1,<2026",
 ]
 
-[tool.setuptools.packages.find]
-where = ["."]
-
 [tool.setuptools.package-data]
 "pyseas" = ["data/eezs/*", "data/fonts/*", "data/logos/*"]
 
