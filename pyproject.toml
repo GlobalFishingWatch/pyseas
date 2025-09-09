@@ -22,19 +22,6 @@ dependencies = [
     "gcsfs>=2025.5.1,<2026",
 ]
 
-[tool.setuptools.packages.find]
-where = ["."]
-
-[tool.setuptools.package-data]
-"*" = [
-        '*.ttf',
-        '*.gpkg',
-        '*.md',
-        '*.json',
-        '*.sql',
-        '*.png',
-    ]
-
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling"]
