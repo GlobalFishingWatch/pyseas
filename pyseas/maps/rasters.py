@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 KM_PER_DEG_LAT = 110.574
 KM_PER_DEG_LON0 = 111.320
@@ -27,9 +28,10 @@ class LinearScalar(object):
 
 
 def df2raster(df, x_label, y_label, v_label, xyscale,
-              scale=1, extent=(-180, 180, -90, 90), 
-              origin='upper', per_km2=False): 
-    """Convert a DataFrame to raster
+              scale=1, extent=(-180, 180, -90, 90),
+              origin='upper', per_km2=False, fill=0.0):
+    """
+    Convert a DataFrame to raster.
 
     Parameters
     ----------
@@ -49,8 +51,6 @@ def df2raster(df, x_label, y_label, v_label, xyscale,
         Scale the output by this amount
     extent : tuple of float, optional
         (min_x, max_x, min_y, max_y)
-    filter : function(row) -> bool, optional
-        If specified only rows that return true are added to raster
     origin : 'upper' | 'lower', optional
         Whether to to produce a raster with the origin at the upper left
         or at the lower left.
@@ -61,40 +61,48 @@ def df2raster(df, x_label, y_label, v_label, xyscale,
         adjustment is to correct for the varying sizes of grid cells
         by latitude. Note that this is not appropriate for quantities
         such as reception quality that do not scale with area.
+    fill : float, optional
+        Fill the grid cells that have no corresponding values in the 
+        dataframe with this value. Defaults to zero. Can be helpful to
+        specify fill=np.nan for gridded data with missing values.
 
     Returns
     -------
-    np.array
+    np.ndarray
     """
+    if origin not in ('upper','lower'):
+        raise ValueError(f"origin must be 'upper' or 'lower', got {origin!r}")
 
-    # If it turns out to be useful, we could allow xyscale to be a tuple
-    # rather than a scalar.
-    assert origin in ['upper', 'lower']
     is_upper = (origin == 'upper')
-    (min_x, max_x, min_y, max_y) = [x * xyscale for x in extent]
-    columns = list(df.columns)
-    x_ndx = columns.index(x_label) + 1
-    y_ndx = columns.index(y_label) + 1
-    v_ndx = columns.index(v_label) + 1
-
+    min_x, max_x, min_y, max_y = [x * xyscale for x in extent]
     ny = int(max_y - min_y)
     nx = int(max_x - min_x)
-    grid = np.zeros(shape=(ny, nx), dtype=float)
 
-    if per_km2:
-        scaler = LonLat2Km2Scaler(xyscale, scale)
-    else:
-        scaler = LinearScalar(scale)
+    grid = np.full((ny, nx), np.nan, dtype=float)
+
+    scaler = LonLat2Km2Scaler(xyscale, scale) if per_km2 else LinearScalar(scale)
+
+    cols = list(df.columns)
+    xi_col = cols.index(x_label) + 1
+    yi_col = cols.index(y_label) + 1
+    vi_col = cols.index(v_label) + 1
 
     for row in df.itertuples():
-        xi = int(row[x_ndx] - min_x)
-        yi = int((row[y_ndx] - min_y))
+        xi = int(row[xi_col] - min_x)
+        yi = int(row[yi_col] - min_y)
         if is_upper:
             yi = ny - 1 - yi
-        if (0 <= xi < nx) and (0 <= yi < ny):
-            grid[yi, xi] += scaler(row[x_ndx], row[y_ndx], row[v_ndx])
+        if 0 <= xi < nx and 0 <= yi < ny:
+            val = scaler(row[xi_col], row[yi_col], row[vi_col])
+            if pd.isna(grid[yi, xi]):
+                grid[yi, xi] = val
+            elif pd.notna(val):
+                grid[yi, xi] += val
 
-    return grid 
+    if fill is not None:
+        grid = np.where(np.isnan(grid), fill, grid)
+
+    return grid
 
 
 def locs_to_h3_cnts(lons, lats, level):
