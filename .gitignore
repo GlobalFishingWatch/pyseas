@@ -1,7 +1,7 @@
 # Specific to this repo
 *.ipynb
 untracked/
-pyseas/data/logos
+pyseas/data/logos/logo_*.png
 .DS_store
 
 # Byte-compiled / optimized / DLL files

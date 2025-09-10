@@ -22,6 +22,9 @@ dependencies = [
     "gcsfs>=2025.5.1,<2026",
 ]
 
+[tool.setuptools.package-data]
+"pyseas" = ["data/eezs/*", "data/fonts/*", "data/logos/*"]
+
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling"]
