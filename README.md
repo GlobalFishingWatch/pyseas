@@ -24,6 +24,36 @@ which will have `pyseas` available.
 All dependencies (including `cartopy`, `geopandas`, and `rasterio`) install
 cleanly from PyPI wheels — no system GDAL/GEOS/PROJ install is required.
 
+### As a dependency in another UV project
+
+PySeas isn't published to PyPI, so add it as a Git dependency. From the other
+project's directory:
+
+    uv add "git+https://github.com/GlobalFishingWatch/pyseas.git"
+
+This adds the following to that project's `pyproject.toml`:
+
+```toml
+[project]
+dependencies = [
+    "pyseas",
+    # ...
+]
+
+[tool.uv.sources]
+pyseas = { git = "https://github.com/GlobalFishingWatch/pyseas.git" }
+```
+
+(Equivalently, add those two snippets by hand and run `uv sync`.)
+
+By default this tracks the tip of the repo's default branch. For a reproducible,
+pinned install, add `--rev <commit-sha>` (or `--tag <tag>`) to the `uv add`
+command above, which records a `rev =` (or `tag =`) key in `tool.uv.sources`
+instead of tracking a moving branch.
+
+As with using PySeas directly, no system GDAL/GEOS/PROJ install is needed —
+`cartopy`, `geopandas`, and `rasterio` all resolve from PyPI wheels.
+
 ## Documentation
 
 Examples of common plotting tasks are shown in [pyseas/doc/Examples.md](pyseas/doc/Examples.md),
