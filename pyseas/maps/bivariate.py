@@ -197,6 +197,7 @@ def _locs(vmin, vmax, pixels, islog):
 
 class _IndexColormap(Colormap):
     def __init__(self, source):
+        super().__init__(name="pyseas_index_colormap")
         self.source = np.asarray(source)
 
     def __call__(self, x, alpha=None, bytes=False):

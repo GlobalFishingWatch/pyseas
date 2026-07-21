@@ -1159,13 +1159,16 @@ with psm.context(psm.styles.light):
 # ## Tiles
 
 # %%
+# OpenStreetMap's tile usage policy requires a descriptive User-Agent for any
+# scripted access -- see https://operations.osmfoundation.org/policies/tiles/
+# Note that this API is only for light testing.
 downloader = pyseas.imagery.tiles.TileDownloader(
-    server_url="https://storage.googleapis.com/public-tiles/basemap/bathymetry/{z}/{x}/{y}.png",
+    server_url="https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    headers=[("User-Agent", "pyseas-demo/1.0 (https://github.com/GlobalFishingWatch/pyseas)")],
 )
 
 img, extent = downloader.download(extent=([123.65, 138.57, 34.22, 43.77]), zoom=6)
 
-# Note that this is *just* bathymetry, so looks like open ocean
 plt.imshow(img)
 
 # Note that the final extent will typically be larger than input extent since the
@@ -1248,3 +1251,7 @@ ax3.axis('off');
 #     ...
 #     plt.savefig(...)
 # ```
+
+# %%
+
+# %%

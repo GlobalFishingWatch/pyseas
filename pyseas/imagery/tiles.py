@@ -1,4 +1,4 @@
-"""Download tiles from a tile server then merge using gdal
+"""Download tiles from a tile server then merge using rasterio
 
 Based on https://github.com/jimutt/tiles-to-tiff but extensively modified
 """
@@ -9,9 +9,12 @@ import tempfile
 import urllib.request
 from math import atan, ceil, cos, degrees, floor, log, pi, radians, sinh, tan
 
+import numpy as np
+import rasterio
 from numpy import clip
-from osgeo import gdal
-from osgeo.gdalconst import GA_ReadOnly
+from rasterio.enums import ColorInterp
+from rasterio.merge import merge
+from rasterio.transform import from_bounds
 
 
 def latlonzoom_to_xy(lat, lon, z):
@@ -63,16 +66,33 @@ def tile_edges(x, y, zoom):
 
 
 def georeference_raster_tile(x, y, zoom, path):
-    bounds = tile_edges(x, y, zoom)
+    west, north, east, south = tile_edges(x, y, zoom)
     filename, extension = os.path.splitext(path)
-    gdal.Translate(filename + ".tiff", path, outputSRS="EPSG:4326", outputBounds=bounds)
+    with rasterio.open(path) as src:
+        data = src.read()
+        if src.colorinterp[0] == ColorInterp.palette:
+            lut = np.zeros((256, 4), dtype=np.uint8)
+            for idx, rgba in src.colormap(1).items():
+                lut[idx] = rgba
+            data = lut[data[0]].transpose(2, 0, 1)
+    count, height, width = data.shape
+    transform = from_bounds(west, south, east, north, width, height)
+    profile = dict(
+        driver="GTiff",
+        height=height,
+        width=width,
+        count=count,
+        dtype=data.dtype,
+        crs="EPSG:4326",
+        transform=transform,
+    )
+    with rasterio.open(filename + ".tiff", "w", **profile) as dst:
+        dst.write(data)
 
 
-def merge_tiles(input_pattern, output_path):
-    with tempfile.TemporaryDirectory() as temp_dir:
-        vrt_path = temp_dir + "/tiles.vrt"
-        gdal.BuildVRT(vrt_path, glob.glob(input_pattern))
-        gdal.Translate(output_path, vrt_path)
+def merge_tiles(input_pattern):
+    paths = glob.glob(input_pattern)
+    return merge(paths)
 
 
 class TileDownloader:
@@ -120,15 +140,28 @@ class TileDownloader:
         else:
             return path
 
-    def _compute_extent(self, gdal_img):
-        gt = gdal_img.GetGeoTransform()
-        proj = gdal_img.GetProjection()
+    def _compute_extent(self, data, transform):
+        _, height, width = data.shape
         return (
-            gt[0],
-            gt[0] + gdal_img.RasterXSize * gt[1],
-            gt[3] + gdal_img.RasterYSize * gt[5],
-            gt[3],
+            transform.c,
+            transform.c + width * transform.a,
+            transform.f + height * transform.e,
+            transform.f,
         )
+
+    def _write_geotiff(self, path, data, transform):
+        count, height, width = data.shape
+        profile = dict(
+            driver="GTiff",
+            height=height,
+            width=width,
+            count=count,
+            dtype=data.dtype,
+            crs="EPSG:4326",
+            transform=transform,
+        )
+        with rasterio.open(path, "w", **profile) as dst:
+            dst.write(data)
 
     def download(self, extent, zoom, path=None):
         x_min, x_max, y_min, y_max = bbox_and_zoom_to_xy(*extent, zoom)
@@ -144,15 +177,11 @@ class TileDownloader:
                         georeference_raster_tile(x, y, zoom, png_path)
             logging.info("Download complete")
 
-            output_path = f"{temp_dir}/output.tiff" if (path is None) else path
-            logging.info(f"Merging tiles to {output_path}")
-            merge_tiles(f"{temp_dir}/download_*.tiff", output_path)
-            logging.info("Computing extent")
-            gdal_img = gdal.Open(output_path, GA_ReadOnly)
-            extent = self._compute_extent(gdal_img)
+            logging.info("Merging tiles")
+            data, transform = merge_tiles(f"{temp_dir}/download_*.tiff")
+            extent = self._compute_extent(data, transform)
 
-            if path is None:
-                data = gdal_img.ReadAsArray().transpose(1, 2, 0)
-                return data, extent
-            else:
+            if path is not None:
+                self._write_geotiff(path, data, transform)
                 return extent
+            return data.transpose(1, 2, 0), extent
