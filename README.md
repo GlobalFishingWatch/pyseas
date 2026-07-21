@@ -10,38 +10,49 @@ A library to make GFW style maps in Python.
 
 ## Using Pyseas
 
-### Via Pixi
+### Via UV
 
-Install Pixi as shown [here].
-
-Then run either `pixi shell` or `pixi run jupyter notebook`. This will start a shell
-or run a notebook in a mininal environment that includes `pyseas`.
-
-This environment is decribed in the `pyproject.toml` file and is best modified using
-`pixi add`. For more information see [info.sh](info.sh)
-
-### Using Conda
-
-Some of the dependencies do not install cleanly via `pip`, so the recommended approach
-is to install them using Conda. The following recipes is currently preferred:
+Install [UV](https://docs.astral.sh/uv/) if you don't already have it.
 
     git clone https://github.com/GlobalFishingWatch/pyseas.git
     cd pyseas
+    uv sync
 
-Then, to install in new Conda environment named `pyseas`:
+Then run `uv run jupyter notebook`, or `uv run python` for a shell, either of
+which will have `pyseas` available.
 
-    conda create -c conda-forge -y -n pyseas python=3.11 cartopy gdal
-    conda activate pyseas
-    pip install -e .
+All dependencies (including `cartopy`, `geopandas`, and `rasterio`) install
+cleanly from PyPI wheels — no system GDAL/GEOS/PROJ install is required.
 
-Or, to install in an existing Conda environment:
+### As a dependency in another UV project
 
-    conda activate CONDA-ENV-NAME
-    conda install -c conda-forge -y -n CONDA-ENV-NAME python=3.11 cartopy gdal
-    pip install -e .
+PySeas isn't published to PyPI, so add it as a Git dependency. From the other
+project's directory:
 
-If you are not interested in the `Examples` notebooks, you may omit `-e` and
-avoid the in-place install.
+    uv add "git+https://github.com/GlobalFishingWatch/pyseas.git"
+
+This adds the following to that project's `pyproject.toml`:
+
+```toml
+[project]
+dependencies = [
+    "pyseas",
+    # ...
+]
+
+[tool.uv.sources]
+pyseas = { git = "https://github.com/GlobalFishingWatch/pyseas.git" }
+```
+
+(Equivalently, add those two snippets by hand and run `uv sync`.)
+
+By default this tracks the tip of the repo's default branch. For a reproducible,
+pinned install, add `--rev <commit-sha>` (or `--tag <tag>`) to the `uv add`
+command above, which records a `rev =` (or `tag =`) key in `tool.uv.sources`
+instead of tracking a moving branch.
+
+As with using PySeas directly, no system GDAL/GEOS/PROJ install is needed —
+`cartopy`, `geopandas`, and `rasterio` all resolve from PyPI wheels.
 
 ## Documentation
 
